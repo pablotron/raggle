@@ -2362,3 +2362,7 @@ _Cvs
 * Tue Mar 15 12:18:01 2005, pabs <pabs@pablotron.org>
   * raggle: change HTML::TAG_SET so rdoc won't barf when generating API
     documentation.
+
+* Tue Mar 15 12:58:18 2005, pabs <pabs@pablotron.org>
+  * not really a change here, but I updated the online documentation for
+    our pending 0.4.0 release!

@@ -2514,13 +2514,15 @@ end
 def select_cat str
   $category = str
 
-  # none of this nonsense works yet (pabs)
-  # select feed window (redisplay with new category)
+  # rebuild feed window
   populate_feed_win
-  $a_feed = 0
-  set_active_win(get_win_id('feed'))
-  #
-  # # delete category window
+
+  # select feed window and select top feed
+  w_id = get_win_id('feed')
+  set_active_win(w_id)
+  $wins[w_id].activate 0
+  
+  # delete category window
   id = get_win_id('cat')
   $wins.delete_at(id)
 end

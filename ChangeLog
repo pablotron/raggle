@@ -1805,3 +1805,7 @@
   * raggle: rest of console category selection
   * raggle: cat selection bound to 'c' (this may be a problem, we'll
     try it for a while and see what happens)
+
+* Sat Mar 20 21:51:52 2004, pabs <pabs@pablotron.org>
+  * raggle: cleaned up post-cat selection window hilighting
+  * doc/pauls_feeds.opml.gz: updated

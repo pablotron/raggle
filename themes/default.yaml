@@ -1,0 +1,62 @@
+name: Default Theme
+status_bar_cols: 24
+win_feed: 
+  title: Feeds
+  type: list
+  coords: 
+    - 0
+    - 0
+    - 25
+    - -1
+  key: feed
+  colors: 
+    box: 4
+    title: 1
+    text: 1
+    a_box: 3
+    h_text: 16
+    a_title: 21
+    unread: 6
+    h_unread: 36
+window_order: 
+  - feed
+  - item
+  - desc
+win_desc: 
+  title: Description
+  type: text
+  coords: 
+    - 25
+    - 15
+    - -1
+    - -1
+  key: desc
+  colors: 
+    box: 4
+    title: 1
+    text: 1
+    a_box: 3
+    date: 6
+    h_text: 16
+    a_title: 21
+    url: 6
+author: Paul Duncan <pabs@pablotron.org>
+url: http://www.pablotron.org/software/raggle/
+win_item: 
+  title: Items
+  type: list
+  coords: 
+    - 25
+    - 0
+    - -1
+    - 15
+  key: item
+  colors: 
+    box: 4
+    title: 1
+    text: 1
+    a_box: 3
+    h_text: 16
+    a_title: 21
+    unread: 6
+    h_unread: 36

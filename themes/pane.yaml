@@ -1,0 +1,62 @@
+name: Paned Theme
+win_feed: 
+  title: Feeds
+  type: list
+  coords: 
+    - 0
+    - 0
+    - 40
+    - 15
+  colors: 
+    box: 4
+    a_box: 3
+    text: 1
+    title: 1
+    unread: 6
+    a_title: 21
+    h_text: 16
+    h_unread: 36
+  key: feed
+status_bar_cols: 24
+win_desc: 
+  title: Description
+  type: text
+  coords: 
+    - 0
+    - 15
+    - -1
+    - -1
+  colors: 
+    box: 4
+    a_box: 3
+    text: 1
+    title: 1
+    date: 6
+    url: 6
+    a_title: 21
+    h_text: 16
+  key: desc
+window_order: 
+  - feed
+  - item
+  - desc
+win_item: 
+  title: Items
+  type: list
+  coords: 
+    - 40
+    - 0
+    - -1
+    - 15
+  colors: 
+    box: 4
+    a_box: 3
+    text: 1
+    title: 1
+    unread: 6
+    a_title: 21
+    h_text: 16
+    h_unread: 36
+  key: item
+url: http://www.pablotron.org/software/raggle/
+author: Paul Duncan <pabs@pablotron.org>

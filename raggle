@@ -2685,14 +2685,13 @@ ENDUSAGE
 
         error = false
         if str and str.length > 0
-          error = true if (feedopt == 'title' or feedopt == 'category') and
-                          str !~ /^[\w\s,]+$/
+          url_chars = "a-zA-Z0-9;\/?:@&=+$,_.!~*'()%-"  # see RFC 2396
           error = true if (feedopt == 'priority' or feedopt == 'refresh') and
                           str !~ /^-?\d+$/
           error = true if feedopt == 'max_items' and not
                           (str =~ /^\d+$/ or str =~ /none|nil/i)
           error = true if (feedopt == 'url' or feedopt == 'site') and
-                          str !~ /[^\s]+/
+                          str !~ /^[#{url_chars}]+$/
           error = true if feedopt == 'save_items?' and not
                           (str == 'true' or str == 'false')
           error = true if feedopt == 'refresh' and

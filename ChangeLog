@@ -1741,3 +1741,7 @@
     week now w/o crashing. so i _think_ it's stable now
   * raggle: fix regex warnings (reported by Brian Almeida)
   * raggle: fix date description showing as timestamp for feeds
+
+* Thu Feb 19 23:09:06 2004, pabs <pabs@pablotron.org>
+  * TODO: updated. marked off some stuff, added notes
+  * BUGS: added current bugs, marked off fixed ones

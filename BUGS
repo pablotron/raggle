@@ -1,8 +1,8 @@
 Bugs
 =====
 [*] Description doesn't scroll
-[-] Feed grabbing thread will block if the HTTP connection blocks 
-    (work in progress)
+[*] Feed grabbing thread will block if the HTTP connection blocks 
+    (work in progress) FIXED with parallel feed grabbing
 [ ] Sometimes (totally unreproducibly), the feeds file will be saved
     is the FeedList were an array, (not reproducible here)
 [*] Sometimes (every time), the FeedList will be loaded as a Hash
@@ -13,7 +13,7 @@ Bugs
     1.8.0-preview 3, the first to include YAML in the base, works just fine)
 [ ] Code *very* untidy in places.
 [ ] Man page is worthlessly incomplete
-[x] It's possible that sometimes the inline documentation ("Raggle"
+[*] It's possible that sometimes the inline documentation ("Raggle"
     feed) items aren't created from the default list (We can't even
     decide if this is really happenening or not. NOTABUG, removal of
     feed cache will remove items, items can't be refetched from this
@@ -75,3 +75,7 @@ Bugs
     the mailing list on October, but I don't have the URL handy at the
     moment)
 [ ] outstanding terminal resize / redraw bug
+[*] parallel feed grabbing kills main feed grabbing thread, and
+    sometimes Raggle along with it
+[*] regex range warnings (reported by Brian Almeida)
+[*] feed dates showed as timestamps

@@ -3,14 +3,14 @@ Raggle TODO
 [*] scrolling
 [*] sanitize window modes (remove text reflow from draw())
 [*] clean up code (move methods to modules, eliminate globals, etc)
-[ ] modularize code to make it suitable for reuse
+[-] modularize code to make it suitable for reuse
 [*] finish inline documentation
 [*] command-line options
 [*] feed grab save existing items
 [*] speed up feed cache loading
 [*] theme shouldn't save hard-coded window coordinates
 [*] scrolling in Description window
-[ ] fix blocking for feed grabbing (grab feeds in parallel?)
+[*] fix blocking for feed grabbing (grab feeds in parallel?)
 [*] better theme format
 [*] Convert manpage (raggle.1) to -ms
 [ ] Window resizing.
@@ -62,7 +62,8 @@ Raggle TODO
 [ ] Technocrati integration
 [ ] syndic8 integration
 [ ] BlogThis support?
-[ ] user-configurable http open timeout and http read timeout
+[-] user-configurable http open timeout and http read timeout
+    (not gonna do this now)
 [ ] per-feed xpath configuration?
 [*] feed groups (only in web interface at the moment)
 [-] clean separation of Ncurses and WEBrick interfaces (maybe an

@@ -108,6 +108,50 @@ $config = {
   'use_noecho'    => true,
 
   'debug_feeds'   => [
+    { 'title'     => 'Raggle',
+      'url'       => 'http://www.pablotron.org/software/raggle/help.rss',
+      'refresh'   => -1,
+      'items'     => [
+        { 'title' => 'Introduction',
+          'url'   => 'http://www.pablotron.org/software/raggle/',
+          'date'  => 1055074823,
+          'desc'  => 'Welcome to Raggle!
+. .
+Raggle is a command-line RSS aggregator, written in Ruby
+(http://www.ruby-lang.org/).  Raggle is free software; please see the
+file COPYING or the License item in this feed for licensing and
+warranty information.', },
+        { 'title' => 'License',
+          'url'   => 'http://www.pablotron.org/software/raggle/',
+          'date'  => 1055074823,
+          'desc'  => 'Copyright (C) 2003
+Paul Duncan, and various contributors.
+. . 
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to
+deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+sell copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+. .
+The above copyright notice and this permission notice shall be included in
+all copies of the Software, its documentation and marketing & publicity 
+materials, and acknowledgment shall be given in the documentation, materials
+and software packages that this Software was used.
+. .   
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER 
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+          ', },
+        { 'title' => 'Usage',
+          'url'   => 'http://www.pablotron.org/software/raggle/',
+          'date'  => 1055074823,
+          'desc'  => 'more fun with testing', },
+      ],
+    },
     { 'title'     => 'Slashdot',
       'url'       => 'http://slashdot.org/slashdot.rss',
       'refresh'   => 30,
@@ -338,8 +382,10 @@ end
 #
 def set_active_win(a_win)
   $wins[$a_win].active = false
+  $wins[$a_win].refresh
   $a_win = a_win
   $wins[$a_win].active = true
+  $wins[$a_win].refresh
 end
 
 #
@@ -477,12 +523,6 @@ begin
     else  
       $wins[$a_win].handle_key c
     end
-
-    # refresh each window
-    $wins.each { |win| win.refresh }
-
-    # refresh screen (is this necessary?)
-    # Ncurses::refresh # Ncurses::stdscr
   end
 ensure
   # make sure the screen gets cleaned up on exit

@@ -23,3 +23,10 @@
 
 * Sun Jun 08 08:04:46 2003, pabs <pabs@pablotron.org>
   * raggle: added brief documentation to each method
+
+* Sun Jun 08 08:11:42 2003, pabs <pabs@pablotron.org>
+  * raggle: slightly improved window refreshing
+
+* Sun Jun 08 18:19:32 2003, pabs <pabs@pablotron.org>
+  * raggle: added preliminary online documentation as a pseudo-feed
+  * added rss_grab.rb

@@ -40,8 +40,12 @@
 $VERSION = '0.2.0'
 
 # As early as possible, ^C and ^\ are common, and dumping a trace is ugly
-trap('INT') { puts "Interrupted"; exit -1 }
-trap('QUIT') { puts "Quit"; exit -1 }
+# On the other hand, dumping trace is very useful when running tests, therefore
+# disable these unless this file is executed.
+if __FILE__ == $0
+  trap('INT') { puts "Interrupted"; exit -1 }
+  trap('QUIT') { puts "Quit"; exit -1 }
+end
 
 # load required modules
 require 'getoptlong'
@@ -105,6 +109,15 @@ end
 #
 def in_screen?
   ENV['WINDOW'] != nil
+end
+
+#
+# get the proxy host and port from ENV['http_proxy']
+#
+def find_proxy
+  ret = [nil, nil]
+  ret = [$1, $2] if ENV['http_proxy'] =~ /http:\/\/([^:]+):(\d+)/
+  ret
 end
 
 class String
@@ -276,6 +289,282 @@ module Key
   def Key::open_link
     win = $wins[get_win_id('desc')]
     win.select_win_item
+  end
+end
+
+module HTML
+  # Tag set defines all tags that the renderer
+  # can handle
+  #
+  # Each tag can modify the context by
+  # defining +:context+ key (see pre).
+  #
+  # Tag's can also have actions which
+  # will be executed sequentially when
+  # the tag occurs in the token stream.
+  # Actions must be defined to occurences
+  # of start tags and end tags separately.
+  class TagSet
+    class Tag
+      def initialize
+	@context = nil
+	@start_actions = []
+	@end_actions = []
+      end
+
+      attr_accessor :context
+      attr_reader :start_actions
+      attr_reader :end_actions
+
+      def start_actions=(*actions)
+	@start_actions = actions.flatten
+      end
+
+      def end_actions=(*actions)
+	@end_actions = actions.flatten
+      end
+    end
+    
+    def initialize
+      @tags = Hash.new
+      yield self
+    end
+
+    def define_tag(*names)
+      yield tag_spec = Tag.new
+      names.each do |name|
+	yield @tags[name] = tag_spec
+      end
+    end
+
+    def defined?(name)
+      @tags.has_key?(name)
+    end
+    
+    def [](name)
+      @tags[name]
+    end
+  end
+
+  TAG_SET = TagSet.new do |tag_set|
+    tag_set.define_tag 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'  do |tag|
+      tag.start_actions = :maybe_new_paragraph
+      tag.end_actions = :new_paragraph
+    end
+
+    tag_set.define_tag 'pre' do |tag|
+      tag.context = :in_pre
+      tag.start_actions = :maybe_new_paragraph
+      tag.end_actions = :new_paragraph
+    end
+
+    tag_set.define_tag 'br', 'br/' do |tag|
+      tag.start_actions = :force_line_break
+    end
+
+    tag_set.define_tag 'a' do |tag|
+      tag.start_actions = :save_href
+      tag.end_actions = :insert_link_ref
+    end
+  end
+
+  def self.render_html(source, width=72)
+    r = Renderer.new(source, width)
+    r.rendered_text
+  end
+  
+  class Renderer
+    def initialize(source, width)
+      @source, @width = source, width
+      @links = []
+      @rendered_text = render
+    end
+
+    attr_reader :rendered_text
+    
+    # Execute actions defined for +tag+ in this
+    # +phase+.
+    #
+    # actions:: actions set
+    # tag::     tag from tag set
+    # phase::   either +:start+ or +:end+
+    # params::  params passed to the actions
+    def call_actions(tag, phase, *params)
+      actions = phase == :start ? tag.start_actions : tag.end_actions
+      actions.each do |action|
+	self.send("action_#{action}", *params)
+      end
+    end
+    
+    # Enter to context defined by tag (if any)
+    #
+    # context:: current context stack
+    # tag::     tag from tag set
+    def context_enter(context, tag)
+      if tag.context
+	context << tag.context
+      end
+    end
+    
+    # Exit from context defined by tag (if any)
+    #
+    # context:: current context stack
+    # tag::     tag from tag set
+    def context_exit(context, tag)
+      if tag.context
+	context.pop
+      end
+    end
+    
+    # Reflow +text+, and append the result to
+    # +lines+
+    #
+    # lines:: line array representing lines on screen
+    # text::  text to be reflown
+    # width:: maximum width of each line on screen
+    def reflow_text(text)
+      cur_line = @lines.pop || ''
+      text.split(/\s+/).each do |word|
+	if cur_line.length + word.length > @width
+	  @lines << cur_line
+	  cur_line = ""
+	end
+	cur_line << " " unless cur_line.empty? || cur_line[-1] == ?\ # fix emacs
+	cur_line << word.chomp
+      end
+      @lines << cur_line
+    end
+    
+    
+    # Renders HTML in +src+ to a screen
+    # with maximum width +width+. Returns
+    # +String+ containing rendered text.
+    #
+    # src::   HTML source
+    # width:: Screen width
+    def render
+      @lines = []
+      @context = []
+      
+      Parser::each_token(@source) do |token, data, attributes|
+	#puts "C: #{context[-1]} T: #{token} D: <#{data}> L: #{lines.inspect}"
+	case token
+	when :TEXT
+	  if @context[-1] == :in_pre
+	    @lines.pop if @lines[-1] == ""
+	    @lines += data.split("\n", -1)
+	  else
+	    reflow_text(data)
+	  end
+	when :START_TAG
+	  @current_attributes = attributes
+	  tag = TAG_SET[data]
+	  next unless tag
+	  context_enter(@context, tag)
+	  call_actions(tag, :start)
+	when :END_TAG
+	  tag = TAG_SET[data]
+	  next unless tag
+	  context_exit(@context, tag)
+	  call_actions(tag, :end)
+	end
+      end
+
+      # trim trailine new lines
+      until @lines[-1] != ''
+	@lines.delete_at(@lines.size - 1)
+      end
+
+      # If there are links, insert the them here
+      unless @links.empty?
+	@lines << ''
+	@lines << 'LINKS:'
+	padding = @links.size / 10 + 1
+	@links.each_with_index do |link, index|
+	  @lines << "%#{padding}d. %s" % [index + 1, link]
+	end
+      end
+      
+      rendered_text = @lines.join("\n") + "\n"
+      $config['unescape_html'] ? rendered_text.unescape_html : rendered_text
+    end
+
+    # Actions used in the tag set
+
+    # Append paragraph break
+    def action_new_paragraph
+      @lines.push(*['', ''])
+    end
+
+    # Append paragraph break, unless there
+    # is one already.
+    def action_maybe_new_paragraph
+      unless @lines[-1] == '' || @lines.empty?
+	@lines.push(*['', ''])
+      end
+    end
+
+    # Force line break.
+    def action_force_line_break
+      @lines << ''
+    end
+
+    # Save href of the current tag (if it exists)
+    def action_save_href
+      @links << @current_attributes['href']
+    end
+
+    # insert reference to the latest link into the
+    # rendered text
+    def action_insert_link_ref
+      @lines[-1] << '[%d]' % @links.size
+    end
+  end
+
+  module Parser
+    NO_ATTRIBUTES = {}.freeze
+    ATTRIBUTE_LIST_RE = /\s*([^>=\s]+)\s*(?:=\s*(?:(?:['"]([^'">]*)['"])|([^'"\s>]+)))?/ #'
+    PARSER_RE = %r!<(/?\w+[^>]*?/?)>|([^<]*)!m
+    
+    # Parses tag's attributes and returns them
+    # in a hash.
+    def self.parse_attributes(source)
+      #puts "SOURCE: ", source
+      attributes = {}
+      source.scan(ATTRIBUTE_LIST_RE) do |name, value, unquoted_value|
+	attributes[name] = value || unquoted_value || ''
+      end
+      attributes
+    end
+    
+    # Parses HTML in +source+ and invokes
+    # block with each token as a paramater.
+    #
+    # Parameters to the block:
+    #  token id   | data        | attributes
+    #  :TEXT      | text        | NO_ATTRIBUTES
+    #  :START_TAG | tag's name  | attributes of current tag
+    #  :END_TAG   | tag's name  | NO_ATTRIBUTES
+    #
+    # source:: HTML source
+    def self.each_token(source)
+      source.scan(PARSER_RE) do |tag, text|
+	#p tag, text
+	if tag
+	  if tag[0] == ?/
+	    yield :END_TAG, tag[1..-1], NO_ATTRIBUTES
+	  else
+	    if tag =~ /\A(\w+)\s*(.*)\z/m
+	      attributes = NO_ATTRIBUTES
+	      attributes = parse_attributes($2) if $2
+	      yield :START_TAG, $1, attributes
+	    end
+	  end
+	else
+	  yield :TEXT, text, NO_ATTRIBUTES unless text == ""
+	end
+      end
+    end
   end
 end
 
@@ -969,7 +1258,7 @@ end
 class TextWindow < Window
   def reflow_string(str)
     w = dimensions[0]
-    str.reflow(w - 4, $config['force_text_wrap'])
+    HTML.render_html(str, w - 4)
   end
        
   def draw_items
@@ -1005,7 +1294,7 @@ class TextWindow < Window
       y += 2
       str = item['title'] || ''
       str = str.strip_tags if $config['strip_html_tags']
-      str = str.unescape_html if $config['unescape_html']
+     
       # Offset + 1, so we scroll on the *first* press
       draw(str, 1, y, 'text', true, true, @offset + 1)
       y += (reflow_string(str).lines - @offset)
@@ -1935,6 +2224,8 @@ def setup_win
 end
 
 def main
+  
+  
   # expand the default config hash
   expand_config
 
@@ -2188,6 +2479,12 @@ $config = {
   'no_desc_auto_focus'    => true,
   'scroll_wrapping'       => true,
 
+  # proxy settings
+  'proxy' => {
+    'host'  => find_proxy[0],
+    'port'  => find_proxy[1],
+  },
+
   # Number of list items per "page" (wrt page up/down)
   # (if < 0, then the height of the window, minus N items)
   'page_step'             => -3,
@@ -2224,7 +2521,7 @@ $config = {
   'grab_log_mode'         => 'w',
 
   # strip html from item contents?
-  'strip_html_tags'       => true,
+  'strip_html_tags'       => false,
 
   # decode html escape sequences?
   'unescape_html'         => true,
@@ -2675,15 +2972,17 @@ message.
   ],
 }
 
-if $config['diag']
-  begin
+if __FILE__ == $0
+  if $config['diag']
+    begin
+      main
+    rescue => err
+      puts "#{err.message} (#{err.class})"
+      #err.backtrace.collect! { |name| name = "[#{name}]" }
+      #puts err.backtrace.reverse.join(" -> ")
+      err.backtrace.each { |frame| puts frame }
+    end
+  else
     main
-  rescue => err
-    puts "#{err.message} (#{err.class})"
-    #err.backtrace.collect! { |name| name = "[#{name}]" }
-    #puts err.backtrace.reverse.join(" -> ")
-    err.backtrace.each { |frame| puts frame }
   end
-else
-  main
 end

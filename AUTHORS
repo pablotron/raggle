@@ -64,6 +64,7 @@ Thomas Kirchner <redshift@halffull.org>
 * periodic and manual feeds/config saving
 * duplicate feed checking
 * ability to mark items as unread
+* 'n' and 'p' feed spanning
 * help window
 * feed priorities
 * item deletion and undeletion

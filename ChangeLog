@@ -1715,3 +1715,13 @@
   * raggle: remove REXML::Encoding::ENCODING_CLAIMS stuff; it's apparently
     been either moved or removed from REXML.
   * doc/pauls_feeds.opml.gz: updated
+
+* Fri Jan 30 22:46:08 2004, pabs <pabs@pablotron.org>
+  * raggle: remove Thread::critical stuff, those appear to be 
+    causing the locked feed grabbing thread stuff
+  * raggle: fix a few race conditions in the parallel grabbing
+    stuff
+  * raggle: move feed grabbing code to grab_feed(), removes some
+    potential race issues
+  * raggle: disable non-parallel feed grabbing for the time being
+

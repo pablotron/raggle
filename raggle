@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+#!/usr/bin/env ruby1.8
 # -*- Mode: Ruby -*-
 
 #######################################################################
@@ -1275,6 +1275,8 @@ module Feed
     def parse_rss_url(url, last_modified = nil)
       begin
         content, modified = Feed::get_url(url, last_modified)
+        $log.puts "content: #{content[0,80]}",
+                  "modified: #{modified}"
       rescue
         raise "Couldn't get URL \"#{url}\": #$!."
       end
@@ -1286,9 +1288,7 @@ module Feed
           $config['strip_external_entities'] && content =~ /<!ENTITY %.*?>/m
 
         # parse URL content
-        Thread::critical = true
         doc = REXML::Document.new content
-        Thread::critical = false
 
         # get channel info
         e = nil
@@ -3171,6 +3171,108 @@ def setup_win
     set_active_win(0)
 end
 
+def grab_feed(feed)
+  t = Time.now
+  
+  $new_status = " Checking feed \"#{feed['title']}\"..."
+  $log.puts "#{Time.now}: Checking feed \"#{feed['title']}\""
+  return unless feed['refresh'] > 0 && 
+    feed['updated'] + (feed['refresh'] * 60) < t.to_i
+  
+  # update statusbar and grab log
+  $new_status = " Updating feed \"#{feed['title']}\"..."
+  $log.puts "#{t}: Updating feed \"#{feed['title']}\" from " +
+            "\"#{feed['url']}\""
+  
+  # get channel
+  begin
+    chan = Feed::Channel.new(feed['url'], feed['last_modified'])
+    feed.delete 'error'
+  rescue
+    # set_status "Error updating \"#{feed['title']}\"."
+    $log.puts "#{t}: Error: #$!"
+    feed['error'] = "#$!"
+    return
+  end
+  
+  # update feed attributes
+  if !chan.last_modified ||
+     chan.last_modified != feed['last_modified']
+    Thread::critical = $config['use_critical_regions']
+    feed['title'] = chan.title unless $config['lock_feed_title'] ||
+                                      feed['lock_title?'] == true
+    feed['desc'] = chan.desc
+    feed['site'] = chan.link
+    feed['image'] = chan.image
+    feed['updated'] = t.to_i
+
+    # Note: last_modified is slightly different than modified,
+    # because we're using it as a token, not as a timestamp
+    # -- paul
+    feed['last_modified'] = chan.last_modified
+    
+    # hash the urls, save the read status
+    urls = {}
+    feed['items'].each { |item| urls[item['url']] = item['read?'] }
+
+    # clear the list if we're not saving feed items
+    Thread::critical = $config['use_critical_regions']
+    feed['items'].clear unless $config['save_feed_items'] ||
+                               feed['save_items?']
+    Thread::critical = false
+    
+    # insert new items
+    new_items = []
+    chan.items.each { |item|
+      unless (($config['save_feed_items'] ||
+               feed['save_items?']) &&
+              urls.has_key?(item.link))
+        was_read = urls.has_key?(item.link) && urls[item.link]
+        new_items << {
+          'title' => item.title,
+          'date'  => item.date,
+          'url'   => item.link,
+          'desc'  => item.desc,
+          'read?' => was_read,
+          'added' => Time.now.to_i,
+        }
+      end
+    }
+    
+    # if we're saving old items, then prepend the new items
+    # otherwise, replace the old list
+    Thread::critical = $config['use_critical_regions']
+    if $config['save_feed_items'] || feed['save_items?']
+      feed['items'] = new_items + feed['items']
+
+      max = $config['max_feed_items'] || feed['max_items']
+      if max && max > 0
+        old = (feed['items'].slice!(max .. -1) || []).size
+        $log.puts "#{t}: Removing #{old} old items."
+      end
+    else
+      feed['items'] = new_items
+    end
+    Thread::critical = false
+  else 
+    feed['updated'] = t.to_i
+    $log.puts "Feed \"#{feed['title']}\" hasn't changed."
+  end
+  
+  # if this is the currently selected feed, then re-select it
+  # so it's contents are updated
+  # TODO: make this select the currently selected item again
+  # (assuming it still exists)
+  if !$config['run_http_server'] && !$config['run_drb_server'] &&
+     $config['feeds'][$a_feed]['url'] == feed['url']
+    $wins[get_win_id('feed')].select_win_item
+  end
+
+  # redraw feed / item windows
+  $update_wins = true
+end
+
+
 #######################################################################
 # End Shenanigans, Begin Actual Code                                  #
 #######################################################################
@@ -3291,114 +3393,14 @@ def main
       loop {
         if !first_iteration || $config['update_on_startup']
           begin
-            threads = { }
             $config['feeds'].each { |the_feed|
-              threads[the_feed['url']] = Thread::new(the_feed) { |feed|
-                t = Time.now
-                
-                $new_status = " Checking feed \"#{feed['title']}\"..."
-                log.puts "#{Time.now}: Checking feed \"#{feed['title']}\""
-                next unless feed['refresh'] > 0 && 
-                  feed['updated'] + (feed['refresh'] * 60) < t.to_i
-                
-                # update statusbar and grab log
-                $new_status = " Updating feed \"#{feed['title']}\"..."
-                log.puts "#{t}: Updating feed \"#{feed['title']}\" from " +
-                         "\"#{feed['url']}\""
-                
-                # get channel
-                begin
-                  chan = Feed::Channel.new(feed['url'], feed['last_modified'])
-                  feed.delete 'error'
-                rescue
-                  # set_status "Error updating \"#{feed['title']}\"."
-                  log.puts "#{t}: Error: #$!"
-                  feed['error'] = "#$!"
-                  next
-                end
-                
-                # update feed attributes
-                if !chan.last_modified ||
-                   chan.last_modified != feed['last_modified']
-                  Thread::critical = $config['use_critical_regions']
-                  feed['title'] = chan.title unless $config['lock_feed_title'] ||
-                                                    feed['lock_title?'] == true
-                  feed['desc'] = chan.desc
-                  feed['site'] = chan.link
-                  feed['image'] = chan.image
-                  feed['updated'] = t.to_i
-
-                  # Note: last_modified is slightly different than modified,
-                  # because we're using it as a token, not as a timestamp
-                  # -- paul
-                  feed['last_modified'] = chan.last_modified
-                  Thread::critical = false
-                  
-                  # hash the urls, save the read status
-                  urls = {}
-                  feed['items'].each { |item| urls[item['url']] = item['read?'] }
-
-                  # clear the list if we're not saving feed items
-                  Thread::critical = $config['use_critical_regions']
-                  feed['items'].clear unless $config['save_feed_items'] ||
-                                             feed['save_items?']
-                  Thread::critical = false
-                  
-                  # insert new items
-                  new_items = []
-                  chan.items.each { |item|
-                    unless (($config['save_feed_items'] ||
-                             feed['save_items?']) &&
-                            urls.has_key?(item.link))
-                      was_read = urls.has_key?(item.link) && urls[item.link]
-                      new_items << {
-                        'title' => item.title,
-                        'date'  => item.date,
-                        'url'   => item.link,
-                        'desc'  => item.desc,
-                        'read?' => was_read,
-                        'added' => Time.now.to_i,
-                      }
-                    end
-                  }
-                  
-                  # if we're saving old items, then prepend the new items
-                  # otherwise, replace the old list
-                  Thread::critical = $config['use_critical_regions']
-                  if $config['save_feed_items'] || feed['save_items?']
-                    feed['items'] = new_items + feed['items']
-
-                    max = $config['max_feed_items'] || feed['max_items']
-                    if max && max > 0
-                      old = (feed['items'].slice!(max .. -1) || []).size
-                      log.puts "#{t}: Removing #{old} old items."
-                    end
-                  else
-                    feed['items'] = new_items
-                  end
-                  Thread::critical = false
-                else 
-                  feed['updated'] = t.to_i
-                  log.puts "Feed \"#{feed['title']}\" hasn't changed."
-                end
-                
-                # if this is the currently selected feed, then re-select it
-                # so it's contents are updated
-                # TODO: make this select the currently selected item again
-                # (assuming it still exists)
-                if !$config['run_http_server'] && !$config['run_drb_server'] &&
-                   $config['feeds'][$a_feed]['url'] == feed['url']
-                  $wins[get_win_id('feed')].select_win_item
-                end
-
-                # redraw feed / item windows
-                $update_wins = true
-              }
-              thread = threads[the_feed['url']]
-              if thread && thread.status == 'run' &&
-                 !$config['grab_in_parallel']
-                # thread.join            
-              end
+              Thread::new(the_feed) { |feed| grab_feed(feed) }
+# 
+#               if thread && thread.status == 'run' &&
+#                  !$config['grab_in_parallel']
+#                 # thread.join            
+#               end
+# 
               until Thread::list.size < ($config['max_threads'] || 10)
                 $log.puts 'DEBUG: waiting for threads'
                 sleep 5

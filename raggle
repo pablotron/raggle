@@ -694,7 +694,6 @@ class Window
 
   def delete_item
     @items.delete_at(@active_item)
-    @active_item = @active_item + 1
     draw_items
   end
 end
@@ -1706,8 +1705,8 @@ $config = {
     Ncurses::KEY_PPAGE  => proc { |win, key| Key::scroll_up_page },
     Ncurses::KEY_NPAGE  => proc { |win, key| Key::scroll_down_page },
 
-    ?\n                 => proc { |win, key| Key::select_win_item },
-    ?\                  => proc { |win, key| Key::select_win_item },
+    ?\n                 => proc { |win, key| Key::select_item },
+    ?\                  => proc { |win, key| Key::select_item },
 
     ?u                  => proc { |win, key| Key::move_item_up },
     ?d                  => proc { |win, key| Key::move_item_down },

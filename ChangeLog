@@ -1073,3 +1073,7 @@
 
 * Sun Aug 17 10:48:15 2003, pabs <pabs@pablotron.org>
   * raggle: add Ville to the list of authors at in the top comment
+
+* Sun Aug 17 10:50:36 2003, pabs <pabs@pablotron.org>
+  * BUGS: add srl's OSX bug report to BUGS (although it might be a 
+    screwy install on his machine)

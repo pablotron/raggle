@@ -868,6 +868,12 @@
 * Thu Jul 03 16:08:05 2003, pabs <pabs@pablotron.org>
   * raggle: i don't like "Eeeeeek"
 
+* Thu Jul 03 16:12:32 2003, pabs <pabs@pablotron.org>
+  * raggle: switch order of $config['diag'] conditional (move it
+    outside rescue block).  screen cleanup wasn't happening properly
+    for error messages because of this rescue block.
 
-
+* Thu Jul 03 16:16:17 2003, pabs <pabs@pablotron.org>
+  * raggle: don't draw if text == nil or text.size <= 0 in
+    draw_text
 

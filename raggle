@@ -660,15 +660,18 @@ class Window
   end
 
   def draw_text(text, x, y, reflow, offset)
-    w,h = dimensions
-    i = 0
+    if text && text.size > 0
+      w,h = dimensions
+      i = 0
 
-    text = reflow_string text if reflow
-    text.each_line do |line|
-      i += 1
-      if i >= offset && y < (h - 1)
-        Ncurses::mvwprintw @win, y, x, line.gsub(/%/, '%%').slice(0, w - x - 1)
-        y += 1
+      text = reflow_string text if reflow
+      text.each_line do |line|
+        i += 1
+        if i >= offset && y < (h - 1)
+          Ncurses::mvwprintw @win, y, x,
+                             line.gsub(/%/, '%%').slice(0, w - x - 1)
+          y += 1
+        end
       end
     end
   end
@@ -2622,19 +2625,16 @@ message.
   ],
 }
 
-begin
-  ##
-  # Start
-  #
-  main
-rescue => err
-  if $config['diag']
+if $config['diag']
+  begin
+    main
+  rescue => err
     puts "#{err.message} (#{err.class})"
     #err.backtrace.collect! { |name| name = "[#{name}]" }
     #puts err.backtrace.reverse.join(" -> ")
     err.backtrace.each { |frame| puts frame }
-  else
-    die '' # die tacks on $! for us, so we don't have to.
   end
+else
+  main
 end
 

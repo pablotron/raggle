@@ -2283,3 +2283,7 @@
   * raggle: miscellaneous cleanup/typos
   * raggle.pod: added 'O' documentation, cleaned up OPML stuff
   * raggle.1: regenerated from raggle.pod
+
+* Mon Jan 03 10:40:00 2005, redshift <redshift@halffull.org>
+  * raggle: fixed bug where finding next/prev item would be jumpy because
+    of re-selecting feed

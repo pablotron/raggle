@@ -3116,7 +3116,7 @@ ENDUSAGE
             cur_item = $config['feeds'].get(feed)['items'][item]
             # activate and return if unread visible item found
             if cur_item and cur_item['read?'] == false and cur_item['visible'] != false
-              NcursesInterface::select_feed(feed)
+              NcursesInterface::select_feed(feed) unless feed == $a_feed
               NcursesInterface::select_id(item)
               feed_win.activate(feed)
               item_win.activate(item)

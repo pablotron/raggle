@@ -1098,3 +1098,6 @@
   * extras/rss_dir_list.rb: add version to rss element
   * doc/pauls_feeds.yaml: removed broken links, sorted, etc
   * added doc/pauls_feeds.opml.gz
+
+* Sun Aug 17 12:24:40 2003, pabs <pabs@pablotron.org>
+  * raggle: releasing version 0.2.0

@@ -389,3 +389,8 @@
 * Sun Jun 22 01:05:46 EDT 2003, richlowe <richlowe@richlowe.net>
   * raggle: Remove Digital Theatre feed from defaults, it's been
             inaccessible for days now.
+
+* Sun Jun 22 01:08:15 2003, pabs <pabs@pablotron.org>
+  * raggle: mark empty feeds in _red_, not as read (that's what I
+    get for _talking_ to Richard, instead of typing to him :D)
+

@@ -746,7 +746,9 @@ class Window
       @items.each { |i| 
         t = i['title'] || ''
         text = t + ((t.length < w) ? (' ' * (w - t.length)) : '')
-        if i.has_key?('read?') && i['read?'] == false
+        if i.has_key?('item_count') && i['item_count'] == 0
+          color = (ic == @active_item) ? 'h_empty' : 'empty'
+        elsif i.has_key?('read?') && i['read?'] == false
           color = (ic == @active_item) ? 'h_unread' : 'unread'
         else
           color = (ic == @active_item) ? 'h_text' : 'text'
@@ -937,7 +939,8 @@ def populate_feed_win
     $wins[id].items << {
       'title'       => title,
       'feed'        => i,
-      'read?'       => (feed['items'].size == 0 || unread_count == 0),
+      'read?'       => unread_count == 0,
+      'item_count'  => feed['items'].size
     }
   }
   $wins[id].draw_items
@@ -1799,6 +1802,8 @@ $config = {
         'a_box'     => 3,
         'unread'    => 6,
         'h_unread'  => 36,
+        'empty'     => 2,
+        'h_empty'     => 32,
       },
     },
 

@@ -1,0 +1,172 @@
+.Dd Jun 20, 2003
+.Dt RAGGLE 1
+.Os
+.Sh NAME
+.Nm raggle
+.Nd text mode RSS agregator.
+.Sh SYNOPSIS
+.Nm raggle
+.Op Fl hlv
+.Op Fl c Ar file
+.Op Fl Fl config Ar file
+.Op Fl d Ar feed 
+.Op Fl Fl delete Ar feed
+.Op Fl Fl delete-feed Ar feed
+.Op Fl e Ar feed
+.Op Fl Fl edit Ar feed
+.Op Fl Fl edit-feed Ar feed
+.Op Fl Fl force
+.Op Fl Fl help
+.Op Fl Fl usage
+.Op Fl Fl list
+.Op Fl Fl lock-title
+.Op Fl Fl purge
+.Op Fl r Ar refresh_time
+.Op Fl Fl refresh Ar refresh_time
+.Op Fl Fl save-items
+.Op Fl Fl sort
+.Op Fl Fl sort-feeds
+.Op Fl t Ar title
+.Op Fl Fl title Ar title
+.Op Fl Fl unlock-title
+.Op Fl Fl unsave-items
+.Op Fl u Ar url
+.Op Fl Fl url Ar url
+.Op Fl Fl verbose
+.Op Fl Fl version
+.Sh DESCRIPTION
+.\" XXX WRITE ME XXX
+Short description of
+.Nm raggle
+goes here.
+.Pp
+The following options are available
+.Bl -tag -width xxxxxxxx
+.It Fl h
+Show usage message.
+.It Fl l
+List feeds
+.It Fl v
+Show
+.Nm raggle
+version
+.It Fl c Ar file
+use
+.Ar file
+as an alternative config file.
+.It Fl d Ar feed
+Delete
+.Ar feed
+from the feed list.
+.It Fl Fl delete Ar feed
+Delete
+.Ar feed
+from the feed list
+.It Fl Fl delete-feed Ar feed
+Delete
+.Ar feed
+from the feed list
+.It Fl e Ar feed
+Edit
+.Ar feed
+.It Fl Fl edit Ar feed
+Edit
+.Ar feed
+.It Fl Fl edit-feed Ar feed
+Edit
+.Ar feed
+.It Fl Fl force
+Force an edit/addition to succeed even if it wants to do things that
+are generally unwise.
+.It Fl Fl help
+Show usage message
+.It Fl Fl usage
+Show usage message
+.It Fl Fl list
+List feeds.
+.It Fl Fl lock-title
+Lock the title of a feed (used with
+.Fl Fl edit
+or 
+.Fl Fl add ) , 
+prevents the feed title being updated from RSS.
+.It Fl Fl purge
+Purge deleted feeds from the cache
+.It Fl r Ar refresh_time
+Use with
+.Fl Fl edit 
+or
+.Fl Fl add .
+Set the feed refresh time to
+.Ar refresh_time
+.It Fl Fl refresh Ar refresh_time
+Use with
+.Fl Fl edit 
+or
+.Fl Fl add .
+Set the feed refresh time to
+.Ar refresh_time
+.It Fl Fl save-items
+Use with
+.Fl Fl edit
+or 
+.Fl Fl add .
+Save old feed items
+.It Fl Fl sort
+Sort feed list
+.It Fl Fl sort-feeds
+Sort feed list
+.It Fl t Ar title
+Use with
+.Fl Fl add
+or 
+.Fl Fl edit .
+Set the title of a feed to
+.Ar title
+.It Fl Fl title Ar title
+Use with
+.Fl Fl add
+or
+.Fl Fl edit .
+Set the title of a feed to
+.Ar title
+.It Fl Fl unlock-title
+Use with
+.Fl Fl add
+or
+.Fl Fl edit .
+Unlock a feed's title (update it from the RSS feed).
+.It Fl Fl unsave-items
+Use with 
+.Fl Fl add
+or
+.Fl Fl edit
+Don't save old feed items.
+.It Fl u Ar url
+Use with
+.Fl Fl add
+or
+.Fl Fl edit .
+Set the URL of a feed to
+.Ar url
+.It Fl Fl url Ar url
+Use with
+.Fl Fl add
+or 
+.Fl Fl edit .
+Set the URL of a feed to
+.Ar url
+.It Fl Fl verbose
+Enable verbose output
+.It Fl Fl version
+Show
+.Nm raggle
+version.
+.El
+.Pp
+.Sh BUGS
+Many
+.Pp
+.Sh AUTHORS
+.An Paul Duncan
+.Aq pabs@pablotron.org

@@ -1,9 +1,10 @@
 Raggle TODO
 ===========
-* scrolling
-* sanitize window modes (remove text reflow from draw())
-* clean up code (move methods to modules, eliminate globals, etc)
-* modularize code to make it suitable for reuse
-* finish inline documentation
-* command-line options
-* feed grab save existing items
+[x] scrolling
+[ ] sanitize window modes (remove text reflow from draw())
+[ ] clean up code (move methods to modules, eliminate globals, etc)
+[ ] modularize code to make it suitable for reuse
+[ ] finish inline documentation
+[ ] command-line options
+[ ] feed grab save existing items
+[ ] speed up feed cache loading

@@ -106,3 +106,18 @@
   * rss_grab.rb: handles urls ending in '/'
   * raggle: added redirect support
   * raggle: handles urls ending in '/'
+
+* Sun Jun 15 05:11:48 2003, pabs <pabs@pablotron.org>
+  * raggle: scrolling works in feed and item windows!!!
+  * raggle: added 'feed_log_mode' option (per-invocation feed log)
+  * raggle: show selected item info in status bar
+
+* Sun Jun 15 06:14:15 2003, pabs <pabs@pablotron.org>
+  * raggle: added unread and h_unread colors to item window (for unread
+    feed items)
+  * raggle: moved theme info (colors, window layout, etc) to 
+    ${config_dir}/theme.yaml
+  * raggle: added 'browser_cmd' option
+  * raggle: executing stuff works now
+  * raggle: added color on cyan palette options
+  * raggle: Feed::Window#draw takes a color instead of a hilite boolean

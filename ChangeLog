@@ -512,6 +512,10 @@
 * Mon Jun 23 16:50:12 2003, pabs <pabs@pablotron.org>
   * raggle: updated themes to support new feed color stuff
 
+* Mon Jun 23 17:10:40 2003, pabs <pabs@pablotron.org>
+  * raggle: --version doesn't require an argument
+  * added Makefile (just for make install)
+  * README: updated installation section to account for make install
 
 
 

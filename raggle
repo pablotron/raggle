@@ -1215,7 +1215,7 @@ def handle_Command_line(opts)
     ['-t', '--title',                           GetoptLong::REQUIRED_ARGUMENT],
     ['-u', '--url',                             GetoptLong::REQUIRED_ARGUMENT],
     ['-r', '--refresh',                         GetoptLong::REQUIRED_ARGUMENT],
-    ['-v', '--version',                         GetoptLong::REQUIRED_ARGUMENT],
+    ['-v', '--version',                         GetoptLong::NO_ARGUMENT],
     ['--purge',                                 GetoptLong::NO_ARGUMENT],
     ['--sort', '--sort-feeds',                  GetoptLong::NO_ARGUMENT],
     ['--lock-title',                            GetoptLong::NO_ARGUMENT],

@@ -1,7 +1,7 @@
 Raggle 0.1.0 README
 ===================
 
-This document was last updated on Sun Jun 22 05:13:33 2003.
+This document was last updated on Mon Jun 23 17:07:12 2003.
 Please see the file COPYING for licensing and warranty information.  The
 latest version of this software is available at the following URL:
 http://www.pablotron.org/software/raggle/.
@@ -30,12 +30,25 @@ System Requirements
 
 Installation
 ============
-Copy the Raggle script to an executable directory in your path.
+The easiest way to install raggle is to use the included Makefile.  This
+will install the Raggle executable in a system-wide executable
+directory, install the Raggle documentation, and install the Raggle
+themes.  Here's the command:
 
-  # copy raggle to a system-wide executable directory
-  su -c 'cp raggle /usr/local/bin'
+  # install raggle, raggle docs, and raggle data
+  sudo make install
 
-or
+or (if you don't use sudo):
+
+  # install raggle (but you don't use sudo; tsk tsk)
+  su -c 'make install'
+
+or (if you just want the executable):
+
+  # install raggle (just the apps, ma'am)
+  su -c 'cp ./raggle /usr/local/bin/'
+
+or (if you don't have root access, and only want it for personal use):
 
   # copy raggle to your personal executable directory
   cp raggle $HOME/bin/

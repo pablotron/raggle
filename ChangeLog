@@ -360,6 +360,9 @@
   * raggle: added a space prefix to the Raggle feed so it stays at the
     top after a sort
 
+* Sat Jun 21 18:43:09 2003, pabs <pabs@pablotron.org>
+  * raggle: misc 1.8 cleanup.  still doesn't work in 1.8, but it's
+    a little closer
 	
 
 

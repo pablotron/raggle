@@ -196,19 +196,19 @@ module Key
   end
 
   def Key::move_item_up
-    win = $wins[get_win_id 'feed']
+    win = $wins[get_win_id('feed')]
     $config['feeds'].move_up(win.active_item)
     win.move_item_up
   end
 
   def Key::move_item_down
-    win = $wins[get_win_id 'feed']
+    win = $wins[get_win_id('feed')]
     $config['feeds'].move_down(win.active_item)
     win.move_item_down
   end
 
   def Key::delete
-    win = $wins[get_win_id 'feed']
+    win = $wins[get_win_id('feed')]
     $config['feeds'].delete(win.active_item)
     win.delete_item
     win.clear
@@ -218,7 +218,7 @@ module Key
   end
 
   def Key::sort_feeds
-    win = $wins[get_win_id 'feed']
+    win = $wins[get_win_id('feed')]
 
     # get old active window
     a_win = $a_win
@@ -284,15 +284,15 @@ class FeedList
   end
 
   def each_with_index
-    @feeds.each_with_index {|feed, i|
-      yield feed, i
-    }
+    @feeds.each_with_index { |feed, i| yield feed, i }
   end
 
   def each
-    @feeds.each {|feed|
-      yield feed
-    }
+    @feeds.each { |feed| yield feed }
+  end
+
+  def each_index
+    @feeds.each_index { |i| yield i }
   end
 
   #
@@ -1088,7 +1088,7 @@ Richard Lowe <richlowe@richlowe.net>
 http://www.richlowe.net/
 ENDUSAGE
 
-  exit 0
+  exit(0)
 end
 
 #
@@ -1648,7 +1648,7 @@ end
 # default config #
 ##################
 $config = {
-  'config_dir'            => ENV['HOME'] << '/.raggle',
+  'config_dir'            => ENV['HOME'] + '/.raggle',
   'config_path'           => '${config_dir}/config.rb',
   'feed_list_path'        => '${config_dir}/feeds.yaml',
   'feed_cache_path'       => '${config_dir}/feed_cache.store',

@@ -1936,7 +1936,7 @@ $config = {
   'unescape_html'         => true,
 
   # replace unicode chars with what?
-  'unicode_munge_str'     => 'ZZ',
+  'unicode_munge_str'     => '!u!',
 
   # warn if feed refresh is set to less than this
   'feed_refresh_warn'     => 60,

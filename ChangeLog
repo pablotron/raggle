@@ -701,4 +701,10 @@
   * raggle: Strip HTML tags from titles in ListWindows
 	    (It seems some RSS feeds leave tags in the item title).
 
+* Mon Jun 23 23:11:34 2003, richlowe <richlowe@richlowe.net>
+  * raggle: unicode_munge_str ZZ -> !u!
+	    Don't revert, come up with a *better* solution, ZZ is
+	    not obviously non-content.
+
+
 

@@ -1059,3 +1059,7 @@
   * raggle: fixed adding new entries with just the URL (itw asn't setting
     the title or the default refresh)
 
+* Sun Aug 17 09:25:29 2003, pabs <pabs@pablotron.org>
+  * raggle: don't import OPML URLs with exec: prefix. period.
+  * raggle: don't check refresh interval on file: or exec: URLs
+

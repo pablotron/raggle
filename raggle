@@ -639,7 +639,7 @@ module OPML
 	    $stderr.puts "Warning: skipping incomplete OPML entry: #{outline}"
 	    next
 	  end
-
+    raise "WARNING!!! EXEC URL IN OPML IMPORT" if (url =~ /^exec:/)
 	  feed_list.add(title, url, refresh, lock_title, save_items, site, desc, [], force)
 	end
       end
@@ -713,7 +713,7 @@ class FeedList
   
   def add(title, url, refresh, lock_title=false, save_items=false, site='',
           desc='', items=[], force=true)
-    refresh_interval_check(refresh) unless force
+    refresh_interval_check(refresh) unless force || url =~ /^(file|exec):/
     lock_title = false if !lock_title
     save_items = false if !save_items
     @feeds << {

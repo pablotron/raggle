@@ -1016,3 +1016,7 @@
 * Sat Aug 16 19:54:13 2003, pabs <pabs@pablotron.org>
   * raggle: added HTTP headers to config: includes Accept, User-Agent, and
     Accept-Charset.
+
+* Sat Aug 16 20:05:07 2003, pabs <pabs@pablotron.org>
+  * raggle: added $config['use_http_headers'], to ward off the inevitable
+  * raggle: removed REXML and YAML version from user-agent header

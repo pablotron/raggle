@@ -643,10 +643,7 @@ class Window
         use_screen = $config['use_screen'] && in_screen?
 
         # drop out of curses mode
-        unless use_screen
-          Ncurses::def_prog_mode
-          Ncurses::endwin
-        end
+        save_screen unless use_screen
 
         # get browser command
         cmd = $config['browser_cmd'] % @items[@active_item]['url'].escape
@@ -672,11 +669,7 @@ class Window
         end
 
         # reset screen
-        unless use_screen
-          Ncurses::reset_prog_mode
-          Ncurses::refresh
-          Ncurses::getch
-        end
+        restore_screen unless use_screen
       end
     end
   end
@@ -1278,6 +1271,35 @@ def select_item(id)
 end
 
 #
+# mark all items in feed as read
+# 
+def mark_items_as_read
+  item_id = get_win_id 'item'
+  # mark item as read
+  $wins[item_id].items.each { |item| item['read?'] = true }
+  $config['feeds'].get($a_feed)['items'].each { |item| item['read?'] = true }
+
+  populate_feed_win
+  $wins[item_id].draw_items
+end
+
+#
+# select the next unread item
+# 
+def select_next_unread
+  item_id = get_win_id 'item'
+
+  ($a_item + 1).upto($wins[item_id].items.size) { |i|
+    if $wins[item_id].items[i]['read?'] == false
+      select_item i
+      $wins[item_id].activate i
+      $wins[item_id].draw_items
+      return
+    end
+  }
+end
+
+#
 # load feed cache
 #
 def load_feed_cache
@@ -1650,6 +1672,32 @@ def resize_term
 
   # refresh full screen
   Ncurses::refresh
+end
+
+#
+# save scren mode, drop out of ncurses
+#
+def save_screen
+  Ncurses::def_prog_mode
+  Ncurses::endwin
+end
+
+#
+# restore saved screen settings
+#
+def restore_screen
+  Ncurses::reset_prog_mode
+  Ncurses::refresh
+  # Ncurses::getch
+end
+
+#
+# drop to sub-shell
+#
+def drop_to_shell
+  save_screen
+  system ENV['SHELL']
+  restore_screen
 end
 
 #######################################################################
@@ -2074,6 +2122,12 @@ $config = {
     ?s                  => proc { |win, key| Key::sort_feeds },
 
     ?o                  => proc { |win, key| Key::open_link },
+
+    ?m                  => proc { |win, key| mark_items_as_read },
+
+    ?!                  => proc { |win, key| drop_to_shell },
+
+    ?n                  => proc { |win, key| select_next_unread },
   },
 
   # color palette (referenced by themes)

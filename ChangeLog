@@ -742,6 +742,11 @@
 * Thu Jun 26 20:10:48 2003, pabs <pabs@pablotron.org>
   * AUTHORS: update Ville Aine's entry.
 
+* Thu Jun 26 20:36:05 2003, pabs <pabs@pablotron.org>
+  * raggle: added mark all items as read (bound to 'm')
+  * raggle: added shell escape (bound to '!')
+  * raggle: added jump to next unread (bound to 'n')
+  * (all this stuff was suggested by Ville Aine)
 
 
 	

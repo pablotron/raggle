@@ -1229,7 +1229,7 @@ module Raggle
       def category(cat = 'all')
         if cat !~ /\ball\b/i
           re = /\b#{cat}\b/i
-          @feeds.map { |feed| feed['category'] =~ re ? feed : nil }.compact
+          @feeds.select { |feed| feed['category'] =~ re }
         else
           @feeds
         end

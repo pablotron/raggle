@@ -1402,13 +1402,12 @@ def handle_Command_line(opts)
           $config['verbose'] = true
         when '-h', '--help', '--usage'
           print_usage
-      else
-          $stderr.puts 'Unknown option: ' << opt
       end
     end
-  rescue 
+  rescue GetoptLong::InvalidOption 
     exit -1
   end
+
        
   # check options
   if ret['mode'] == 'add'

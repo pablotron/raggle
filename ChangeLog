@@ -712,3 +712,9 @@
 * Mon Jun 23 23:54:55 2003, richlowe <richlowe@richlowe.net>
   * raggle (String#reflow): If we move when space is inserted, we don't
                             have to tailor the math to allow for the extra
+
+* Tue Jun 24 00:13:07 2003, richlowe <richlowe@richlowe.net>
+  * raggle (handle_Command_line): No need to error on unrecognized options
+	                          GetoptLong does it for us.
+  * raggle (handle_Command_line): Only rescue GetoptLong::InvalidOption,
+                                  so we can still see other errors

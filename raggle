@@ -205,7 +205,7 @@ class String
   #  "a\nb".lines #=> 2
   #
   def lines
-    self.split(/\n/).size
+    split(/\n/).size
   end
   
   #
@@ -215,8 +215,7 @@ class String
   #   'a\b'.escape #=> 'a\\b'
   #
   def escape
-    gsub(/(["\\])/, "\\$1")
-    self
+    gsub(/(["\\])/, "\\\&")
   end
 
   #
@@ -226,7 +225,7 @@ class String
   #   'a\b'.escape! #=> 'a\\b'
   #
   def escape!
-    gsub!(/(["\\])/, "\\$1")
+    gsub!(/(["\\])/, "\\\&")
     self
   end
 
@@ -237,11 +236,11 @@ class String
   #   'a%b'.escape_format #=> 'a%%b'
   #
   def escape_format
-    gsub(/%/, '%%')
+    gsub(/%/, "\&\&")
   end
 
   #
-  # Escape '%' characters in this string.  Returns nil.
+  # Escape '%' characters in this string.  Returns self.
   #
   # Example:
   #   a = 'a%b'.escape_format!
@@ -249,7 +248,8 @@ class String
   #   a #=> 'a%%b'
   #
   def escape_format!
-    gsub!(/%/, '%%')
+    gsub!(/%/, "\&\&")
+    self
   end
 
   #

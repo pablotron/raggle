@@ -2157,3 +2157,6 @@
   * raggle: added reset param to window close method, allows certain
     operations (like selecting a category) to close without error (default
     is not to reset active window)
+
+* Fri Dec 17 14:05:00 2004, redshift <redshift@halffull.org>
+  * raggle: minor fixes to String functions

@@ -928,4 +928,5 @@
   * raggle: die() didn't save the results of escape_format(); added a
     String#escape_format! and used that (reported by Ville Aine, as 
     usual).
-  * raggle: 
+  * raggle: applied select_unread patch from Ville Aine
+  * raggle: applied preferred desc element patch from Ville Aine

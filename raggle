@@ -524,10 +524,10 @@ module Feed
     end
 
     # strip 'http://' prefix from URL
-    url.gsub!(%r!^\w+?://!, '') if url =~ %r!^\w+?://!
+    url.gsub!(/^\w+?:\/\//, '') if url =~ /^\w+?:\/\//
 
     # get host and path portions of url
-    raise "Couldn't parse URL: \"#{url}\"" unless url =~ %r!/^(.+?)/(.*)$!
+    raise "Couldn't parse URL: \"#{url}\"" unless url =~ /^(.+?)\/(.*)$/
     host, path = $1, $2
 
     # check for port in URL
@@ -573,7 +573,7 @@ module Feed
     def initialize(url)
       parse_rss_url url
     end
-      
+
     # 
     # Parse an RSS URL and return a FeedChannel object (which contains,
     # among other things, an array of feed_item structs)
@@ -601,14 +601,24 @@ module Feed
         # get item attributes (the ones that are set, anyway... stupid
         # RSS)
         h = {}
-        [ 'title', 'link', 'description', 'date' ].each { |val|
+        [ 'title', 'link', 'date', 'description' ].each { |val|
           h[val] = (t_e = e.elements[val]) ? t_e.text : ''
         }
+
+        h['description'] = find_description(e)
 
         # insert new item
         @items << Feed::Item.new(h['title'], h['link'],
                                  h['description'], h['date'])
       }
+    end
+
+    def find_description(elem)
+      $config['desc_element_xpaths'].each { |xpath|
+        e = elem.elements[xpath]
+        return e.text if e
+      }
+      ''
     end
   end
 end
@@ -1387,33 +1397,46 @@ def mark_items_as_read
   win.draw_items
 end
 
-#
-# select the next unread item
-# 
-def select_next_unread
-  win = $wins[get_win_id('item')]
+DIRECTION_BACKWARD = -1
+DIRECTION_FORWARD = 1
 
-  ($a_item + 1).upto(win.items.size - 1) { |i|
+#
+# Select next unread item in
+# direction +direction+. Direction
+# can be either +DIRECTION_FORWARD+
+# or +DIRECTION_BACKWARD+
+#
+def select_unread_item(direction)
+  win = $wins[get_win_id('item')]
+  size = win.items.size
+
+  return unless size > 0
+  
+  i = ($a_item + direction) % size
+  while i != $a_item
     if win.items[i]['read?'] == false
       select_item i
       win.activate i
       win.draw_items
       return
     end
-  }
+
+    i = (i + direction) % size
+  end
 end
 
-def select_prev_unread
-  win = $wins[get_win_id('item')]
+#
+# select next unread item
+#
+def select_next_unread
+  select_unread_item DIRECTION_FORWARD
+end
 
-  ($a_item - 1).downto(0) { |i|
-    if win.items[i]['read?'] == false
-      select_item i
-      win.activate i
-      win.draw_items
-      return
-    end
-  }
+#
+# select previous unread item
+#
+def select_prev_unread
+  select_unread_item DIRECTION_BACKWARD
 end
 
 #
@@ -2233,6 +2256,12 @@ $config = {
   'desc_show_site'        => false,
   'desc_show_url'         => false,
   'desc_show_divider'     => false,
+
+  # xpaths to elements to look for item's description
+  'desc_element_xpaths'   => [
+    "./[local-name() = 'encoded' and namespace-uri() = 'http://purl.org/rss/1.0/modules/content/']",
+    'description'
+  ],
 
   # key bindings
   'keys'            => {

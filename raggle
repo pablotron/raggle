@@ -1818,7 +1818,7 @@ def populate_feed_win
     if feed['title']
       title = feed['title'].strip
     else
-      title = $config['default_feed_title'] || 'Untitled Feed' 
+      title = ($config['default_feed_title'] || 'Untitled Feed').dup
     end
     title << " (#{unread_count}/#{feed['items'].size})"
 

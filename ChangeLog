@@ -1158,3 +1158,5 @@
 * Fri Aug 23 00:38:24 2003, heap <vaine@cs.helsinki.fi>
   * raggle: fixed swedish char mangling bug 
 	
+* Fri Aug 22 18:29:29 2003, pabs <pabs@pablotron.org>
+  * raggle: fix "unnamed feed (0/0) (0/0) (0/0) ..." bug

@@ -1710,7 +1710,7 @@ module Raggle
           when 'sort'
             sort_feeds
           when 'invalidate_all'
-            invalide_feed(-1)
+            invalidate_feed(-1)
           when 'add'
             url = $1 if req.query_string =~ /url=(.*)$/
             add_feed({ 'url' => url })
@@ -1722,7 +1722,7 @@ module Raggle
           when 'invalidate'
             if req.query_string =~ /id=(\d+)/
               id = $1.to_i
-              invalide_feed(id)
+              invalidate_feed(id)
             end
           when 'save_feed_list'
             save_feed_list

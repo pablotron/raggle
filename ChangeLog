@@ -1262,3 +1262,8 @@
 
 * Tue Sep 02 23:35:45 2003, pabs <pabs@pablotron.org>
   * TODO: more ideas, mark some finished stuff off
+
+* Wed Sep 03 09:35:40 2003, pabs <pabs@pablotron.org>
+  * TODO: another thingy to do (clean sep of interfaces)
+  * raggle: fix typo in web interface reported by Harry Ohlsen
+    <harryo@qiqsolutions.com>

@@ -65,3 +65,6 @@ Raggle TODO
 [ ] user-configurable http open timeout and http read timeout
 [ ] per-feed xpath configuration?
 [ ] feed groups
+[ ] clean separation of Ncurses and WEBrick interfaces (maybe an
+    Interfaces module).  Don't require Ncurses if WEBrick is
+    installed.

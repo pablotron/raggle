@@ -165,21 +165,13 @@ module Key
   def Key::move_item_up
     win = $wins[$a_win]
     $config[$SRC].move_up(win.active_item)
-    pitem = win.items[win.active_item - 1]
-    win.items[win.active_item - 1] = win.items[win.active_item]
-    win.items[win.active_item] = pitem
-    win.active_item = win.active_item - 1
-    win.draw_items
+    win.move_item_up
   end
 
   def Key::move_item_down
     win = $wins[$a_win]
     $config[$SRC].move_down(win.active_item)
-    nitem = win.items[win.active_item + 1]
-    win.items[win.active_item + 1] = win.items[win.active_item]
-    win.items[win.active_item] = nitem
-    win.active_item = win.active_item + 1
-    win.draw_items
+    win.move_item_down
   end
 end
 
@@ -677,6 +669,23 @@ class Window
     end
     refresh(true)
   end
+
+  def move_item_down
+    nitem = @items[@active_item + 1]
+    @items[@active_item + 1] = @items[@active_item]
+    @items[@active_item] = nitem
+    @active_item = @active_item + 1
+    draw_items
+  end
+
+  def move_item_up
+    pitem = @items[@active_item - 1]
+    @items[@active_item - 1] = @items[@active_item]
+    @items[@active_item] = pitem
+    @active_item = @active_item - 1
+    draw_items
+  end
+ 
 end
 
 #

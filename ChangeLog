@@ -2488,3 +2488,6 @@ _Cvs
 
 * Wed Mar 23 07:54:00 2005, redshift <redshift@halffull.org>
   * raggle: fix issue with moving feeds more than one place
+
+* Wed Mar 23 17:55:00 2005, redshift <redshift@halffull.org>
+  * raggle: add status message upon searching if we lack xmlrpc

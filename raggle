@@ -2295,7 +2295,11 @@ ENDUSAGE
         # Find a feed using Syndic8.
         #
         def Key::gui_find_feed
-          NcursesInterface::find_feeds if $HAVE_LIB['xmlrpc']
+          if $HAVE_LIB['xmlrpc']
+            NcursesInterface::find_feeds
+          else
+            $new_status = "Feed searching requires the ruby xmlrpc library."
+          end
         end
 
         #

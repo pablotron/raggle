@@ -405,6 +405,11 @@ module Key
   def Key::find_entry(win)
     ncurses_find_entry(win)
   end
+
+  def Key::view_source
+    $view_source = !$view_source
+    $wins[$a_win].select_win_item if $a_win != get_win_id('desc')
+  end
 end
 
 module HTML
@@ -926,10 +931,11 @@ class FeedList
     win = $wins[get_win_id('desc')]
     win.clear
     
-    win.items = [ ] # This should only ever have one entry
+    win.items.clear # This should only ever have one entry
     win.items << {
-      'real_title' => $config['feeds'][id]['title'],
-      'title'      => $config['feeds'][id]['desc'],
+      # 'real_title' => $config['feeds'][id]['title'],
+      'title'      => $config['feeds'][id]['title'],
+      'content'    => $config['feeds'][id]['desc'],
       'date'       => $config['feeds'][id]['date'],
       'url'        => $config['feeds'][id]['url'],
       'date'       => $config['feeds'][id]['updated'].to_s,
@@ -1368,6 +1374,8 @@ class Window
         end
       end
     end
+
+    y
   end
 
   #
@@ -1378,7 +1386,7 @@ class Window
     w, h = dimensions
 
     set_color(color)
-    draw_text(text, x, y, reflow_text, offset)
+    y = draw_text(text, x, y, reflow_text, offset)
     set_color('text')
 
     refresh if refresh_win
@@ -1416,7 +1424,8 @@ class Window
         # prepend screen command if we're using it
         if use_screen
           screen_cmd = if $config['screen_cmd'] =~ /%s/
-            $config['screen_cmd'] % @items[@active_item]['real_title']
+            # $config['screen_cmd'] % @items[@active_item]['real_title']
+            $config['screen_cmd'] % @items[@active_item]['title']
           else
             $config['screen_cmd']
           end
@@ -1614,26 +1623,28 @@ end
 class TextWindow < Window
   def reflow_string(str)
     w = dimensions[0]
-    HTML.render_html(str, w - 4)
+    $view_source ? str.reflow(w - 4) : HTML.render_html(str, w - 4)
   end
        
   def draw_items
     item = @items[0] # There can be only one
     y = 1
-    h = dimensions[1]
+    w, h = dimensions
 
-    if item['real_title'] && item['real_title'] != ''
-      draw(item['real_title'].strip, 1, y, 'f_title', true, false)
+    # draw title (if it's set)
+    if item['title'] && item['title'] != ''
+      draw(item['title'].strip.ljust(w - 2), 1, y, 'f_title', false, false)
       y += 1
     end
-    draw("Link: ", 1, y)
-    # @win.color_set @colors['url'], nil
-    draw(item['url'], 7, y, 'url', true, false)
+
+    # draw link
+    draw("Link: ", 1, y, 'text', false, false)
+    draw(item['url'].ljust(w - 2), 7, y, 'url', false, false)
 
     # don't draw the date if it isn't set (silly RSS)
     if item['date'] && item['date'] != '' && item['date'] != "0"
       y += 1
-      draw("Date: ", 1, y)
+      draw("Date: ", 1, y, 'text', false, false)
       
       # handle date string shenanigans
       if (item['date'] =~ /^\d+$/ && (i_val = item['date'].to_i) > 0 &&
@@ -1644,22 +1655,36 @@ class TextWindow < Window
       end
       
       # draw date string
-      # @win.color_set @colors['date'], nil
-      draw(d_str, 7, y, 'date', true, false)
+      draw(d_str.ljust(w - 2), 7, y, 'date', false, false)
     end
 
-    if item['title']
-      y += 2
-      str = item['title'] || ''
-      str = str.strip_tags if $config['strip_html_tags']
+    # draw blank line
+    y += 1
+    draw(''.ljust(w - 2), 1, y, 'text', false, false)
 
-      # strip CDATA from text (seems like this might cause some problems
-      # anyone have any thoughts?) -- pabs
-      str = str.gsub(/<!\[CDATA\[(.*?)\]\]>/m, '\1')
+    # draw item content
+    if item['content']
+      y += 1
+      if !item['fmt_content']
+        str = item['content'] || ''
+        str = str.strip_tags if $config['strip_html_tags']
+
+        # strip CDATA from text (seems like this might cause some problems
+        # anyone have any thoughts?) -- pabs
+        str = str.gsub(/<!\[CDATA\[(.*?)\]\]>/m, '\1')
+
+        # cache this stuff so the desc window renders faster
+        item['fmt_content'] = str
+        item['fmt_content_reflow'] = reflow_string(str)
+        item['fmt_content_lines'] = item['fmt_content_reflow'].lines
+      end
+
+      str = item['fmt_content_reflow']
+      num_lines = item['fmt_content_lines']
      
       # Offset + 1, so we scroll on the *first* press
-      draw(str, 1, y, 'text', true, true, @offset + 1)
-      y += (reflow_string(str).lines - @offset)
+      draw(str, 1, y, 'text', false, false, @offset + 1)
+      y += (num_lines - @offset)
     end
 
     # *Much* faster than a total clear each time it scrolls.
@@ -1700,7 +1725,9 @@ class TextWindow < Window
   def scroll_down
     # This is a *terrible* way to figure out how many lines of text we'll end
     # up with.., XXX put me somewhere better.
-    s = reflow_string(@items[0]['title']).lines
+    item = @items[0]
+    s = item['fmt_content_num_lines'] ||
+        reflow_string(item['content']).lines
     @offset += 1 if @offset < s - 1
     draw_items
   end
@@ -1708,12 +1735,15 @@ class TextWindow < Window
   def scroll_bottom
     # This is a *terrible* way to figure out how many lines of text we'll end
     # up with.., XXX put me somewhere better.
+    item = @items[0]
     h,s = dimensions[1], 0
 
-    %w{real_title url date}.each do |key|
-      s += 1 if @items[0].has_key?(key)
+    %w{title url date}.each do |key|
+      s += 1 if item.has_key?(key)
     end
-    s += reflow_string(@items[0]['title']).lines + 1
+    s += item['fmt_content_num_lines'] ||
+         reflow_string(item['content']).lines
+    s += 1
     @offset = s - (h - 2)
     draw_items
   end
@@ -2263,8 +2293,9 @@ def select_item(id)
   
   # load item
   desc_win.items << {
-    'title'       => item_content,
-    'real_title'  => feed['items'][id]['title'],
+    'content'     => item_content,
+    # 'real_title'  => feed['items'][id]['title'],
+    'title'       => feed['items'][id]['title'],
     'url'         => item_url,
     'date'        => feed['items'][id]['date'],
     'read?'       => feed['items'][id]['read?'],
@@ -2274,7 +2305,7 @@ def select_item(id)
   populate_feed_win
 
   # redraw description window
-  desc_win.clearrange(0, desc_win.dimensions[1])
+  # desc_win.clearrange(0, desc_win.dimensions[1])
   desc_win.draw_items
 
   # activate description window
@@ -3506,7 +3537,7 @@ $config = {
     ?\t                 => proc { |win, key| Key::next_window },
 
     Ncurses::KEY_LEFT   => proc { |win, key| Key::prev_window },
-    ?\\                 => proc { |win, key| Key::prev_window },
+    ?\\                 => proc { |win, key| Key::view_source },
 
     Ncurses::KEY_F12    => proc { |win, key| Key::quit },
     ?q                  => proc { |win, key| Key::quit },

@@ -1461,3 +1461,17 @@
 * Mon Sep 15 13:44:34 2003, pabs <pabs@pablotron.org>
   * raggle: force refresh in clearrange() to clear item window
     artifacts
+
+* Mon Sep 15 16:46:11 2003, pabs <pabs@pablotron.org>
+  * raggle: add view source command (bound to \ by default)
+  * raggle: get rid of 'real_title'/'title' nonsense in description
+    window. uses 'title' and 'content' keys now
+  * raggle: draw_text and draw should return the y coordinate
+  * raggle: don't force refresh for drawing title, date, link and
+    content in description window, this speeds up rendering and
+    removes flicker
+  * raggle: cache result from reflow_string() in TextWindow#draw_items;
+    this speeds up rendering a bunch
+  * raggle: used cached results in scroll_down/up; rendering speedup
+  * raggle: only clearrange in desc window when necessary, this
+    removes flicker

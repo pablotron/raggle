@@ -1019,6 +1019,8 @@ end
 # set status bar message
 #
 def set_status(str)
+  str ||= ''
+
   w, e_msg = $config['w'], $config['msg_exit']
   $status, $new_status = str, str
 

@@ -677,6 +677,10 @@
   * raggle (TextWindow#scroll_bottom): Implement, Home and End keys now
            work in TextWindow's too.
 
+* Wed Jun 25 12:25:45 2003, pabs <pabs@pablotron.org>
+  * raggle: set_status() shouldn't die on a nil message (reported
+    by Brian Almeida (bma@tynian.net).
+
 
 
 

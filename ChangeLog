@@ -1602,3 +1602,7 @@
   * extras/web_ui/inc/feed_list.html: parent => window (make IE
     javascript errors go away)
   * extras/web_ui/inc/item_list.html: ditto
+
+* Wed Sep 24 15:57:59 2003, pabs <pabs@pablotron.org>
+  * extras/win32/raggle.nsi: disable Raggle Client start menu icon
+    (don't need it any more)

@@ -87,8 +87,8 @@ Section "Start Menu Shortcuts"
 
   CreateDirectory "$SMPROGRAMS\Raggle"
   CreateShortCut "$SMPROGRAMS\Raggle\Getting Started.lnk" "$INSTDIR\doc\win32.html" "" "$INSTDIR\doc\win32.html" 0
-  CreateShortCut "$SMPROGRAMS\Raggle\Raggle Server.lnk" "$INSTDIR\raggle_server.bat" "" "$INSTDIR\raggle_server.bat" 0
-  CreateShortCut "$SMPROGRAMS\Raggle\Raggle Client.lnk" "$INSTDIR\raggle_client.html" "" "$INSTDIR\raggle_client.html" 0
+  CreateShortCut "$SMPROGRAMS\Raggle\Raggle.lnk" "$INSTDIR\raggle_server.bat" "" "$INSTDIR\raggle_server.bat" 0
+;  CreateShortCut "$SMPROGRAMS\Raggle\Raggle Client.lnk" "$INSTDIR\raggle_client.html" "" "$INSTDIR\raggle_client.html" 0
   CreateShortCut "$SMPROGRAMS\Raggle\Documentation.lnk" "$INSTDIR\doc\" "" "$INSTDIR\doc\" 0
   CreateShortCut "$SMPROGRAMS\Raggle\Uninstall Raggle.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
   

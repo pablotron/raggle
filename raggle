@@ -1142,10 +1142,14 @@ module Raggle
       #
       def sort
         @feeds.sort! { |a, b|
-          re = /^\s*(a|the)\s+/i
+          rePrefix = /^\s*(a|the)\s+/i
+          reSpaces = /^\s*(.*?)\s*$/s
+
+          a['title'] ||= $config['default_feed_title']
+          b['title'] ||= $config['default_feed_title']
           
-          a_c, b_c = a['title'].gsub(re, '').downcase, 
-                     b['title'].gsub(re, '').downcase
+          a_c, b_c = a['title'].gsub(rePrefix, '').gsub(reSpaces, '\1').downcase, 
+                     b['title'].gsub(rePrefix, '').gsub(reSpaces, '\1').downcase
 
           a_c <=> b_c
         }
@@ -3463,7 +3467,7 @@ ENDUSAGE
         $stdout.puts $config['msg_save_list'] if $config['raggle_mode'] == 'view'
         $stdout.flush
     
-        # save feed items before clearing htem (for web interface)
+        # save feed items before clearing them (for web interface)
         tmp = []
         $config['feeds'].each { |feed| tmp << feed['items']; feed['items'] = [] }
     
@@ -4414,7 +4418,7 @@ $config = {
 
   # default feed name and refresh rate
   'default_feed_title'    => 'Untitled Feed',
-  'default_feed_refresh'  => 120,
+  'default_feed_refresh'  => 900,
 
   # open new screen window for browser?
   'use_screen'            => true,

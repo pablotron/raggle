@@ -19,9 +19,9 @@
   <script language='javascript'>
   <!--
   function selectFeedItem(feed_id, item_id) {
-    window.desc.location.href = '/raggle/desc/?category=__CATEGORY__&amp;feed_id=' + feed_id + '&amp;item_id=' + item_id;
-    window.feed.location.href = '/raggle/feed/?category=__CATEGORY__';
-    window.item.location.reload();
+    parent.descFrame.location.href = '/raggle/desc/?category=__CATEGORY__&amp;feed_id=' + feed_id + '&amp;item_id=' + item_id;
+    parent.feedFrame.location.href = '/raggle/feed/?category=__CATEGORY__';
+    parent.itemFrame.location.reload();
     return true;
   }
 

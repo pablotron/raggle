@@ -19,12 +19,12 @@
     function addFeed() {
       url = prompt('Please enter the Feed URL.', 'http://');
       if (url && url != '')
-        window.feed.location.href = '/raggle/feed/?mode=add&url=' + url;
+        parent.feedFrame.location.href = '/raggle/feed/?mode=add&url=' + url;
     }
 
     function selectFeed(feed_id) {
-      window.feed.location.href = '/raggle/feed/?category=__CATEGORY__';
-      window.desc.location.href = '/raggle/desc?category=__CATEGORY__' + 
+      parent.feedFrame.location.href = '/raggle/feed/?category=__CATEGORY__';
+      parent.descFrame.location.href = '/raggle/desc?category=__CATEGORY__' + 
         '&amp;feed_id=' + feed_id + '&amp;item_id=0';
     }
 

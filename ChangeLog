@@ -1606,3 +1606,7 @@
 * Wed Sep 24 15:57:59 2003, pabs <pabs@pablotron.org>
   * extras/win32/raggle.nsi: disable Raggle Client start menu icon
     (don't need it any more)
+
+* Wed Sep 24 16:17:04 2003, pabs <pabs@pablotron.org>
+  * extras/web_ui/*: feed => feedFrame, desc => descFrame,
+    item => itemFrame

@@ -856,8 +856,6 @@ module Raggle
     # save_items:: If true, then all imported feeds' items will be saved.
     #
     def OPML::import(file_name, refresh=nil, lock_title=nil, save_items=nil, force=false)
-      feed_list = $config['feeds']
-
       begin
         contents = if file_name =~ /:\/\//
           Raggle::Engine::get_url(file_name)[0]
@@ -902,8 +900,14 @@ module Raggle
               next
             end
             raise "WARNING!!! EXEC URL IN OPML IMPORT" if (url =~ /^exec:/)
-            feed_list.add(title, url, frefresh, flock_title, fsave_items,
-                          site, desc, [], image, cat, force, priority, max_items)
+
+            # build and add feed
+            feed = {'title' => title, 'url' => url, 'refresh' => frefresh,
+                    'lock_title?' => flock_title, 'save_items?' => fsave_items,
+                    'site' => site, 'desc' => desc, 'items' => [],
+                    'image' => image, 'category' => cat, 'force' => force,
+                    'priority' => priority, 'max_items' => max_items }
+            Engine::add_feed(feed)
           end
         else
           raise "Empty input file \"#{file_name}\"."
@@ -920,8 +924,6 @@ module Raggle
     #
     def OPML::export(file_name)
       begin
-        feed_list = $config['feeds']
-
         opml = REXML::Element.new("opml")
         opml.attributes['version'] = '1.1'
 
@@ -929,7 +931,7 @@ module Raggle
         
         body = REXML::Element.new('body')
         opml.add_element(body)
-        feed_list.each do |feed|
+        $config['feeds'].each do |feed|
           body.add_element(feed_to_outline(feed))
         end
 
@@ -3897,13 +3899,12 @@ ENDUSAGE
         $config['feeds'].add(opts['title'], opts['url'], opts['refresh'],
                              opts['lock_title?'], opts['save_items?'],
                              (opts['site'] || ''), (opts['desc'] || ''),
-                             [], opts['image'], opts['category'],
-                             opts['force'], opts['priority'])
+                             (opts['items'] || []), opts['image'],
+                             opts['category'], opts['force'],
+                             opts['priority'], opts['max_items'])
     
         # can't keep adding params to Feed::List#add forever :/
-        if opts['max_items']
-          $config['feeds'].get(-1)['max_items'] = opts['max_items']
-        end
+        $config['feeds'].get(-1)['max_items'] = opts['max_items'] if opts['max_items']
       else
         $new_status = $config['msg_added_existing']
       end

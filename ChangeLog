@@ -691,6 +691,17 @@
   * raggle: save read status of feed items, regardless of whether or
     not we save the actual feed (much nicer this way)
 
+* Thu Jun 26 01:55:02 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Catch all exceptions out of main and only print the stack if
+            the user asks for it (at pabs request).
+	    Enable with --diag or setting 'diag' => true, in your config
+	    file.
+  * raggle.1: Change bug address back again, I'm sure I've seen it as
+              ragglebug@, oh well
+  * raggle.1: Document --diag
+  * raggle.1: Document --config and --config-file, how did I miss these?
+
+
 
 
 

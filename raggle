@@ -1418,6 +1418,7 @@ def handle_Command_line(opts)
     ['--save-items',                            GetoptLong::NO_ARGUMENT],
     ['--unsave-items',                          GetoptLong::NO_ARGUMENT],
     ['--verbose',                               GetoptLong::NO_ARGUMENT],
+    ['--debug',                                 GetoptLong::NO_ARGUMENT],
     ['-h', '--help', '--usage',                 GetoptLong::NO_ARGUMENT]
   )
 
@@ -1462,6 +1463,8 @@ def handle_Command_line(opts)
           ret['save_items?'] = false
         when '--verbose'
           $config['verbose'] = true
+        when '--diag'
+          $config['diag'] = true
         when '-h', '--help', '--usage'
           print_usage
       end
@@ -2421,6 +2424,20 @@ message.
   ],
 }
 
-# Start
-main
+
+begin
+  ##
+  # Start
+  #
+  main
+rescue => err
+  if $config['diag']
+    puts "#{err.message} (#{err.class})"
+    err.backtrace.each do |frame|
+      puts frame
+    end
+  else
+    puts err.message
+  end
+end
 

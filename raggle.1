@@ -34,6 +34,8 @@
 .Op Fl hlv
 .Op Fl c Ar file
 .Op Fl Fl config Ar file
+.Op Fl Fl config-file Ar file
+.Op Fl Fl diag
 .Op Fl d Ar feed 
 .Op Fl Fl delete Ar feed
 .Op Fl Fl delete-feed Ar feed
@@ -81,10 +83,23 @@ Show
 version
 .\" -c
 .It Fl c Ar file
-use
+Use
 .Ar file
 as an alternative configuration file.
-.\" -d
+.\" --config
+.It Fl Fl config Ar file
+Use
+.Ar file
+as an alternative configuration file.
+.\" --config-file
+.It Fl Fl config-file Ar file
+Use
+.Ar file
+as an alternative configuration file.
+.\" --diag
+.It Fl Fl diag
+Print out full stack traces, and other diagnostic information, mainly
+intended to aid in bug hunting.
 .It Fl d Ar feed
 Delete
 .Ar feed
@@ -307,7 +322,7 @@ the default feeds, we can't even reproduce this often enough to decide if it's
 really happening or not.
 .It
 Probably many many more, please report any you find to 
-.Aq ragglebug@pablotron.org
+.Aq i_hate_raggle@pablotron.org
 .El
 .Pp
 .Sh HISTORY

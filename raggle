@@ -2117,6 +2117,8 @@ $config = {
 
 
     ?r                  => proc { |win, key| resize_term },
+    # Literal control L is horrid -- richlowe 2003-06-26
+    ?                 => proc { |win, key| resize_term },
     Ncurses::KEY_RESIZE => proc { |win, key| resize_term },
 
     ?s                  => proc { |win, key| Key::sort_feeds },

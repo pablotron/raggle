@@ -99,7 +99,7 @@ Raggle TODO
     outstanding resize problem, etc... prompted by email from Geoffrey G
     Plitt <ggp@andrew.cmu.edu>)
 [-] make Raggle work with Ruby Curses API (heap's suggestion)
-    (not doing this, it works 
+    (not doing this, it works)
 [ ] create a Gem for Raggle (http://rubygems.rubyforge.org/wiki/wiki.pl?CreateAGemInTenMinutes)
 [*] confirm delete feed (suggested by Peter Kleiweg <kleiweg@let.rug.nl>)
 [-] automatic new item pseudo-feed (suggested by ")
@@ -112,7 +112,7 @@ Raggle TODO
 [-] backend abstraction (be able to save to MySQL, LDAP, etc)
     (not doing this, next version using sqlite though)
 [-] use URI lib for url handling
-    (not doing this, commenta bout it though)
+    (not doing this, comment about it though)
 [-] del.icio.us integration
     (not doing this, could be added as a keybinding though)
 [*] save feed list periodically (suggested by Manpreet Singh

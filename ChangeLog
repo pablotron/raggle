@@ -1287,3 +1287,7 @@
   * raggle: use ENV['HOMEPATH'] on win32
   * raggle: cleaned up module loading
   * raggle: only die if both ncurses and webrick are missing
+
+* Wed Sep 03 21:28:16 2003, pabs <pabs@pablotron.org>
+  * raggle: added explorer.exe and netscape.exe to browser list
+    (yes, i'm serious)

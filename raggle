@@ -132,7 +132,8 @@ module Path
   # find an application in your $PATH
   #
   def Path::find_app(app)
-    ENV['PATH'].split(/:/).find { |path| test ?x, "#{path}/#{app}" }
+    re = (RUBY_PLATFORM =~ /win32/i) ? ';' : ':'
+    ENV['PATH'].split(re).find { |path| test ?x, "#{path}/#{app}" }
   end
   
   #
@@ -148,7 +149,7 @@ module Path
   def Path::find_browser
     ret = ENV['RAGGLE_BROWSER']
     ret ||= ENV['BROWSER']
-    ret ||= %w{links elinks w3m lynx}.find { |app| find_app(app) }
+    ret ||= %w{links elinks w3m lynx explorer.exe}.find { |app| find_app(app) }
 
     # die if we couldn't find a browser
     die "Couldn't find suitable browser.",

@@ -798,8 +798,8 @@ module Raggle
           doc = REXML::Document.new(contents)
           doc.root.elements.each('//outline') do |outline|
             title = outline.attributes['title']
-            url = outline.attributes['xmlUrl']
-            site = outline.attributes['htmlUrl'] || ''
+            url = outline.attributes['xmlUrl'] || outline.attributes['xmlurl']
+            site = outline.attributes['htmlUrl'] || outline.attributes['htmlurl'] || ''
             desc = outline.attributes['description'] || ''
 
             if title.nil? || url.nil?

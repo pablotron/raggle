@@ -1842,3 +1842,6 @@
 * Thu Apr 15 05:38:11 2004, pabs <pabs@pablotron.org>
   * raggle: applied patch from Ralf Horstmann
     <ralf.horstmann@webwasher.com>
+
+* Thu Apr 15 05:49:15 2004, pabs <pabs@pablotron.org>
+  * TODO: added note about terminal documentation

@@ -93,3 +93,6 @@ Raggle TODO
     <djkea2@mugca.its.monash.edu.au>)
 [ ] OCS support (http://internetalchemy.org/ocs/index.html)
 [ ] user ratings (either centralized or bayesian, etc)
+[ ] note about terminal capabilities (no color in OSX, or in vt100 mode, 
+    outstanding resize problem, etc... prompted by email from Geoffrey G
+    Plitt <ggp@andrew.cmu.edu>)

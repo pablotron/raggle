@@ -177,3 +177,30 @@
 
 * Thu Jun 19 02:44:33 EDT 2003, richlowe <richlowe@richlowe.net>
   * raggle: Fix bug in net/https require that caused it to be non-optional
+
+* Thu Jun 19 03:26:21 EDT 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Split scrolling out of Window#handle_key, into methods, so
+            bindings can be customized later
+  * raggle: Remove much duplicated "window scrolling" into
+            Window#adjust_to, and call where I've noticed it's
+            appropriate.
+  * raggle: Add config option 'scroll_wrapping' to make behaviour
+            configurable when scrolling off the top or bottom of a
+            list.
+  * raggle: Add Window#activate to greatly simplify selecting an item
+            from a list
+  * raggle: Bind KEY_HOME to do the logical opposite of KEY_END
+  * raggle: Bind KEY_NPAGE to do the logical opposite of KEY_PPAGE
+  * raggle: Move page scrolling into scroll_{up,down}_page, and rework 
+            so that "page size" is configurable ('page_step').
+
+* Thu Jun 19 05:21:41 2003, pabs <pabs@pablotron.org>
+  * raggle: fixed unescape_html so it actually works
+  * raggle: added special unescape_html bit for &#8219;, which is "'",
+    and gets used all the time on PragDave's blog (I wonder if there
+    are any more characters like this?)
+  * raggle: added reflow_text parameter to Window#draw
+  * raggle: Link: and Date: no longer reflow and wrap in Description
+    window
+  * AUTHORS: updated Richard's entry
+  * TODO: marked off some stuff

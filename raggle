@@ -1,5 +1,4 @@
 #!/usr/bin/env ruby
-# -*- Mode: Ruby -*-
 
 # Raggle version
 $VERSION = '0.1.0'
@@ -18,7 +17,7 @@ require 'net/http'
 begin 
   require 'net/https'
   $HAVE_SSL = true
-rescue LoadError
+rescue
   $HAVE_SSL = false
 end
 
@@ -95,6 +94,10 @@ $config = {
   # ui options
   'focus'                 => 'select', # ['none', 'select', 'auto']
   'no_desc_auto_focus'    => true,
+  'scroll_wrapping'       => true,
+
+  # Number of list items per "page" (wrt page up/down)
+  'page_step'             => 4,
 
   # date formats
   'item_date_format'      => '%c',
@@ -130,6 +133,9 @@ $config = {
 
   # decode html escape sequences?
   'unescape_html'         => true,
+
+  # replace unicode chars with what?
+  'unicode_munge_char'    => 'X',
 
   # open new screen window for browser?
   'use_screen'            => true,
@@ -610,22 +616,31 @@ class String
 
   # this bit of love is from the pickaxe
   def unescape_html
-    gsub(/&(.*?);/n) {
-      case m = $1.dup
-      when /\Aamp\z/ni
+    str = self.dup
+    str.gsub!(/&(.*?);/n) {
+      m = $1.dup
+      case m
+      when /^amp$/ni
         '&'
-      when /\Aquot\z/ni
+      when /^nbsp$/ni
+        ' '
+      when /^quot$/ni
         '"'
-      when /\Alt\z/ni
+      when /^lt$/ni
         '<'
-      when /\Agt\z/ni
+      when /^gt$/ni
         '>'
-      when /\A#(\d+)\z/n
-        Integer($1).chr
-      when /\A#x([0-9a-f]+)\z/ni
-        $1.hex.chr
+      when /^#8217$/n
+        "'"
+      when /^#(\d+)$/n
+        r = Integer($1)
+        r.between?(0, 255) ? r.chr : $config['unicode_munge_str']
+      when /^#x([0-9a-f]+)$/ni
+        r = $1.hex
+        r.between?(0, 255) ? r.chr : $config['unicode_munge_str']
       end
     }
+    str
   end
 end
 
@@ -779,14 +794,14 @@ class Window
   #
   # draw text in window
   #
-  def draw(orig_text, x = 1, y = 1, color = 'text', refresh_win = true)
+  def draw(orig_text, x = 1, y = 1, color = 'text', refresh_win = true, reflow_text = true)
     ha = []; wa = []
     Ncurses::getmaxyx win, ha, wa
     w, h = wa[0], ha[0]
 
     # reflow text if it's a text window
     # DOES THIS BELOGN HERE?
-    if @win_type == 'text'
+    if reflow_text && @win_type == 'text'
       text = ''
       curr_line = ''
       orig_text.split(/\s+/).each { |word|
@@ -823,84 +838,107 @@ class Window
     [wa[0], ha[0]]
   end
 
+  #
+  # Adjust the window to show the selected item
+  #
+  def adjust_to(item)
+    # scroll window (if necessary)
+    w, h = wh
+    if item < @offset || item >= @offset + (h - 3)
+      @offset = @active_item
+      @offset = 0 if @offset < 0
+      if item + h - 3 > @items.size - 1
+        @offset = @active_item - (h - 3)
+        @offset = 0 if @offset < 0
+      end
+    end
+    draw_items
+    
+    # Should I really have put this here? -- richlowe 2003-06-19
+    set_status ' ' << @items[@active_item]['title']
+    select_win_item if $config['focus'] == 'auto'
+  end
 
+  #
+  # Bound scrolling based on $config['scroll_wrapping']
+  #
+  def scroll_bound(point)
+    if point >= @items.size
+      $config['scroll_wrapping'] ? 0 : @items.size - 1
+    elsif point < 0
+      $config['scroll_wrapping'] ? @items.size - 1 : 0
+    else
+      point
+    end
+  end
+
+  #
+  # Activate an item
+  #
+  def activate(item)
+    @active_item = item
+    adjust_to item
+  end
+  
+  #
+  # Scroll the window up one item
+  #
+  def scroll_up
+      activate scroll_bound(@active_item - 1)
+  end
+  
+  #
+  # Scroll window down.
+  #
+  def scroll_down
+      activate scroll_bound(@active_item + 1)
+  end
+  
+  #
+  # Scroll to the bottom.
+  #
+  def scroll_bottom
+      activate @items.size - 1
+  end
+
+  #
+  # Scroll to the top item
+  #
+  def scroll_top
+      activate 0
+  end
+
+  #
+  # Scroll one page up.
+  #
+  def scroll_up_page
+    activate scroll_bound((@active_item - $config['page_step']) % @items.size)
+  end
+
+  #
+  # Scroll one page down.
+  #
+  def scroll_down_page
+    activate scroll_bound((@active_item + $config['page_step']) % @items.size)
+  end
+       
   #
   # handle keyboard input
   #
   def handle_key(key)
     case key
-    when Ncurses::KEY_UP
-      if @items.size > 0
-        ai = @active_item
-        @active_item = ((ai - 1 < 0) ? @items.size : ai) - 1
-        ai = @active_item
-        
-        # scroll window (if necessary)
-        w, h = wh
-        if ai < @offset || ai >= @offset + (h - 3)
-          @offset = @active_item
-          @offset = 0 if @offset < 0
-          if ai + h - 3 > @items.size - 1
-            @offset = @active_item - (h - 3)
-            @offset = 0 if @offset < 0
-          end
-        end
-        # $new_status = "ai = #{ai}, offset = #@offset h = #{h}"
-        
-        draw_items
-        set_status ' ' << @items[@active_item]['title']
-        select_win_item if $config['focus'] == 'auto'
-      end
+    when Ncurses::KEY_UP 
+      scroll_up
     when Ncurses::KEY_DOWN
-      if @items.size > 0
-        @active_item = (@active_item + 1) % @items.size
-        ai = @active_item
-
-        # scroll window (if necessary)
-        w, h = wh
-        if ai < @offset || ai >= @offset + (h - 3)
-          @offset = @active_item - (h - 3)
-          @offset = 0 if @offset < 0
-        end
-        # $new_status = "ai = #{ai}, offset = #@offset h = #{h}"
-
-        draw_items
-        set_status ' ' << @items[@active_item]['title']
-        select_win_item if $config['focus'] == 'auto'
-      end
+      scroll_down
     when Ncurses::KEY_END
-      if @items.size > 0
-        @active_item = @items.size - 1
-        ai = @active_item
-
-        # scroll window (if necessary)
-        w, h = wh
-        if ai < @offset || ai >= @offset + (h - 3)
-          @offset = @active_item - (h - 3)
-          @offset = 0 if @offset < 0
-        end
-        # $new_status = "ai = #{ai}, offset = #@offset h = #{h}"
-
-        draw_items
-        set_status ' ' << @items[@active_item]['title']
-        select_win_item if $config['focus'] == 'auto'
-      end
+      scroll_bottom
+    when Ncurses::KEY_HOME
+      scroll_top
     when Ncurses::KEY_PPAGE
-      if @items.size > 0
-        w, h = wh
-        @active_item = (@active_item + h - 3) % items.size
-        ai = @active_item
-
-        if ai < @offset || ai >= @offset + (h - 3)
-          @offset = @active_item - (h - 3)
-          @offset = 0 if @offset < 0
-        end
-
-        draw_items
-        set_status ' ' << @items[@active_item]['title']
-        select_win_item if $config['focus'] == 'auto'
-      end
+      scroll_up_page
     when Ncurses::KEY_NPAGE
+      scroll_down_page
     when ?\n
       select_win_item
     when ?\ 
@@ -964,7 +1002,7 @@ class Window
         y += 1
         draw("Link: ", 1, y)
         # @win.color_set @colors['url'], nil
-        draw(item['url'], 7, y, 'url')
+        draw(item['url'], 7, y, 'url', true, false)
 
         # don't draw the date if it isn't set (silly RSS)
         if item['date'] && item['date'] != ''
@@ -980,10 +1018,10 @@ class Window
 
           # draw date string
           # @win.color_set @colors['date'], nil
-          draw(d_str, 7, y, 'date')
+          draw(d_str, 7, y, 'date', true, false)
         end
-        str = item['title'].unescape_html if $config['unescape_html']
         str = item['title'].gsub(/<[^>]+?>/, '') if $config['strip_html_tags']
+        str = str.unescape_html if $config['unescape_html']
         draw(str, 1, y += 2)
       }
     else

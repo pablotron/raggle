@@ -748,6 +748,9 @@
   * raggle: added jump to next unread (bound to 'n')
   * (all this stuff was suggested by Ville Aine)
 
+* Thu Jun 26 21:08:38 2003, pabs <pabs@pablotron.org>
+  * raggle: fix "Link:" and "Date:" X values now that the String\#reflow
+    bug is fixed
 
 	
 

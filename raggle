@@ -169,7 +169,7 @@ class String
           curr_line = curr_line[width - 2, curr_line.length]
         else
           text << curr_line << "\n"
-          curr_line = "#{word} "
+          curr_line = " #{word}"
         end
       else
         curr_line << "#{word} "
@@ -860,14 +860,14 @@ class TextWindow < Window
       draw(item['real_title'].strip, 1, y, 'f_title', true, false)
       y += 1
     end
-    draw("Link: ", 0, y)
+    draw("Link: ", 1, y)
     # @win.color_set @colors['url'], nil
     draw(item['url'], 7, y, 'url', true, false)
 
     # don't draw the date if it isn't set (silly RSS)
     if item['date'] && item['date'] != '' && item['date'] != "0"
       y += 1
-      draw("Date: ", 0, y)
+      draw("Date: ", 1, y)
       
       # handle date string shenanigans
       if ((i_val = item['date'].to_i) > 0)

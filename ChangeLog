@@ -618,3 +618,11 @@
   * raggle: The afformentioned fix, plus some cosmetic adjustments to the
             wrap width.
 
+* Tue Jun 24 11:00:20 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Add Window#clearrange to make it possible to only clear the
+            part of a window that needs clearing.
+  * raggle: Implement Window#clear in terms of Window#clearrange
+  * raggle: Make TextWindow#draw use clearrange and *massively* speed up
+            scrolling 
+
+

@@ -529,6 +529,15 @@ class Window
     refresh
   end
 
+  def clearrange(start, fini)
+    w = dimensions[0]
+    @win.color_set @colors['text'], nil
+    start.upto(fini) do |line|
+      Ncurses::mvwprintw @win, line, 1, ' ' * (w - 2)
+    end
+    @win.refresh
+  end
+  
   #
   # refresh window title and border (but not the contents)
   # 
@@ -546,10 +555,8 @@ class Window
   #
   def clear
     @win.color_set @colors['text'], nil
-    w, h = dimensions
-    1.upto(h - 2) { |y| Ncurses::mvwprintw @win, y, 1, ' ' * (w - 2)}
-    # Ncurses::mvwprintw @win, 1, 1, 'asdf'
-    @win.refresh
+    h = dimensions[1]
+    clearrange(1, h - 2)
   end
 
   def draw_text(text, x, y, reflow, offset)
@@ -838,10 +845,9 @@ class TextWindow < Window
   end
        
   def draw_items
-    y = 0
-    clear
     item = @items[0] # There can be only one
-    y += 1
+    y = 1
+    h = dimensions[1]
 
     if item['real_title'] && item['real_title'] != ''
       draw(item['real_title'].strip, 1, y, 'f_title', true, false)
@@ -866,13 +872,18 @@ class TextWindow < Window
       # draw date string
       # @win.color_set @colors['date'], nil
       draw(d_str, 7, y, 'date', true, false)
+      y += 1
     end
     if item['title']
       str = item['title'].strip_tags if $config['strip_html_tags']
       str = str.unescape_html if $config['unescape_html']
       # Offset + 1, so we scroll on the *first* press
-      draw(str, 1, y += 2, 'text', true, true, @offset + 1)
+      draw(str, 1, y, 'text', true, true, @offset + 1)
+      y += (reflow_string(str).lines - (@offset + 1))
     end
+
+    # *Much* faster than a total clear each time it scrolls.
+    clearrange(y, h - 2)
     
     refresh(true)
   end

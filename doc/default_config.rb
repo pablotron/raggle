@@ -106,7 +106,7 @@ $config = {
   # (you can lock individual feed titles with the --lock-title command)
   'lock_feed_title'       => false,
 
-  # feed info on hilite
+  # feed info on highlight
   'describe_hilited_feed' => true,
   'desc_show_site'        => false,
   'desc_show_url'         => false,

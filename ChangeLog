@@ -493,6 +493,10 @@
   * README: Fix spelling.  hilited -> highlighted, sorry, ispell agrees
             with me
 
+* Mon Jun 23 00:42:05 2003, richlowe <richlowe@richlowe.net>
+  * README: Fix spelling in comment, hilite -> highlight, see ispell
+            comment above. (String will be fixed in code after release)
+
 
 
 

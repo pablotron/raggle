@@ -850,6 +850,10 @@
 	    switch, and it seems overkill to code up a func to blank
 	    unchanged lines, to avoid a redraw in that case.
 
+* Tue Jul  1 07:58:57 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Fix some typos (and spelling errors) in comments and documentation.
+
+
 	
 
 

@@ -276,7 +276,7 @@ module OPML
   # refresh::    refresh rate used for all imported feeds.
   #              If nil, then value of option +feed_default_value+
   #              is used.
-  # lock_title:: If true, then all title's of imported feeds
+  # lock_title:: If true, then all titles of imported feeds
   #              will be locked
   # save_items:: If true, then all imported feeds' items will be saved.
   def OPML::import(file_name, refresh=nil, lock_title=false, save_items=false)
@@ -308,7 +308,7 @@ module OPML
   end
 
 
-  # Export all feeds to OPMl format
+  # Export all feeds to OPML format
   def OPML::export(file_name)
     begin
       feed_list = $config['feeds']
@@ -719,7 +719,7 @@ class Window
   end
 
   #
-  # select currently hilited window item
+  # select currently highlighted window item
   #
   # XXX: This really should be split between the window classes as
   #      Appropriate -- richlowe 2003-06-23
@@ -1158,7 +1158,7 @@ def expand_config
 end
 
 #
-# describe the hilited feed
+# describe the highlighted feed
 # 
 def describe_feed(id)
   d_win = $wins[get_win_id('desc')]
@@ -1796,7 +1796,7 @@ def resize_term
 end
 
 #
-# save scren mode, drop out of ncurses
+# save screen mode, drop out of ncurses
 #
 def save_screen
   Ncurses::def_prog_mode
@@ -2214,7 +2214,7 @@ $config = {
   # (you can lock individual feed titles with the --lock-title command)
   'lock_feed_title'       => false,
 
-  # feed info on hilite
+  # feed info on highlight
   'describe_hilited_feed' => true,
   'desc_show_site'        => false,
   'desc_show_url'         => false,
@@ -2413,7 +2413,7 @@ free software; please see the file COPYING for licensing and warranty
 information.
 . .
 You can use the left and right arrow keys to navigate between windows.
-Press Enter or Space to select the hilited item in the active window.
+Press Enter or Space to select the highlighted item in the active window.
 To launch a browser and view an item, select the item, navigate to the
 Description window and press Enter.
 ',
@@ -2463,7 +2463,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 - Page Up, Page Down : Move up, down a page. .
 - u, d : Move the current feed up or down. .
 - s : Sort the feed list alphabetically. .
-- Del: Delete the hilited feed. .
+- Del: Delete the highlighted feed. .
 - o : Open the currently selected feed item. .
 - m : Mark all items as read.
 - n : Move to next unread item.
@@ -2477,9 +2477,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           'date'  => 1056271511,
           'read?' => false,
           'desc'  => 'To read a given feed,
-hilite it in the Feed window and press Enter or
+highlight it in the Feed window and press Enter or
 Space.  The list of items available from that feed will be displayed in
-the Item window.  Unread feed items are hilited in cyan.  To view the
+the Item window.  Unread feed items are highlighted in cyan.  To view the
 full story linked from a feed item, navigate to the Description window
 (using Tab or the Left and Right arrow keys) and press Enter.  
 . .

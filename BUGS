@@ -3,6 +3,7 @@ Bugs
 [-] Description doesn't scroll (work in progress)
 [-] Feed grabbing thread will block if the HTTP connection blocks 
     (work in progress)
-[ ] Sometimes (totally unreproducably), the feeds file will be saved
+[ ] Sometimes (totally unreproducibly), the feeds file will be saved
     is the FeedList were an array, (not reproducible here)
 [ ] Code *very* untidy in places, (will be fixed post-release)
+[ ] Man page is worthlessly incomplete

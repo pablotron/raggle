@@ -3,7 +3,7 @@
 .Os
 .Sh NAME
 .Nm raggle
-.Nd text mode RSS agregator.
+.Nd text mode RSS aggregator.
 .Sh SYNOPSIS
 .Nm raggle
 .Op Fl hlv
@@ -38,77 +38,96 @@
 .Op Fl Fl version
 .Sh DESCRIPTION
 .\" XXX WRITE ME XXX
-Short description of
 .Nm raggle
-goes here.
+is a curses based RSS aggregator.
 .Pp
-The following options are available
+The following options are available:
 .Bl -tag -width xxxxxxxx
+.\" -h
 .It Fl h
 Show usage message.
+.\" -l
 .It Fl l
 List feeds
+.\" -v
 .It Fl v
 Show
 .Nm raggle
 version
+.\" -c
 .It Fl c Ar file
 use
 .Ar file
-as an alternative config file.
+as an alternative configuration file.
+.\" -d
 .It Fl d Ar feed
 Delete
 .Ar feed
 from the feed list.
+.\" --delete
 .It Fl Fl delete Ar feed
 Delete
 .Ar feed
 from the feed list
+.\" --delete-feed
 .It Fl Fl delete-feed Ar feed
 Delete
 .Ar feed
 from the feed list
+.\" -e
 .It Fl e Ar feed
 Edit
 .Ar feed
+.\" --edit
 .It Fl Fl edit Ar feed
 Edit
 .Ar feed
+.\" --edit-feed
 .It Fl Fl edit-feed Ar feed
 Edit
 .Ar feed
+.\" --force
 .It Fl Fl force
 Force an edit/addition to succeed even if it wants to do things that
 are generally unwise.
+.\" --help
 .It Fl Fl help
 Show usage message
+.\" --usage
 .It Fl Fl usage
 Show usage message
+.\" -i
 .It Fl i Ar feed
 Invalidate 
 .Ar feed
 (force it to be refreshed).
+.\" --invalidate
 .It Fl Fl invalidate Ar feed
 Invalidate
 .Ar feed
 (force it to be refreshed).
+.\" --list
 .It Fl Fl list
 List feeds.
+.\" --lock-title
 .It Fl Fl lock-title
 Lock the title of a feed (used with
 .Fl Fl edit
 or 
 .Fl Fl add ) , 
 prevents the feed title being updated from RSS.
+.\" --purge
 .It Fl Fl purge
 Purge deleted feeds from the cache
-.It Fl r Ar refresh_time
+.\" -r
+.It Fl Fl r Ar refresh_time
 Use with
 .Fl Fl edit 
 or
 .Fl Fl add .
 Set the feed refresh time to
 .Ar refresh_time
+.\" --refresh
 .It Fl Fl refresh Ar refresh_time
 Use with
 .Fl Fl edit 
@@ -116,16 +135,20 @@ or
 .Fl Fl add .
 Set the feed refresh time to
 .Ar refresh_time
+.\" --save-items
 .It Fl Fl save-items
 Use with
 .Fl Fl edit
 or 
 .Fl Fl add .
 Save old feed items
+.\" --sort
 .It Fl Fl sort
 Sort feed list
+.\" --sort-feeds
 .It Fl Fl sort-feeds
 Sort feed list
+.\" -t
 .It Fl t Ar title
 Use with
 .Fl Fl add
@@ -133,6 +156,7 @@ or
 .Fl Fl edit .
 Set the title of a feed to
 .Ar title
+.\" --title
 .It Fl Fl title Ar title
 Use with
 .Fl Fl add
@@ -140,18 +164,21 @@ or
 .Fl Fl edit .
 Set the title of a feed to
 .Ar title
+.\" --unlock-title
 .It Fl Fl unlock-title
 Use with
 .Fl Fl add
 or
 .Fl Fl edit .
 Unlock a feed's title (update it from the RSS feed).
+.\" --unsave-items
 .It Fl Fl unsave-items
 Use with 
 .Fl Fl add
 or
 .Fl Fl edit
 Don't save old feed items.
+.\" -u
 .It Fl u Ar url
 Use with
 .Fl Fl add
@@ -159,6 +186,7 @@ or
 .Fl Fl edit .
 Set the URL of a feed to
 .Ar url
+.\" --url
 .It Fl Fl url Ar url
 Use with
 .Fl Fl add
@@ -166,8 +194,10 @@ or
 .Fl Fl edit .
 Set the URL of a feed to
 .Ar url
+.\" --verbose
 .It Fl Fl verbose
 Enable verbose output
+.\" --version
 .It Fl Fl version
 Show
 .Nm raggle
@@ -175,7 +205,22 @@ version.
 .El
 .Pp
 .Sh BUGS
-Many
+.\" XXX Keep in sync with raggle/BUGS (but prettify)
+.Bl -tag -width xxxxxxxx
+.It 
+Description window can't be scrolled
+.It 
+Feed grabbing thread will block (and no other feeds will update) if
+the HTTP connection for a feed blocks.
+.It
+It's possible that feeds.yaml
+will be mistakenly written as an Array rather than a FeedList for no
+apparent reason
+.It
+Man page is hopelessly incomplete
+.It
+Probably many many more.
+.El
 .Pp
 .Sh AUTHORS
 .An Paul Duncan

@@ -60,7 +60,7 @@
 
 * Sun Jun 08 20:56:41 2003, pabs <pabs@pablotron.org>
   * raggle: added additional online documentation
-  * raggle: reenabled save_feed_cache (oops)
+  * raggle: re-enabled save_feed_cache (oops)
   * raggle: added 'site' option
 
 * Sun Jun 08 22:11:35 2003, pabs <pabs@pablotron.org>
@@ -175,16 +175,16 @@
     Lowe <richlowe@richlowe.net>
   * raggle: renamed 'strip_html' option to 'strip_html_tags'
 
-* Thu Jun 19 02:44:33 EDT 2003, richlowe <richlowe@richlowe.net>
+* Thu Jun 19 02:44:33 2003, richlowe <richlowe@richlowe.net>
   * raggle: Fix bug in net/https require that caused it to be non-optional
 
-* Thu Jun 19 03:26:21 EDT 2003, richlowe <richlowe@richlowe.net>
+* Thu Jun 19 03:26:21 2003, richlowe <richlowe@richlowe.net>
   * raggle: Split scrolling out of Window#handle_key, into methods, so
             bindings can be customized later
   * raggle: Remove much duplicated "window scrolling" into
             Window#adjust_to, and call where I've noticed it's
             appropriate.
-  * raggle: Add config option 'scroll_wrapping' to make behaviour
+  * raggle: Add config option 'scroll_wrapping' to make behavior
             configurable when scrolling off the top or bottom of a
             list.
   * raggle: Add Window#activate to greatly simplify selecting an item
@@ -231,10 +231,10 @@
   * raggle: added 'theme/window_order' option (to control order of
     window activation)
 
-* Thu Jun 19 17:18:04 EDT 2003, richlowe <richlowe@richlowe.net>
+* Thu Jun 19 17:18:04 2003, richlowe <richlowe@richlowe.net>
   * raggle: refix net/https require (rebroke in pabs' merge, I guess)
 
-* Thu Jun 19 17:46:43 EDT 2003, richlowe <richlowe@richlowe.net>
+* Thu Jun 19 17:46:43 2003, richlowe <richlowe@richlowe.net>
   * raggle: Make Window#activate punt in feeds with no items.
 
 * Fri Jun 20 01:44:26 2003, pabs <pabs@pablotron.org>
@@ -272,11 +272,11 @@
   * implemented Richard's key bindings idea.  Key bindings are now
     stored in $config and called as procs
 
-* Fri Jun 20 04:01:14 EDT 2003, richlowe <richlowe@richlowe.net>
+* Fri Jun 20 04:01:14 2003, richlowe <richlowe@richlowe.net>
   * raggle: Fix Window#scroll_up_page and Window#scroll_down_page logic.
   * raggle: Make page up/down never wrap.  It's confusing
 
-* Fri Jun 20 04:07:44 EDT 2003, richlowe <richlowe@richlowe.net>
+* Fri Jun 20 04:07:44 2003, richlowe <richlowe@richlowe.net>
   * raggle: Fix bug preventing feed item number updating (misnamed
             variable).
 
@@ -284,11 +284,11 @@
   * raggle: terminal resize works now, although you have to press a few
     keys for it to update (not sure why yet).
 	
-* Fri Jun 20 04:34:50 EDT 2003, richlowe <richlowe@richlowe.net>
+* Fri Jun 20 04:34:50 2003, richlowe <richlowe@richlowe.net>
   * raggle: Allow a user to invalidate a feed (force a re-fetch)
 	./raggle (-i | --invalidate | --invalidate-feed) <feed id>
 
-* Fri Jun 20 04:39:10 EDT 2003, richlowe <richlowe@richlowe.net>
+* Fri Jun 20 04:39:10 2003, richlowe <richlowe@richlowe.net>
   * raggle: Invalidate a feed if it's URL changes in an edit.
 
 * Fri Jun 20 04:53:24 2003, pabs <pabs@pablotron.org>
@@ -297,44 +297,45 @@
 * Fri Jun 20 05:00:32 2003, pabs <pabs@pablotron.org>
   * TODO: updates, schmupdates
 
-* Fri Jun 20 21:24:25 EDT 2003, richlowe <richlowe@richlowe.net>
+* Fri Jun 20 21:24:25 2003, richlowe <richlowe@richlowe.net>
   * raggle.1: Add mdoc manpage (needs changing to ms, preferably).
 
-* Fri Jun 20 21:31:31 EDT 2003, richlowe <richlowe@richlowe.net>
+* Fri Jun 20 21:31:31 2003, richlowe <richlowe@richlowe.net>
   * raggle: Add -i/--invalidate to usage.
   * raggle.1: Document -i/--invalidate.
 
-* Fri Jun 20 23:03:24 EDT 2003, richlowe <richlowe@richlowe.net>
+* Fri Jun 20 23:03:24 2003, richlowe <richlowe@richlowe.net>
   * raggle: Add a FeedList class, and make $config['feeds'] an
 	    instance of it.
 
-* Fri Jun 20 23:15:29 EDT 2003, richlowe <richlowe@richlowe.net>
+* Fri Jun 20 23:15:29 2003, richlowe <richlowe@richlowe.net>
   * raggle: Add a Key module, and move routines to be bound to keys into
             it.
 
-* Fri Jun 20 23:26:16 EDT 2003, richlowe <richlowe@richlowe.net>
+* Fri Jun 20 23:26:16 2003, richlowe <richlowe@richlowe.net>
   * raggle: Add default feeds.
 
-* Sat Jun 21 00:07:32 EDT 2003, richlowe <richlowe@richlowe.net>
+* Sat Jun 21 00:07:32 2003, richlowe <richlowe@richlowe.net>
   * raggle: Add commands to move items in the item list (u = up, d =
            down).
-* Sat Jun 21 00:18:41 EDT 2003, richlowe <richlowe@richlowe.net>
+
+* Sat Jun 21 00:18:41 2003, richlowe <richlowe@richlowe.net>
   * raggle: Add methods to move items in a window rather than doing it in
             the key handler
 
-* Sat Jun 21 01:46:36 EDT 2003, richlowe <richlowe@richlowe.net>
+* Sat Jun 21 01:46:36 2003, richlowe <richlowe@richlowe.net>
   * raggle: Add item deletion support
 
-* Sat Jun 21 01:49:09 EDT 2003, richlowe <richlowe@richlowe.net>
+* Sat Jun 21 01:49:09 2003, richlowe <richlowe@richlowe.net>
   * raggle: Fix typo in return binding.
 
-* Sat Jun 21 01:53:29 EDT 2003, richlowe <richlowe@richlowe.net>
+* Sat Jun 21 01:53:29 2003, richlowe <richlowe@richlowe.net>
   * raggle: remove feed indirection through $SRC, there's no reason
 	    to use debug feeds anymore.
 
 * Sat Jun 21 13:21:10 2003, pabs <pabs@pablotron.org>
   * raggle: handle nil item titles sanely
-  * raggle: check for --save-items and --lock-title in -e handleer
+  * raggle: check for --save-items and --lock-title in -e handler
     before dying
   * TODO: minor updates
 
@@ -364,29 +365,29 @@
   * raggle: misc 1.8 cleanup.  still doesn't work in 1.8, but it's
     a little closer
 	
-* Sat Jun 21 23:38:31 EDT 2003, richlowe <richlowe@richlowe.net>
+* Sat Jun 21 23:38:31 2003, richlowe <richlowe@richlowe.net>
   * raggle: Remove a 'p' before an exit 0 that I *think* I added by
             mistake
 
-* Sun Jun 22 00:25:12 EDT 2003, richlowe <richlowe@richlowe.net>
-  * raggle: Use GetoptLong for arg parsing, and *greaty* simplify the
+* Sun Jun 22 00:25:12 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Use GetoptLong for arg parsing, and *greatly* simplify the
             case.
 
-* Sun Jun 22 00:31:12 EDT 2003, richlowe <richlowe@richlowe.net>
+* Sun Jun 22 00:31:12 2003, richlowe <richlowe@richlowe.net>
   * raggle: Fix FeedList#invalidate (calling a method when I should 
 	    have been setting a hash item).
 
-* Sun Jun 22 00:38:37 EDT 2003, richlowe <richlowe@richlowe.net>
+* Sun Jun 22 00:38:37 2003, richlowe <richlowe@richlowe.net>
   * raggle: Trap SIGINT and SIGQUIT early, and handle them gracefully
 
-* Sun Jun 22 00:45:25 EDT 2003, richlowe <richlowe@richlowe.net>
+* Sun Jun 22 00:45:25 2003, richlowe <richlowe@richlowe.net>
   * raggle: Don't activate (and thus swith to 'items' with the (default)
             auto focus) the item selected after a deletion
 	
 * Sun Jun 22 00:52:35 2003, pabs <pabs@pablotron.org>
   * raggle: mark empty feeds as read
 
-* Sun Jun 22 01:05:46 EDT 2003, richlowe <richlowe@richlowe.net>
+* Sun Jun 22 01:05:46 2003, richlowe <richlowe@richlowe.net>
   * raggle: Remove Digital Theatre feed from defaults, it's been
             inaccessible for days now.
 
@@ -394,8 +395,8 @@
   * raggle: mark empty feeds in _red_, not as read (that's what I
     get for _talking_ to Richard, instead of typing to him :D)
 
-* Sun Jun 22 02:07:56 EDT 2003, richlowe <richlowe@richlowe.net>
-  * raggle: Allow FeedList's to be derefed like Array's
+* Sun Jun 22 02:07:56 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Allow FeedList's to be derefed like Arrays
             (just for Paul)
 	    INTERESTING NOTE:
 	    We can't delegate to Array, because that breaks YAML in all
@@ -404,5 +405,13 @@
 	    that FeedList *is* that array.  This is not good.  If only I
 	    knew the exact method I had to implement in FeedList to
 	    convince it not to do that.
+
+* Sun Jun 22 02:30:23 2003, richlowe <richlowe@richlowe.net>
+  * raggle.1: Add BUGS section, attempt to make option list easier to read
+
+* Sun Jun 22 02:41:16 2003, richlowe <richlowe@richlowe.net>
+  * raggle.1: Spellcheck
+  * raggle: Spellcheck comments and strings.
+
 	  
 

@@ -381,13 +381,13 @@ module Feed
     raise "Couldn't parse URL: \"#{url}\"" unless url =~ /^(.+?)\/(.*)$/
     host, path = $1, $2
 
-    # check for port in url
+    # check for port in URL
     if host =~ /:(\d+)$/
       port = $1 
       host.gsub!(/:(\d+)$/, '')
     end
 
-    # init http connection
+    # initialize http connection
     http = Net::HTTP.start(host, port)
     http.use_ssl = use_ssl if $HAVE_SSL
     raise "Couldn't connect to host \"#{host}:#{port}\"" unless http
@@ -521,7 +521,7 @@ class Window
     w, h = wa[0], ha[0]
 
     # reflow text if it's a text window
-    # DOES THIS BELOGN HERE?
+    # DOES THIS BELONG HERE?
     if reflow_text && @win_type == 'text'
       text = ''
       curr_line = ''

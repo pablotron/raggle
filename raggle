@@ -2450,7 +2450,7 @@ $config = {
 
   'default_feeds' => [
     { 'title'     => ' Raggle', # add a space so sorting puts it at top
-      'url'       => "http://www.raggle.org/files/help-#{$VERSION}.xml",
+      'url'       => "http://www.raggle.org/online_help/help-#{$VERSION}.xml",
       'site'      => 'http://www.raggle.org/',
       'refresh'   => -1,
       'updated'   => 1056271511,

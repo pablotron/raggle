@@ -42,5 +42,5 @@ Bugs
     be bogus).  The error was "connection is already set up".
 [ ] Memory leak (might be fixed by GC thread; we'll have to wait
     and see).
-[ ] corrupting international characters? (see
+[*] corrupting international characters? (see
     http://www.raggle.org/files/swedish_char_corruption/)

@@ -1077,10 +1077,10 @@ module Feed
           # RSS)
           h = {}
           [ 'title', 'link', 'date', 'description' ].each { |val|
-            h[val] = (t_e = e.elements[val]) ? t_e.text : ''
+            h[val] = (t_e = e.elements[val]) ? fix_character_encoding(t_e) : ''
           }
 
-          h['description'] = find_description(e)
+	  h['description'] = find_description(e)
 
           # insert new item
           @items << Feed::Item.new(h['title'], h['link'],
@@ -1092,9 +1092,15 @@ module Feed
     def find_description(elem)
       $config['desc_element_xpaths'].each { |xpath|
         e = elem.elements[xpath]
-        return e.text if e
+        return fix_character_encoding(e) if e
       }
       ''
+    end
+
+    def fix_character_encoding(element)
+      tmp = ''
+      element.get_text.write(REXML::Output.new(tmp, $config['character_encoding']))
+      tmp
     end
   end
 end
@@ -2817,6 +2823,12 @@ $config = {
 
   # replace unicode chars with what?
   'unicode_munge_str'     => '!u!',
+
+  # character encoding used to display text
+  # from RSS feeds.
+  #
+  # Supported encodings are: ISO-8859-1, UTF-8, UTF-16 and UNILE
+  'character_encoding'    => 'ISO-8859-1',
 
   # warn if feed refresh is set to less than this
   'feed_refresh_warn'     => 60,

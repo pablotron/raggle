@@ -1154,3 +1154,7 @@
 
 * Fri Aug 22 01:19:47 2003, pabs <pabs@pablotron.org>
   * raggle: don't crash on untitled feeds
+
+* Fri Aug 23 00:38:24 2003, heap <vaine@cs.helsinki.fi>
+  * raggle: fixed swedish char mangling bug 
+	

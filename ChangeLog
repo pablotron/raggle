@@ -2481,3 +2481,7 @@ _Cvs
   * raggle: bookmarks auto-inherit tags from parent feed (configurable)
   * raggle: :no_tag => :no_tags
   * TODO: updated with ideas for bookmarks
+
+* Mon Mar 21 09:11:00 2005, redshift <redshift@halffull.org>
+  * raggle: fixed Michael Ablassmeier's bug with content == nil
+  * raggle: fixed minor bug with bookmarks causing crash

@@ -1467,13 +1467,13 @@ ENDWARNING
         begin
           content, modified = Engine::get_url(url, last_modified)
           $log.puts "content: #{content[0,80]}",
-                    "modified: #{modified}"
+                    "modified: #{modified}" if content
         rescue
           raise "Couldn't get URL \"#{url}\": #$!."
         end
 
         @last_modified = modified
-        if !modified || modified != last_modified
+        if content && (!modified || modified != last_modified)
           # strip external entities (work-around for bug in REXML 2.7.1)
           content.gsub!(/<!ENTITY %.*?>/m, '') if \
             $config['strip_external_entities'] && content =~ /<!ENTITY %.*?>/m
@@ -3590,7 +3590,7 @@ ENDUSAGE
         bm.each do |bmb|
           # get tags, add feed categories (unless disabled)
           tags = user_tags
-          unless bmb.key?(:inherit_tags) && bmb.[:inherit_tags] == false
+          unless bmb.key?(:inherit_tags) && bmb[:inherit_tags] == false
             tags += feed_cats 
           end
 

@@ -87,7 +87,7 @@ Raggle TODO
     contents or only having the active feed in memory: note this
     method is easier, but relies on sane disk caching for any speed)
 [*] update keybindings documentation
-[ ] save feed attributes on OPML export
+[*] save feed attributes on OPML export
 [ ] XBEL import/export?
 [*] url arg to --import-opml (suggested by Doug Kearns
     <djkea2@mugca.its.monash.edu.au>)

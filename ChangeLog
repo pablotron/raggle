@@ -2054,3 +2054,9 @@
     for example.
   * extras/test_html_renderer.rb: Add test for links
     inside <pre>.
+
+* Sun Oct 17 18:04:16 2004, heap <vaine@cs.helsinki.fi>
+  * raggle: Unknown tags shouldn't insert those annoying
+    spaces anymore.
+  * extras/test_html_renderer.rb: Modify tests to match
+    the new behaviour.

@@ -604,13 +604,16 @@ module Raggle
       #
       def reflow_text(text)
         cur_line = @lines.pop || ''
-        text.split(/\s+/).each do |word|
-          if cur_line.length + word.length > @width
-            @lines << cur_line
-            cur_line = ""
+        text.scan(/\s+|[^\s]+/) do |chunk|
+          if chunk =~ /^\s+/
+            cur_line << " " unless cur_line.empty? || cur_line[-1] == ?\ # fix emacs
+          else
+            if cur_line.length + chunk.length > @width
+              @lines << cur_line
+              cur_line = ""
+            end
+            cur_line << chunk.chomp
           end
-          cur_line << " " unless cur_line.empty? || cur_line[-1] == ?\ # fix emacs
-          cur_line << word.chomp
         end
         @lines << cur_line
       end

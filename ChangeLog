@@ -2036,3 +2036,6 @@
   * raggle: apply patch from Michael Ablassmeier <abi@grinser.de> that
 		fixes import of Amphetadesk OPML files (closes
 		http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=266046)
+
+* Tue Sep 21 02:44:40 2004, pabs <pabs@pablotron.org>
+  * TODO: add note about delicious integration

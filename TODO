@@ -106,3 +106,4 @@ Raggle TODO
     speed
 [ ] backend abstraction (be able to save to MySQL, LDAP, etc)
 [ ] use URI lib for url handling
+[ ] del.icio.us integration

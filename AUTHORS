@@ -67,7 +67,7 @@ Thomas Kirchner <redshift@halffull.org>
 * 'n' and 'p' feed spanning
 * '1' through '9' link opening
 * help window
-* feed priorities
+* feed sort priorities
 * item deletion and undeletion
 * ncurses-mode feed editing
 * better OPML import/export, in-program usage

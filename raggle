@@ -10,13 +10,16 @@ $config = {
   'config_path'           => ENV['HOME'] << '.raggle/config.rb',
 
   # ui options
-  'item_focus'            => false,
+  'focus'                 => 'select', # ['none', 'select', 'auto']
+  'no_desc_auto_focus'    => true,
+
+  # date formats
   'item_date_format'      => '%c',
   'desc_date_format'      => '%c',
 
   # messages
   'msg_welcome'           => " Welcome to Raggle #{$VERSION}.",
-  'msg_exit'              => "| Press F12 or Q to exit ",
+  'msg_exit'              => "| Press ESC or Q to exit ",
   'msg_close'             => '[X] ',
 
   # menu bar color
@@ -54,7 +57,7 @@ $config = {
   'win_feed'      => {
     'key'         => 'feed',
     'title'       => 'Feeds',
-    'coords'      => [0, 1, 20, -1],
+    'coords'      => [0, 0, 20, -1],
     'type'        => 'list',
     'colors'      => { 
       'title'     => 1,
@@ -70,7 +73,7 @@ $config = {
   'win_item'      => {
     'key'         => 'item',
     'title'       => 'Items',
-    'coords'      => [20, 1, -1, 20],
+    'coords'      => [20, 0, -1, 20],
     'type'        => 'list',
     'colors'      => {
       'title'     => 1,
@@ -86,7 +89,7 @@ $config = {
   'win_desc'      => {
     'key'         => 'desc',
     'title'       => 'Description',
-    'coords'      => [20, 21, -1, -1],
+    'coords'      => [20, 20, -1, -1],
     'type'        => 'text',
     'colors'      => {
       'title'     => 1,
@@ -143,7 +146,7 @@ $config = {
           'url'   => 'http://www.pablotron.org/test?item=1',
           'date'  => 32893298,
           'desc'  => 'this is a test item', },
-        { 'title' => 'erarrgh 5',
+        { 'title' => 'Text Reflow Sample',
           'url'   => 'http://www.pablotron.org/test?item=2',
           'date'  => 3243298,
           'desc'  => 'Some sample text:
@@ -252,6 +255,9 @@ class Window
     refresh if refresh_win
   end
 
+  #
+  # handle keyboard input
+  #
   def handle_key(key)
     case key
     when Ncurses::KEY_UP
@@ -259,19 +265,24 @@ class Window
         ai = @active_item
         @active_item = ((ai - 1 < 0) ? @items.size : ai) - 1
         draw_items
+        select_win_item if $config['focus'] == 'auto'
       end
     when Ncurses::KEY_DOWN
       if @items.size > 0
         @active_item = (@active_item + 1) % @items.size
         draw_items
+        select_win_item if $config['focus'] == 'auto'
       end
-    when Ncurses::KEY_RIGHT
-      # select_feed 0
-      # @items[@active_item]['proc'].call if @items.size > 0
+    when ?\n
+      select_win_item
+    when ?\ 
       select_win_item
     end
   end
 
+  #
+  # select currently hilited window item
+  #
   def select_win_item
     if @items[@active_item].has_key? 'feed'
       select_feed @items[@active_item]['feed']
@@ -282,6 +293,9 @@ class Window
     end
   end
 
+  #
+  # redraw window items
+  #
   def draw_items
     y = 0
     if @win_type == 'text'
@@ -305,6 +319,9 @@ class Window
   end
 end
 
+#
+# set status bar message
+#
 def set_status(str)
   str += ' ' * ($config['w'] / 2 - str.length)
   e_msg = $config['msg_exit']
@@ -316,22 +333,30 @@ def set_status(str)
   Ncurses::refresh
 end
 
+# 
+# set active window 
+#
 def set_active_win(a_win)
   $wins[$a_win].active = false
   $a_win = a_win
   $wins[$a_win].active = true
 end
 
+#
+# get window id by key
+#
 def get_win_id(str)
   $wins.each_index { |i| return i if $wins[i].key == str }
   -1
 end
 
+#
+# set active feed by id
+#
 def select_feed(id)
   $a_feed = id
   $a_item = 0
 
-  set_status "selecting feed #{id}"
   item_id = get_win_id 'item'
   $wins[item_id].active_item = 0
   $wins[item_id].items.clear
@@ -349,13 +374,15 @@ def select_feed(id)
   $wins[item_id].win.clear
   $wins[item_id].draw_items
 
-  set_active_win(item_id) if $config['item_focus']
+  set_active_win(item_id) if $config['focus'] == 'select'
 end
 
+#
+# set active item by id
+#
 def select_item(id)
   $a_item = id
 
-  set_status "selecting item #{id}"
   desc_id = get_win_id 'desc'
   $wins[desc_id].active_item = 0
   $wins[desc_id].items.clear
@@ -368,7 +395,8 @@ def select_item(id)
   $wins[desc_id].win.clear
   $wins[desc_id].draw_items
 
-  set_active_win(desc_id) if $config['item_focus']
+  set_active_win(desc_id) if $config['focus'] == 'select' and
+                             !$config['no_desc_auto_focus']
 end
 
 begin
@@ -391,11 +419,11 @@ begin
   $config['h'] = h[0] - 1
 
   # draw menu bar
-  c_msg = $config['msg_close']
-  msg = (' ' * ($config['w'] - c_msg.length)) << c_msg
-  Ncurses::wcolor_set Ncurses::stdscr, $config['menu_bar_cols'], nil
-  Ncurses::mvprintw 0, 0, msg
-  Ncurses::refresh
+  # c_msg = $config['msg_close']
+  # msg = (' ' * ($config['w'] - c_msg.length)) << c_msg
+  # Ncurses::wcolor_set Ncurses::stdscr, $config['menu_bar_cols'], nil
+  # Ncurses::mvprintw 0, 0, msg
+  # Ncurses::refresh
 
   # draw status bar
   set_status $config['msg_welcome']
@@ -411,6 +439,7 @@ begin
   
   $a_feed, $a_item = 0, 0
   
+  # populate feed window with debug values
   id = get_win_id 'feed'
   $config['debug_feeds'].each_with_index { |feed, i|
     title = feed['title'] + ' (%d)' % feed['items'].size
@@ -422,19 +451,26 @@ begin
   $wins[id].draw_items
   
   select_feed(0)
+  set_active_win(0)
   
-  # main loop
+  # main input loop
   done = false
   while !done
     # handle keyboard input
     case c = Ncurses::getch
+    when Ncurses::KEY_RIGHT
+      set_active_win(($a_win + 1) % $wins.size)
     when ?\t
       set_active_win(($a_win + 1) % $wins.size)
+    when Ncurses::KEY_LEFT
+      set_active_win((($a_win - 1 < 0) ? $wins.size : $a_win) - 1)
     when ?\\
       set_active_win((($a_win - 1 < 0) ? $wins.size : $a_win) - 1)
     when Ncurses::KEY_F12
       done = true
     when ?q
+      done = true
+    when ?\e
       done = true
     when ?
       resize_wins

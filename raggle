@@ -2500,7 +2500,9 @@ ENDUSAGE
         
           # count unread items
           unread_count = 0
-          feed['items'].each { |item| unread_count += 1 unless item['read?'] }
+          if feed['items']
+            feed['items'].each { |item| unread_count += 1 unless item['read?'] }
+          end
       
           # build title
           if feed['title']

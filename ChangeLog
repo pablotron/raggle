@@ -2020,3 +2020,6 @@
 
 * Thu Aug 12 17:40:35 2004, pabs <pabs@pablotron.org>
 	* TODO: added a couple of ideas I thought of
+
+* Mon Aug 23 15:02:00 2004, pabs <pabs@pablotron.org>
+	* raggle: fix null deref in populate_feed_win

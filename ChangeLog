@@ -1906,3 +1906,7 @@
   * raggle: moved resize_term, save_sceren, restore_screen, drop_to_shell,
     and setup_win to Raggle::Interfaces::NcursesInterface
   * raggle: moved grab_feed to Raggle::Engine
+
+* Sun Jul 11 05:34:13 2004, pabs <pabs@pablotron.org>
+  * raggle: clean up command-l;ine usage, add ville to list of
+    authors in there

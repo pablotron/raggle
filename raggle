@@ -2760,82 +2760,83 @@ ENDWARNING
   module CLI
     def print_usage
       puts <<ENDUSAGE
-    Raggle - Console RSS feed aggregator.
-    Version #$VERSION, by Paul Duncan <pabs@pablotron.org> and
-                          Richard Lowe <richlowe@richlowe.net>
+Raggle - A Console RSS feed aggregator, written in Ruby.
+Version #$VERSION, by Paul Duncan <pabs@pablotron.org>, 
+                      Richard Lowe <richlowe@richlowe.net>, and
+                      Ville Aine <vaine@cs.helsinki.fi>
 
-    Usage:
-      #$0 [options]
+Usage:
+  #$0 [options]
 
-    Options:
-      -a, --add, --add-feed         Add a new feed (requires '--url').
-      --ascii                       Use ASCII characters instead of ANSI for
-                                    window borders.
-      -c, --config                  Specify an alternate config file.
-      -d, --delete, --delete-feed   Delete an existing feed.
-      -e, --edit, --edit-feed       Edit an existing feed.
-      --export-opml                 Export feeds to OPML.  
-      --force                       Force behavior Raggle won't normally allow.
-                                    Use this option with caution.
-      -h, --help, --usage           Display this usage screen.
-      --import-opml                 Import feeds from an OPML file.
-      -i, --invalidate              Invalidate a feed (force an update).
-      -l, --list                    List existing feeds (use '--verbose' to 
-                                    show URLs as well).
-      --lock-title                  Lock Title attribute of feed (for '--add'
-                                    and '--edit').
-      --max-items                   Set the maximum number of items for a feed
-                                    (for '--add' and '--edit').
-      --purge                       Purge deleted feeds from feed cache.
-      -r, --refresh                 Refresh attribute of feed (for '--add' and
-                                    '--edit').
-      --save-items                  Save old items of feed (for '--add' and
-                                    '--edit').
-      --server                      Run Raggle in HTTP server mode.
-      --sort, --sort-feeds          Sort feeds by title (case-insensitive).
-      -t, --title                   Title attribute of feed (for '--add' and
-                                    '--edit').
-      --unlock-title                Unlock Title attribute of feed (for '--add'
-                                    and '--edit').
-      --unsave-items                Don't save old items of feed (for '--add'
-                                    and '--edit').
-      -u, --url                     URL attribute of feed (for '--add' and
-                                    '--edit').
-      --verbose                     Turn on verbose output.
-      -v, --version                 Display version information.
+Options:
+  -a, --add, --add-feed         Add a new feed (requires '--url').
+  --ascii                       Use ASCII characters instead of ANSI for
+                                window borders.
+  -c, --config                  Specify an alternate config file.
+  -d, --delete, --delete-feed   Delete an existing feed.
+  -e, --edit, --edit-feed       Edit an existing feed.
+  --export-opml                 Export feeds to OPML.  
+  --force                       Force behavior Raggle won't normally allow.
+                                Use this option with caution.
+  -h, --help, --usage           Display this usage screen.
+  --import-opml                 Import feeds from an OPML file.
+  -i, --invalidate              Invalidate a feed (force an update).
+  -l, --list                    List existing feeds (use '--verbose' to 
+                                show URLs as well).
+  --lock-title                  Lock Title attribute of feed (for '--add'
+                                and '--edit').
+  --max-items                   Set the maximum number of items for a feed
+                                (for '--add' and '--edit').
+  --purge                       Purge deleted feeds from feed cache.
+  -r, --refresh                 Refresh attribute of feed (for '--add' and
+                                '--edit').
+  --save-items                  Save old items of feed (for '--add' and
+                                '--edit').
+  --server                      Run Raggle in HTTP server mode.
+  --sort, --sort-feeds          Sort feeds by title (case-insensitive).
+  -t, --title                   Title attribute of feed (for '--add' and
+                                '--edit').
+  --unlock-title                Unlock Title attribute of feed (for '--add'
+                                and '--edit').
+  --unsave-items                Don't save old items of feed (for '--add'
+                                and '--edit').
+  -u, --url                     URL attribute of feed (for '--add' and
+                                '--edit').
+  --verbose                     Turn on verbose output.
+  -v, --version                 Display version information.
 
-    Examples:
-      # add a new feed (hello world!)
-      #$0 -a -u http://www.example.com/rss.xml
+Examples:
+  # add a new feed (hello world!)
+  #$0 -a -u http://www.example.com/rss.xml
 
-      # add a new feed called 'test feed', refresh every 30 minutes
-      #$0 -a -t 'test feed' -u http://www.example.com/feed.rss -r 30
+  # add a new feed called 'test feed', refresh every 30 minutes
+  #$0 -a -t 'test feed' -u http://www.example.com/feed.rss -r 30
 
-      # list feeds and their ids
-      #$0 --list
+  # list feeds and their ids
+  #$0 --list
 
-      # delete an existing feed
-      #$0 --delete 12
+  # delete an existing feed
+  #$0 --delete 12
 
-      # set the title and refresh of an existing feed
-      #$0 --edit 10 --title 'hi there!' -r 20
+  # set the title and refresh of an existing feed
+  #$0 --edit 10 --title 'hi there!' -r 20
 
-      # set and lock the title of feed 12
-      #$0 -e 12 -t 'short title' --lock-title
+  # set and lock the title of feed 12
+  #$0 -e 12 -t 'short title' --lock-title
 
-      # run as HTTP server on port 2345
-      #$0 --server 2345
-      
-    About the Authors:
-    Paul Duncan <pabs@pablotron.org>
-    http://www.pablotron.org/  (RSS: http://www.pablotron.org/rss/)
-    http://www.paulduncan.org/ (RSS: http://www.paulduncan.org/rss/)
+  # run as HTTP server on port 2345
+  #$0 --server 2345
+  
+About the Authors:
+  Paul Duncan <pabs@pablotron.org>
+  http://www.pablotron.org/  (RSS: http://www.pablotron.org/rss/)
+  http://www.paulduncan.org/ (RSS: http://www.paulduncan.org/rss/)
 
-    Richard Lowe <richlowe@richlowe.net>
-    http://www.richlowe.net/
-    http://www.richlowe.net/ (RSS: http://www.richlowe.net/diary/index.rss)
+  Richard Lowe <richlowe@richlowe.net>
+  http://www.richlowe.net/
+  http://www.richlowe.net/ (RSS: http://www.richlowe.net/diary/index.rss)
 
-    Ville Aine <vaine@cs.helsinki.fi>
+  Ville Aine <vaine@cs.helsinki.fi>
 ENDUSAGE
 
       exit(0)

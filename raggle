@@ -460,11 +460,11 @@ class FeedList
 
   def describe(id)
     # clear desc window
-    desc_id = get_win_id 'desc'
-    $wins[desc_id].clear
+    win = $wins[get_win_id 'desc']
+    win.clear
     
-    $wins[desc_id].items = [ ] # This should only ever have one entry
-    $wins[desc_id].items << {
+    win.items = [ ] # This should only ever have one entry
+    win.items << {
       'real_title' => $config['feeds'][id]['title'],
       'title'      => $config['feeds'][id]['desc'],
       'date'       => $config['feeds'][id]['date'],
@@ -473,7 +473,7 @@ class FeedList
       'read?'      => false
     }
 
-    $wins[desc_id].draw_items
+    win.draw_items
   end
     
   
@@ -1227,10 +1227,10 @@ def select_feed(id)
   $a_item = 0
 
   # clear item window
-  item_id = get_win_id 'item'
-  $wins[item_id].offset = 0
-  $wins[item_id].active_item = 0
-  $wins[item_id].items.clear
+  item_win = $wins[get_win_id('item')]
+  item_win.offset = 0
+  item_win.active_item = 0
+  item_win.items.clear
 
   $wins[get_win_id('desc')].offset = 0
   
@@ -1257,7 +1257,7 @@ def select_feed(id)
     elsif item['desc'] !~ /^\s*$/ 
       # fall back on cleaned up and truncated description if we're
       # missing a title
-      w, h = $wins[item_id].dimensions
+      w, h = item_win.dimensions
       title = item['desc'].strip.strip_tags.unescape_html.split(/\s+/).join(' ')
 
       if title.length > w - 5
@@ -1269,7 +1269,7 @@ def select_feed(id)
       # on formatted and truncated link (silly broken RSS feeds)
       title = '[' << item['url'].strip << ']'
 
-      w, h = $wins[item_id].dimensions
+      w, h = item_win.dimensions
       title = title.strip_tags.unescape_html.split(/\s+/).join(' ')
 
       if title.length > w - 5
@@ -1278,7 +1278,7 @@ def select_feed(id)
       end
     end
 
-    $wins[item_id].items << {
+    item_win.items << {
       'title' => title,
       'item'  => i,
       'read?' => item['read?']
@@ -1286,22 +1286,22 @@ def select_feed(id)
   }
 
   # redraw item window
-  $wins[item_id].win.clear
-  $wins[item_id].draw_items
+  item_win.win.clear
+  item_win.draw_items
 
   $config['feeds'].describe($a_feed)
   
   # activate item window
-  set_active_win(item_id) if $config['focus'] == 'select'
+  set_active_win(get_win_id('item')) if $config['focus'] == 'select'
 end
 
 #
 # populate feed window
 # 
 def populate_feed_win 
-  id = get_win_id 'feed'
+  win = $wins[get_win_id 'feed']
 
-  $wins[id].items.clear
+  win.items.clear
 
   $config['feeds'].each_with_index { |feed, i|
     # count unread items
@@ -1310,7 +1310,7 @@ def populate_feed_win
 
     # build title
     title = feed['title'].strip << " (#{unread_count}/#{feed['items'].size})"
-    $wins[id].items << {
+    win.items << {
       'title'       => title,
       'feed'        => i,
       'read?'       => unread_count == 0,
@@ -1318,7 +1318,7 @@ def populate_feed_win
       'updated'     => feed['updated'],
     }
   }
-  $wins[id].draw_items
+  win.draw_items
 end
 
 #
@@ -1327,21 +1327,21 @@ end
 def select_item(id)
   $a_item = id
 
-  desc_id = get_win_id 'desc'
-  item_id = get_win_id 'item'
+  desc_win = $wins[get_win_id 'desc']
+  item_win = $wins[get_win_id 'item']
 
   # clear description window
-  $wins[desc_id].active_item = 0
-  $wins[desc_id].items.clear
+  desc_win.active_item = 0
+  desc_win.items.clear
 
   # mark item as read
-  $wins[item_id].items[$a_item]['read?'] = true
+  item_win.items[$a_item]['read?'] = true
   $config['feeds'].get($a_feed)['items'][id]['read?'] = true
 
-  $wins[desc_id].offset = 0
+  desc_win.offset = 0
   
   # load item
-  $wins[desc_id].items << {
+  desc_win.items << {
     'title'       => $config['feeds'].get($a_feed)['items'][id]['desc'],
     'real_title'  => $config['feeds'].get($a_feed)['items'][id]['title'],
     'url'         => $config['feeds'].get($a_feed)['items'][id]['url'],
@@ -1353,51 +1353,51 @@ def select_item(id)
   populate_feed_win
 
   # redraw description window
-  $wins[desc_id].win.clear
-  $wins[desc_id].draw_items
+  desc_win.win.clear
+  desc_win.draw_items
 
   # activate description window
-  set_active_win(desc_id) if $config['focus'] == 'select' and
-                             !$config['no_desc_auto_focus']
+  set_active_win(get_win_id 'desc') if $config['focus'] == 'select' and
+                                      !$config['no_desc_auto_focus']
 end
 
 #
 # mark all items in feed as read
 # 
 def mark_items_as_read
-  item_id = get_win_id 'item'
+  win = $wins[get_win_id 'item']
   # mark item as read
-  $wins[item_id].items.each { |item| item['read?'] = true }
+  win.items.each { |item| item['read?'] = true }
   $config['feeds'].get($a_feed)['items'].each { |item| item['read?'] = true }
 
   populate_feed_win
-  $wins[item_id].draw_items
+  win.draw_items
 end
 
 #
 # select the next unread item
 # 
 def select_next_unread
-  item_id = get_win_id 'item'
+  win = $wins[get_win_id 'item']
 
-  ($a_item + 1).upto($wins[item_id].items.size - 1) { |i|
-    if $wins[item_id].items[i]['read?'] == false
+  ($a_item + 1).upto(win.items.size - 1) { |i|
+    if win.items[i]['read?'] == false
       select_item i
-      $wins[item_id].activate i
-      $wins[item_id].draw_items
+      win.activate i
+      win.draw_items
       return
     end
   }
 end
 
 def select_prev_unread
-  item_id = get_win_id 'item'
+  win = $wins[get_win_id 'item']
 
   ($a_item - 1).downto(0) { |i|
-    if $wins[item_id].items[i]['read?'] == false
+    if win.items[i]['read?'] == false
       select_item i
-      $wins[item_id].activate i
-      $wins[item_id].draw_items
+      win.activate i
+      win.draw_items
       return
     end
   }
@@ -1768,7 +1768,7 @@ def resize_term
 
   # resize each window
   $config['theme']['window_order'].each { |key|
-    win_id = get_win_id key
+    win = $wins[get_win_id key]
 
     # determine new coordinates
     coords = $config['theme']['win_' << key]['coords'].dup
@@ -1776,13 +1776,13 @@ def resize_term
     coords[3] = $config['h'] - coords[1] if coords[3] == -1
 
     # delete old window, create new one
-    $wins[win_id].win.del
-    $wins[win_id].win = Ncurses::newwin coords[3], coords[2],
-                                        coords[1], coords[0]
+    win.win.del
+    win.win = Ncurses::newwin coords[3], coords[2],
+                              coords[1], coords[0]
 
     # refresh window
-    $wins[win_id].refresh
-    $wins[win_id].draw_items
+    win.refresh
+    win.draw_items
   }
 
   set_status " #{$config['msg_term_resize']}#{w[0]}x#{h[0]}"

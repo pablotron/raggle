@@ -817,6 +817,17 @@
             'p').
   * raggle.1: Document above in KEYS
   * raggle.1: Fix documentation for 'n' in KEYS (typo).
+
+* Tue Jul  1 06:10:26 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Remove *many* derefs of the $wins array.
+            Basically, get the win out of $wins when you get the id, thus
+	    getting both the id and the window *once* per func, rather
+	    than just getting the id, derefing $wins each time you need
+	    that window.  I've tested everything I can see, and all is
+	    good, it's also a mechanical change, but we all know what
+	    happens when I make 'simple' changes.
+
+
 	
 
 

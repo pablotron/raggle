@@ -1778,16 +1778,47 @@ ENDUSAGE
           win.move_item_down
         end
 
+        #
+        # Delete a feed or hide an item, based on current window
+        #
         def Key::delete
-          if $config['feeds'].size > 0
-            win = $wins[NcursesInterface::get_win_id('feed')]
+          feed_win = NcursesInterface::get_win_id('feed')
+          item_win = NcursesInterface::get_win_id('item')
+          if $a_win == feed_win and $config['feeds'].size > 0
+            win = $wins[feed_win]
+            # delete feed from feedlist and window
             $config['feeds'].delete(win.active_item)
             win.delete_item
-            win.active_item = (win.active_item > 0) ? win.active_item - 1 : 0
-            win.draw_items
-            win.select_win_item
-            win.clearrange(win.items.size + 1, win.dimensions[1] - 2)
+          elsif $a_win == item_win and  # if we're on a visible item...
+                $wins[item_win].items.size > 0
+            win = $wins[item_win]
+
+            # set item visibility to false, won't be shown in window
+            selected = win.items[win.active_item]['item']
+            $config['feeds'].get($a_feed)['items'][selected]['visible'] = false
+
+            # recreate feed/item wins
+            NcursesInterface::populate_item_win($a_feed)
+            NcursesInterface::populate_feed_win
+          else
+            return 1  # nothing to delete
           end
+          win.active_item = (win.active_item > 0) ? win.active_item - 1 : 0
+          win.draw_items
+          win.select_win_item
+          win.clearrange(win.items.size + 1, win.dimensions[1] - 2)
+        end
+
+        #
+        # Undelete all items in the current feed
+        #
+        def Key::undelete_all
+          item_win = NcursesInterface::get_win_id('item')
+          $config['feeds'].get($a_feed)['items'].each {|item| item['visible'] = true }
+          NcursesInterface::populate_item_win($a_feed)
+          NcursesInterface::populate_feed_win
+          $wins[item_win].draw_items
+          $wins[item_win].select_win_item
         end
 
         def Key::invalidate_feed
@@ -2112,7 +2143,7 @@ ENDUSAGE
             if @items[@active_item].has_key? 'feed'
               NcursesInterface::select_feed @items[@active_item]['feed']
             elsif @items[@active_item].has_key? 'item'
-              NcursesInterface::select_item @items[@active_item]['item']
+              NcursesInterface::select_item @active_item
             elsif @items[@active_item].has_key? 'cat'
               NcursesInterface::select_cat @items[@active_item]['cat']
             elsif @items[@active_item].has_key? 'url'
@@ -2185,7 +2216,7 @@ ENDUSAGE
             draw(text, 1, y += 1, color, true, false) if ic >= @offset
             ic += 1
           }
-          clearrange(items.size + 1, h - 2)
+          clearrange(@items.size + 1, h - 2)
           refresh(true)
         end
         
@@ -2231,6 +2262,9 @@ ENDUSAGE
           end
         end
         
+        #
+        # Scroll one page up.
+        #
         def scroll_up_page
           if $config['page_step'] < 0
             w,h = dimensions
@@ -2482,35 +2516,6 @@ ENDUSAGE
         def resize_width
           # XXX
         end
-
-        def move_item_down
-          if @active_item < @items.size - 1 
-            nitem = @items[@active_item + 1]
-            @items[@active_item + 1] = @items[@active_item]
-            @items[@active_item] = nitem
-            @active_item = @active_item + 1
-            draw_items
-          end
-        end
-
-        def move_item_up
-          if @active_item > 0
-            pitem = @items[@active_item - 1]
-            @items[@active_item - 1] = @items[@active_item]
-            @items[@active_item] = pitem
-            @active_item = @active_item - 1
-            draw_items
-          end
-        end
-
-        def delete_item
-          @items.delete_at(@active_item)
-          NcursesInterface::populate_feed_win
-        end
-
-        def resize_width
-          # XXX
-        end
       end
 
       #
@@ -2576,16 +2581,15 @@ ENDUSAGE
       def NcursesInterface::select_feed(id)
         $old_feed = $a_feed || 0
         $a_feed = id
-        $a_item = 0
 
         # clear item window
         item_win = $wins[NcursesInterface::get_win_id('item')]
         # don't reset active item unless feed actually changed
         unless $old_feed == $a_feed
+          $a_item = 0
           item_win.offset = 0
           item_win.active_item = 0
         end
-        item_win.items.clear
 
         $wins[NcursesInterface::get_win_id('desc')].offset = 0
         
@@ -2593,10 +2597,35 @@ ENDUSAGE
         fmt = $config['item_date_format']
       
         # wtf is happening here?
+        # redshift: block variables in populate_feed_win were being
+        # clobbered, passing random objects to item.feed
         raise "id.class.to_s = #{id.class.to_s}" unless id.class == Fixnum
+
+        # build item list
+        NcursesInterface::populate_item_win(id)
         
+        # redraw item window
+        item_win.draw_items
+      
+        $config['feeds'].describe($a_feed)
+        
+        # activate item window
+        set_active_win(get_win_id('item')) if $config['focus'] == 'select' ||
+                                              $config['focus'] == 'select_first'
+      end
+
+      #
+      # populate item window
+      #
+      def NcursesInterface::populate_item_win(feed_id)
+        item_win = $wins[NcursesInterface::get_win_id('item')]
+        item_win.items.clear
+
         # iterate through feed items
-        $config['feeds'].get(id)['items'].each_with_index { |item, i|
+        $config['feeds'].get(feed_id)['items'].each_with_index { |item, i|
+          # take care of visibility if not yet assigned
+          item['visible'] = true unless item['visible'] == false
+
           # can't depend on the date being in a consistent format, or
           # being defined at all, for that matter :( :( :(
           # title = item['title'] + ' (' +
@@ -2633,23 +2662,15 @@ ENDUSAGE
               title = title.slice 0, w - 5
               title << '...'
             end
-          end
-      
-          item_win.items << {
-            'title' => title,
-            'item'  => i,
-            'read?' => item['read?']
-          }
-        }
+          end unless item['visible'] == false  # skip for invisible
 
-        # redraw item window
-        item_win.draw_items
-      
-        $config['feeds'].describe($a_feed)
-        
-        # activate item window
-        set_active_win(get_win_id('item')) if $config['focus'] == 'select' ||
-                                              $config['focus'] == 'select_first'
+          item_win.items << {
+            'title'   => title,
+            'item'    => i,
+            'visible' => item['visible'],
+            'read?'   => item['read?']
+          } unless item['visible'] == false  # skip invisible
+        }
       end
 
       #
@@ -2665,19 +2686,20 @@ ENDUSAGE
             next unless feed['category'] =~ /#$category/i
           end
         
-          # count unread items
-          unread_count = 0
-          if feed['items']
-            feed['items'].each { |item| unread_count += 1 unless item['read?'] }
-          end
-      
           # build title
           if feed['title']
             title = feed['title'].strip
           else
             title = ($config['default_feed_title'] || 'Untitled Feed').dup
           end
-          title << " (#{unread_count}/#{feed['items'].size})"
+
+          # count unread items and total size
+          unread_count = size = 0
+          feed['items'].each { |item|
+            unread_count += 1 unless item['read?'] or item['visible'] == false
+            size += 1 unless item['visible'] == false
+          } if feed['items']
+          title << " (#{unread_count}/#{size})"
       
           win.items << {
             'title'       => title,
@@ -2691,21 +2713,25 @@ ENDUSAGE
       end
       
       #
-      # set active item by id
+      # set active item by id in item window list
       #
-      def NcursesInterface::select_item(id)
-        $old_item = $a_item || 0
-        $a_item = id
-      
+      def NcursesInterface::select_item(item)
         desc_win = $wins[NcursesInterface::get_win_id('desc')]
         item_win = $wins[NcursesInterface::get_win_id('item')]
 
+        # "item" refers to its place in the item window list
+        # "id" refers to its place in the feed listing itself
+        id = item_win.items[item]['item']
+
+        $old_item = $a_item || 0
+        $a_item = item
+      
         # clear description window
         desc_win.active_item = 0
         desc_win.items.clear
       
         # mark item as read
-        item_win.items[$a_item]['read?'] = true
+        item_win.items[item]['read?'] = true
         $config['feeds'].get($a_feed)['items'][id]['read?'] = true
       
         # redraw item window items (to mark selected item as read)
@@ -2715,11 +2741,10 @@ ENDUSAGE
         feed = $config['feeds'].get($a_feed)
       
         # fix host-relative URLs
-        item_content = $config['feeds'].get($a_feed)['items'][id]['desc']
+        item_content = feed['items'][id]['desc']
         if $config['repair_relative_urls']
           # get host portion of original URL
-          host_url = feed['url']
-          host_url.gsub!(/^((?:\w+):\/\/)?([^\/]+)(\/.*)?$/, '\1\2')
+          host_url = feed['url'].gsub(/^((?:\w+):\/\/)?([^\/]+)(\/.*)?$/, '\1\2')
       
           item_content = item_content.gsub(/href\s*=\s*["']([^'"]+?)['"]/m) {
             m = $1.dup
@@ -2824,11 +2849,10 @@ ENDUSAGE
       #
       def NcursesInterface::select_unread_item(direction)
         win = $wins[NcursesInterface::get_win_id('item')]
-        size = win.items.size
       
-        return unless size > 0
+        return unless win.items.size > 0
         
-        i = ($a_item + direction) % size
+        i = ($a_item + direction) % win.items.size
         while i != $a_item
           if win.items[i]['read?'] == false
             NcursesInterface::select_item i
@@ -2837,7 +2861,7 @@ ENDUSAGE
             return
           end
       
-          i = (i + direction) % size
+          i = (i + direction) % win.items.size
         end
       end
       
@@ -4750,6 +4774,7 @@ $config = {
     ?/                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::find_entry(win)} ),
 
     Ncurses::KEY_DC     => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::delete} ),
+    ?y                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::undelete_all} ),
     ##
     # XXX: Meta can be dropped after spawned browser exits
     # So A, B, C or D should *not* be bound until this is fixed

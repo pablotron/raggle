@@ -2178,3 +2178,14 @@
 * Tue Dec 21 16:43:15 2004, redshift <redshift@halffull.org>
   * raggle: fixed raising/lowering feed priorities for feeds added
     in Ncurses interface
+
+* Wed Dec 22 10:37:00 2004, redshift <redshift@halffull.org>
+  * raggle: removed duplicated code in TextWindow class
+  * raggle: moved item window population to separate method,
+    populate_item_win(feed_id) - used in item deletion and cleans
+    up select_feed code
+  * raggle: implemented item deletion - same key as for feeds.  Non-
+    destructive: stores items with a 'visible' tag rather than deletion,
+    so items aren't just replaced by updates.  Press 'y' by default
+    to bring back all feed items.
+  * raggle: minor code cleanup

@@ -1,6 +1,43 @@
 #!/usr/bin/env ruby
 # -*- Mode: Ruby -*-
 
+#######################################################################
+# Raggle - NCurses RSS aggregator                                     #
+# by Paul Duncan <pabs@pablotron.org> and                             #
+#    Richard Lowe <richlowe@richlowe.net>                             #
+#                                                                     #
+#                                                                     #
+# Please see the Raggle page at                                       #
+# http://www.pablotron.org/software/raggle/ for the latest version of #
+# this software.                                                      #
+#                                                                     #
+#                                                                     #
+# Copyright (C) 2003 Paul Duncan, Richard Lowe, and various           #
+# contributors.                                                       #
+#                                                                     #
+# Permission is hereby granted, free of charge, to any person         #
+# obtaining a copy of this software and associated documentation      #
+# files (the "Software"), to deal in the Software without             #
+# restriction, including without limitation the rights to use, copy,  #
+# modify, merge, publish, distribute, sublicense, and/or sell copies  #
+# of the Software, and to permit persons to whom the Software is      #
+# furnished to do so, subject to the following conditions:            #
+#                                                                     #
+# The above copyright notice and this permission notice shall be      #
+# included in all copies of the Software, its documentation and       #
+# marketing & publicity materials, and acknowledgment shall be given  #
+# in the documentation, materials and software packages that this     #
+# Software was used.                                                  #
+#                                                                     #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,     #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF  #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND               #
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF          #
+# CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION  #
+# WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.     #
+#######################################################################
+
 # Raggle version
 $VERSION = '0.1.0'
 
@@ -159,21 +196,49 @@ module Key
   end
 
   def Key::move_item_up
-    win = $wins[$a_win]
+    win = $wins[get_win_id 'feed']
     $config['feeds'].move_up(win.active_item)
     win.move_item_up
   end
 
   def Key::move_item_down
-    win = $wins[$a_win]
+    win = $wins[get_win_id 'feed']
     $config['feeds'].move_down(win.active_item)
     win.move_item_down
   end
 
   def Key::delete
-    win = $wins[$a_win]
+    win = $wins[get_win_id 'feed']
     $config['feeds'].delete(win.active_item)
     win.delete_item
+    win.clear
+    win.active_item = (win.active_item > 0) ? win.active_item - 1: 0
+    win.draw_items
+    win.select_win_item
+  end
+
+  def Key::sort_feeds
+    win = $wins[get_win_id 'feed']
+
+    # get old active window
+    a_win = $a_win
+
+    # sort list, repopulate window
+    $config['feeds'].sort
+    populate_feed_win
+    
+    # select first feed, redraw feed window
+    win.active_item = 0
+    win.draw_items
+    win.select_win_item
+
+    # reselect previous window
+    set_active_win a_win
+  end
+  
+  def Key::open_link
+    win = $wins[get_win_id 'desc']
+    win.select_win_item
   end
 end
 
@@ -230,6 +295,15 @@ class FeedList
     }
   end
 
+  #
+  # Sort feeds by title (case-insensitive).
+  #
+  def sort
+    @feeds.sort! { |a, b|
+      a['title'].downcase <=> b['title'].downcase
+    }
+  end
+
   def edit(id, opts)
     raise "FeedList#edit: Feed not found: #{id}" unless @feeds.size >= id
     refresh_interval_check opts['refresh'] if !opts['force'] &&
@@ -242,15 +316,19 @@ class FeedList
   end
 
   def move_up(id)
-    pitem = @feeds[id - 1]
-    @feeds[id - 1] = @feeds[id]
-    @feeds[id] = pitem
+    if id > 0
+      pitem = @feeds[id - 1]
+      @feeds[id - 1] = @feeds[id]
+      @feeds[id] = pitem
+    end
   end
 
   def move_down(id)
-    nitem = @feeds[id + 1]
-    @feeds[id + 1] = @feeds[id]
-    @feeds[id] = nitem
+    if id < @feeds.size - 1
+      nitem = @feeds[id + 1]
+      @feeds[id + 1] = @feeds[id]
+      @feeds[id] = nitem
+    end
   end
 
   def refresh_interval_check(interval)
@@ -454,7 +532,7 @@ class Window
     # draw text in window
     @win.color_set @colors[color], nil if color != 'text'
     text.each_line { |line|
-      Ncurses::mvwprintw @win, y, x, line.slice(0, w - x - 1)
+      Ncurses::mvwprintw @win, y, x, line.gsub(/%/, '%%').slice(0, w - x - 1)
       y += 1
     }
     @win.color_set @colors['text'], nil
@@ -616,6 +694,7 @@ class Window
         unless use_screen
           Ncurses::reset_prog_mode
           Ncurses::refresh
+          Ncurses::getch
         end
       end
     end
@@ -673,19 +752,23 @@ class Window
   end
 
   def move_item_down
-    nitem = @items[@active_item + 1]
-    @items[@active_item + 1] = @items[@active_item]
-    @items[@active_item] = nitem
-    @active_item = @active_item + 1
-    draw_items
+    if @active_item < @items.size - 1 
+      nitem = @items[@active_item + 1]
+      @items[@active_item + 1] = @items[@active_item]
+      @items[@active_item] = nitem
+      @active_item = @active_item + 1
+      draw_items
+    end
   end
 
   def move_item_up
-    pitem = @items[@active_item - 1]
-    @items[@active_item - 1] = @items[@active_item]
-    @items[@active_item] = pitem
-    @active_item = @active_item - 1
-    draw_items
+    if @active_item > 0
+      pitem = @items[@active_item - 1]
+      @items[@active_item - 1] = @items[@active_item]
+      @items[@active_item] = pitem
+      @active_item = @active_item - 1
+      draw_items
+    end
   end
 
   def delete_item
@@ -844,8 +927,9 @@ def populate_feed_win
     # build title
     title = feed['title'].strip << " (#{unread_count}/#{feed['items'].size})"
     $wins[id].items << {
-      'title' => title,
-      'feed'  => i,
+      'title'       => title,
+      'feed'        => i,
+      'read?'       => (unread_count == 0),
     }
   }
   $wins[id].draw_items
@@ -996,9 +1080,12 @@ Examples:
   # set and lock the title of feed 12
   #$0 -e 12 -t 'short title' --lock-title
   
-About the Author:
+About the Authors:
 Paul Duncan <pabs@pablotron.org>
 http://www.pablotron.org/
+
+Richard Lowe <richlowe@richlowe.net>
+http://www.richlowe.net/
 ENDUSAGE
 
   exit 0
@@ -1202,6 +1289,13 @@ def invalidate_feed(id)
 end
 
 #
+# Sort feeds 
+#
+def sort_feeds
+  $config['feeds'].sort
+end
+
+#
 # edit an existing feed
 #
 def edit_feed(id, opts)
@@ -1260,15 +1354,6 @@ def destroy_cache_lock
   unless File::unlink(path)
     $stderr.puts "WARNING: Couldn't unlock \"#{path}\"."
   end
-end
-
-#
-# Sort feeds by title (case-insensitive).
-#
-def sort_feeds
-  $config['feeds'] = $config['feeds'].sort { |a, b|
-    a['title'].downcase <=> b['title'].downcase
-  }
 end
 
 
@@ -1657,6 +1742,39 @@ $config = {
   # (you can lock individual feed titles with the --lock-title command)
   'lock_feed_title'       => false,
 
+  # key bindings
+  'keys'            => {
+    Ncurses::KEY_RIGHT  => proc { |win, key| Key::next_window },
+    ?\t                 => proc { |win, key| Key::next_window },
+
+    Ncurses::KEY_LEFT   => proc { |win, key| Key::prev_window },
+    ?\\                 => proc { |win, key| Key::prev_window },
+
+    Ncurses::KEY_F12    => proc { |win, key| Key::quit },
+    ?q                  => proc { |win, key| Key::quit },
+
+    Ncurses::KEY_UP     => proc { |win, key| Key::scroll_up },
+    Ncurses::KEY_DOWN   => proc { |win, key| Key::scroll_down },
+    Ncurses::KEY_END    => proc { |win, key| Key::scroll_bottom },
+    Ncurses::KEY_PPAGE  => proc { |win, key| Key::scroll_up_page },
+    Ncurses::KEY_NPAGE  => proc { |win, key| Key::scroll_down_page },
+
+    ?\n                 => proc { |win, key| Key::select_item },
+    ?\                  => proc { |win, key| Key::select_item },
+
+    ?u                  => proc { |win, key| Key::move_item_up },
+    ?d                  => proc { |win, key| Key::move_item_down },
+
+    Ncurses::KEY_DC     => proc { |win, key| Key::delete },
+    # ?D                  => proc { |win, key| Key::delete },
+
+    Ncurses::KEY_RESIZE => proc { |win, key| resize_term },
+
+    ?S                  => proc { |win, key| Key::sort_feeds },
+
+    ?o                  => proc { |win, key| Key::open_link },
+  },
+
   # color palette (referenced by themes)
   'color_palette'         => [
     [  1, Ncurses::COLOR_WHITE,    Ncurses::COLOR_BLACK   ],
@@ -1688,35 +1806,6 @@ $config = {
     [ 36, Ncurses::COLOR_BLACK,    Ncurses::COLOR_CYAN    ],
     [ 37, Ncurses::COLOR_YELLOW,   Ncurses::COLOR_CYAN    ],
   ],
-
-  # key bindings
-  'keys'            => {
-    Ncurses::KEY_RIGHT  => proc { |win, key| Key::next_window },
-    ?\t                 => proc { |win, key| Key::next_window },
-
-    Ncurses::KEY_LEFT   => proc { |win, key| Key::prev_window },
-    ?\\                 => proc { |win, key| Key::prev_window },
-
-    Ncurses::KEY_F12    => proc { |win, key| Key::quit },
-    ?q                  => proc { |win, key| Key::quit },
-
-    Ncurses::KEY_UP     => proc { |win, key| Key::scroll_up },
-    Ncurses::KEY_DOWN   => proc { |win, key| Key::scroll_down },
-    Ncurses::KEY_END    => proc { |win, key| Key::scroll_bottom },
-    Ncurses::KEY_PPAGE  => proc { |win, key| Key::scroll_up_page },
-    Ncurses::KEY_NPAGE  => proc { |win, key| Key::scroll_down_page },
-
-    ?\n                 => proc { |win, key| Key::select_item },
-    ?\                  => proc { |win, key| Key::select_item },
-
-    ?u                  => proc { |win, key| Key::move_item_up },
-    ?d                  => proc { |win, key| Key::move_item_down },
-
-    Ncurses::KEY_DC     => proc { |win, key| Key::delete },
-    ?D                  => proc { |win, key| Key::delete },
-
-    Ncurses::KEY_RESIZE => proc { |win, key| resize_term },
-  },
 
   # default theme settings
   'theme'           => {
@@ -1798,7 +1887,7 @@ $config = {
   'debug_feeds'   => [ ],
 
   'default_feeds' => [
-    { 'title'     => 'Raggle',
+    { 'title'     => ' Raggle', # add a space so sorting puts it at top
       'url'       => 'http://www.pablotron.org/software/raggle/help.rss',
       'site'      => 'http://www.pablotron.org/software/raggle/',
       'refresh'   => -1,

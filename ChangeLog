@@ -338,6 +338,27 @@
     before dying
   * TODO: minor updates
 
+* Sat Jun 21 17:05:18 2003, pabs <pabs@pablotron.org>
+  * raggle: added description and license
+  * raggle: fixed move item up and down (wouldn't work outside of
+    feed window)
+  * raggle: make Key::delete select the previous feed 
+  * raggle: added Key::sort_feeds (bound to 'S' by default)
+  * raggle: added FeedList#sort
+  * raggle: make move_up and move_down bounded
+  * raggle: Window#draw: escape % in strings 
+  * raggle: hilite feeds with unread items
+  * raggle: added Richard to list of authors in command-line help
+  * raggle: moved keybindings above palette in default config
+  * raggle: disabled 'D' delete binding until we figure out a way to
+    flush key events without blocking.  there's a bug that causes 
+    Ncurses to drop the escape prefix on keys after resetting the window
+    mode, which means you're pressing "A", "B", "D", or "C", respectively,
+    when you press Up, Down, Left, or Right, after exiting a spawned
+    browser.  So we can't have anything destructive bound to those keys
+    (eg. delete).
+  * raggle: added a space prefix to the Raggle feed so it stays at the
+    top after a sort
 
 	
 

@@ -506,7 +506,9 @@
 	      *please* try to keep these in sync
 
 * Mon Jun 23 06:01:13 2003, richlowe <richlowe@richlowe.net>
- * raggle: --lock-title and --save-items were being ignored with --add, fix.
+ * raggle: --lock-title and --save-items were being ignored with --add,
+           fix (apparently missed in a merge).
+
 
 
 

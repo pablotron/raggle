@@ -32,6 +32,9 @@ Ville Aine <vaine@cs.helsinki.fi>
 * make --add and OPML import use refresh checking
 * HTML rendering
 
+Brian Almeida <bma@tynian.net>
+* Debian package maintainer
+
 Richard Zidlicky <rz@linux-m68k.org>
 * preliminary HTTP proxy support
 
@@ -43,3 +46,6 @@ Jon Bernard <jbernard@roanoke.edu>
 
 Nikolai Weibull <lone-star@home.se>
 * proper % escaping in die()
+
+Nelson D. Guerrero <raggle@nelsong.com>
+* vi navigation bindings in default config

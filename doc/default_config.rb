@@ -206,6 +206,12 @@ $config = {
     Ncurses::KEY_PPAGE  => proc { |win, key| Key::scroll_up_page },
     Ncurses::KEY_NPAGE  => proc { |win, key| Key::scroll_down_page },
 
+    # vi keybindings
+    ?h                  => proc { |win, key| Key::prev_window },
+    ?j                  => proc { |win, key| Key::scroll_down },
+    ?k                  => proc { |win, key| Key::scroll_up },
+    ?l                  => proc { |win, key| Key::next_window },
+
     ?\n                 => proc { |win, key| Key::select_item },
     ?\                  => proc { |win, key| Key::select_item },
 

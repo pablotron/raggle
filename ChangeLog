@@ -1214,3 +1214,11 @@
   * raggle: apply "Integer($1)" => "$1.to_i" suggested by Ville for
     the Yahoo News feed bug reported by "Nelson D. Guerrero"
     <raggle@nelsong.com>
+
+* Mon Sep 01 13:57:00 2003, pabs <pabs@pablotron.org>
+  * doc/default_config.rb: add vi keybindings to default config (patch
+    sent via Brian Almeida <bma@tynian.net> from Dan Drake
+    <dan@dandrake.org>)
+  * raggle: ditto
+  * Makefile: apply cleanup patch from Brian Almeida <bma@tynian.net>.
+  * AUTHORS: add a few missing entries

@@ -1,19 +1,27 @@
 PREFIX=/usr/local
 BINDIR=${PREFIX}/bin
-MANDIR=${PREFIX}/man/man1
+MANDIR=${PREFIX}/share/man/man1
 DOCDIR=${PREFIX}/share/doc/raggle
 DATADIR=${PREFIX}/share/raggle
 DATA=themes extras
 DOCS=doc/* AUTHORS BUGS COPYING ChangeLog README
 mkdir=/bin/mkdir -p
 
+phony :
+	@echo "Run make install"
 install :
+	if [ ! -d "${BINDIR}" ]; then \
+		${mkdir} -p ${BINDIR}; \
+	fi && \
 	cp raggle ${BINDIR} && \
 	if [ ! -d "${DOCDIR}" ]; then \
 		${mkdir} ${DOCDIR}; \
 	fi && \
 	if [ ! -d "${DATADIR}" ]; then \
 		${mkdir} ${DATADIR}; \
+	fi && \
+	if [ ! -d "${MANDIR}" ]; then \
+		${mkdir} ${MANDIR}; \
 	fi && \
 	cp raggle.1 ${MANDIR} && \
 	cp -r ${DOCS} ${DOCDIR} && \

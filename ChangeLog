@@ -2229,3 +2229,16 @@
   * raggle: keys 1 through 9 will now open links within a story, shown at the
     bottom of the description window - 'o' still opens the default item link
   * raggle: minor cleanup
+
+* Wed Dec 29 16:21:30 2004, redshift <redshift@halffull.org>
+  * raggle: ncurses-mode feed editing via 'e' key, does rudimentary
+    (i.e. could be improved) checking of input before modifying feed
+  * raggle: added site, priority, and category to Engine::edit_feed'able
+    properties
+  * raggle: $old_win is now an array, abstracted its usage via the
+    goto_old_win method
+  * raggle: fixed display (and opening) of feed links - will now use
+    'site' rather than 'url' - noone wants to see raw rss feeds
+  * raggle: fixed bug where feed window would cover other windows if
+    a feed is updated in the background
+  * raggle: miscellaneous cleanup

@@ -4,8 +4,9 @@
 #######################################################################
 # Raggle - Console RSS aggregator                                     #
 # by Paul Duncan <pabs@pablotron.org>,                                #
-#    Richard Lowe <richlowe@richlowe.net>, and                        #
-#    Ville Aine <vaine@cs.helsinki.fi>                                #
+#    Richard Lowe <richlowe@richlowe.net>,                            #
+#    Ville Aine <vaine@cs.helsinki.fi>, and                           #
+#    Thomas Kirchner <redshift@halffull.org>                          #
 #                                                                     #
 #                                                                     #
 # Please see the Raggle page at http://www.raggle.org/ for the latest #
@@ -1210,7 +1211,6 @@ module Raggle
 
       #
       # Edit a feed by ID.  
-      #
       # Raises an exception if the ID is invalid.
       #
       def edit(id, opts)
@@ -1219,22 +1219,24 @@ module Raggle
                                                   opts.has_key?('refresh')
         if id == -1
           0.upto($config['feeds'].size - 1) do |id|
-            ourl = $config['feeds'].get(id)['url']
-            %w{title url refresh lock_title? save_items? max_items}.each { |key|
-              $config['feeds'].get(id)[key] = opts[key] if opts.has_key? key
+            feed = $config['feeds'].get(id)
+            ourl = feed['url']
+            otitle = feed['title']
+            %w{title url site refresh priority category lock_title? save_items? max_items}.each { |key|
+              feed[key] = opts[key] if opts.has_key? key
             }
-            if opts.has_key?('url') and opts['url'] != ourl
-              $config['feeds'].invalidate(id)
-            end
+            $config['feeds'].invalidate(id) if opts.has_key?('url') and opts['url'] != ourl
+            feed['lock_title?'] = true if opts.has_key?('title') and opts['title'] != otitle
           end
         else 
-          ourl = $config['feeds'].get(id)['url']
-          %w{title url refresh lock_title? save_items? max_items}.each { |key|
-            $config['feeds'].get(id)[key] = opts[key] if opts.has_key? key
+          feed = $config['feeds'].get(id)
+          ourl = feed['url']
+          otitle = feed['title']
+          %w{title url site refresh priority category lock_title? save_items? max_items}.each { |key|
+            feed[key] = opts[key] if opts.has_key? key
           }
-          if opts.has_key?('url') and opts['url'] != ourl
-            $config['feeds'].invalidate(id)
-          end
+          $config['feeds'].invalidate(id) if opts.has_key?('url') and opts['url'] != ourl
+          feed['lock_title?'] = true if opts.has_key?('title') and opts['title'] != otitle
         end
       end
 
@@ -1285,6 +1287,7 @@ module Raggle
           'content'    => feed['desc'],
           'date'       => feed['date'],
           'url'        => feed['url'],
+          'site'       => feed['site'],
           'date'       => Time.at(feed['updated']).strftime('%c'),
           'read?'      => false
         }
@@ -1415,8 +1418,9 @@ ENDWARNING
       puts <<ENDUSAGE
 Raggle - A Console RSS feed aggregator, written in Ruby.
 Version #$VERSION, by Paul Duncan <pabs@pablotron.org>, 
-                      Richard Lowe <richlowe@richlowe.net>, and
-                      Ville Aine <vaine@cs.helsinki.fi>
+                      Richard Lowe <richlowe@richlowe.net>,
+                      Ville Aine <vaine@cs.helsinki.fi>, and
+                      Thomas Kirchner <redshift@halffull.org>
 
 Usage:
   #$0 [options]
@@ -1768,6 +1772,7 @@ ENDUSAGE
           when NcursesInterface::get_win_id('find'): $wins[$a_win].close(true)
           when NcursesInterface::get_win_id('cat'): $wins[$a_win].close(true)
           when NcursesInterface::get_win_id('keys'): $wins[$a_win].close(true)
+          when NcursesInterface::get_win_id('edit'): $wins[$a_win].close(true)
           end
         end
 
@@ -1835,6 +1840,48 @@ ENDUSAGE
           name = $config['feeds'].get(id)['title']
           $config['feeds'].invalidate(id)
           NcursesInterface::set_status " Forcing update for \"#{name}\""
+        end
+
+        #
+        # Edit a feed's options from the Ncurses interface
+        #
+        def Key::edit_feed
+          id = NcursesInterface::get_win_id('edit')
+
+          if id == -1  # new window
+            w, h = $config['w'] - 15, 10  # get height/width
+            feed = $config['feeds'].get($a_feed)
+
+            # create window and add it to window list
+            $wins << win = NcursesInterface::ListWindow::new({
+              'title'   => $config['msg_edit_title'],
+              'key'     => 'edit',
+              'coords'  => [7, 5, w, h],
+              'colors'  => $wins[NcursesInterface::get_win_id('item')].colors,
+            })
+
+            # build feed options list and draw
+            %w{Title Category Priority URL Site Refresh Save_Items? Max_Items}.each { |key|
+              lowkey = key.downcase
+              len = feed[lowkey].to_s.length
+              maxlen = w - 7 - key.length
+              val = if len > maxlen  # must shorten
+                      feed[lowkey].to_s[0..(maxlen - 3)] + '...'
+                    else feed[lowkey].to_s
+              end
+              val = 'None' if feed[lowkey].nil?  # take care of empties
+              title = ' ' + key + ' '*(w - key.length - val.length - 4) + val
+              win.items << { 'title' => title, 'feedopt' => lowkey }
+            }
+            win.draw_items
+            NcursesInterface::set_active_win(NcursesInterface::get_win_id('edit'))
+          else
+            if id == $a_win  # window open; toggle to closed
+              $wins[id].close
+            else  # window open but not selected; select it
+              NcursesInterface::set_active_win(id)
+            end
+          end
         end
 
         #
@@ -1914,7 +1961,7 @@ ENDUSAGE
               win.items[0]['fmt_content'] = nil
               win.draw_items
             end
-          else
+          elsif $a_win != NcursesInterface::get_win_id('edit')
             # if we're not in the desc window, just reselect the current
             # item to force a refresh
             win.select_win_item 
@@ -1999,7 +2046,6 @@ ENDUSAGE
             # build item list and draw items
             keys.each { |key, value|
               title = ' ' + key + ' '*(w - key.length - value.length - 4) + value
-              #title = key + " " + value
               win.items <<  { 'title' => title, 'key' => key }
             }
             win.draw_items
@@ -2138,7 +2184,7 @@ ENDUSAGE
         def close(switchwin=false)
           old_wins = $wins.dup
           @win.del; $wins.delete_at(NcursesInterface::get_win_id(@key))
-          NcursesInterface::set_active_win($old_win) if switchwin unless old_wins == $wins
+          NcursesInterface::goto_old_win if switchwin unless old_wins == $wins
           $wins.each { |i| i.refresh }
         end
 
@@ -2165,6 +2211,8 @@ ENDUSAGE
               NcursesInterface::select_item @active_item
             elsif @items[@active_item].has_key? 'cat'
               NcursesInterface::select_cat @items[@active_item]['cat']
+            elsif @items[@active_item].has_key? 'feedopt'
+              NcursesInterface::edit_feed @items[@active_item]['feedopt']
             elsif @items[@active_item].has_key? 'url'
               NcursesInterface::open_link @items[@active_item]
             end
@@ -2232,7 +2280,7 @@ ENDUSAGE
           status = status.split(/\s+/).join(' ')
           NcursesInterface::set_status status
 
-          select_win_item if $config['focus'] == 'auto' && @key != 'cat'
+          select_win_item if $config['focus'] == 'auto' and @key != 'cat' and @key != 'edit'
         end
         private :adjust_to
 
@@ -2365,7 +2413,11 @@ ENDUSAGE
 
           # draw link
           draw("Link: ", 1, y, 'text', false, false)
-          draw(item['url'].ljust(w - 2), 7, y, 'url', false, false)
+          if item['site']
+            draw(item['site'].ljust(w - 2), 7, y, 'url', false, false)
+          else
+            draw(item['url'].ljust(w - 2), 7, y, 'url', false, false)
+          end
 
           # don't draw the date if it isn't set (silly RSS)
           if item['date'] && item['date'] != '' && item['date'] != "0"
@@ -2540,7 +2592,11 @@ ENDUSAGE
           $wins[$a_win].refresh
         end
 
-        $old_win = $a_win || NcursesInterface::get_win_id('feed')
+        if $a_win  # append previous window to old_win list
+          $old_win << $a_win
+        else  # feed window by default
+          $old_win << NcursesInterface::get_win_id('feed')
+        end
         $a_win = a_win
 
         $wins[$a_win].active = true
@@ -2548,10 +2604,23 @@ ENDUSAGE
 
         if $config['focus'] == 'auto' && 
            ![NcursesInterface::get_win_id('desc'), 
-             NcursesInterface::get_win_id('cat')].include?($a_win) && 
+             NcursesInterface::get_win_id('cat'),
+             NcursesInterface::get_win_id('edit')].include?($a_win) && 
            $wins[$a_win].items && $wins[$a_win].items.size > 0
           $wins[$a_win].select_win_item
         end
+      end
+
+      #
+      # Go to last selected window (that exists)
+      #
+      def NcursesInterface::goto_old_win
+        $old_win.reverse.each { |win|
+          if not $wins[win].nil?
+            NcursesInterface::set_active_win(win)
+            return 0
+          end
+        }
       end
 
       #
@@ -2599,6 +2668,69 @@ ENDUSAGE
         # activate item window
         set_active_win(get_win_id('item')) if $config['focus'] == 'select' ||
                                               $config['focus'] == 'select_first'
+      end
+
+      #
+      # edit the current feed's options
+      #
+      def NcursesInterface::edit_feed(feedopt)
+        # print entry message
+        e_msg = "New #{feedopt}: "
+        msg = e_msg + (' ' * ($config['w'] - e_msg.length - 1))
+        Ncurses::stdscr.color_set $config['theme']['status_bar_cols'], nil
+        Ncurses::mvprintw $config['h'], 0, msg
+
+        # get new value for feed option
+        str = ''
+        Ncurses::echo if $config['use_noecho']
+        Ncurses::mvprintw $config['h'], e_msg.size + 1, ''
+        Ncurses::getstr(str)
+        Ncurses::noecho if $config['use_noecho']
+        Ncurses::refresh
+
+        error = false
+        if str and str.length > 0
+          error = true if (feedopt == 'title' or feedopt == 'category') and
+                          str !~ /^[\w\s,]+$/
+          error = true if (feedopt == 'priority' or feedopt == 'refresh') and
+                          str !~ /^-?\d+$/
+          error = true if feedopt == 'max_items' and not
+                          (str =~ /^\d+$/ or str =~ /none|nil/i)
+          error = true if (feedopt == 'url' or feedopt == 'site') and
+                          str !~ /[^\s]+/
+          error = true if feedopt == 'save_items?' and not
+                          (str == 'true' or str == 'false')
+          error = true if feedopt == 'refresh' and
+                          str.to_i < $config['feed_refresh_warn']
+          if error  # bail if user entered nonsense via basic checks
+            NcursesInterface::set_status($config['msg_bad_option'] % feedopt)
+            return 1
+          end
+
+          case feedopt  # create options hash to pass to engine
+          when 'save_items?'
+            if str == 'true': newopts = {feedopt => true}
+            else newopts = {feedopt => false}; end
+          when 'priority', 'refresh'
+            newopts = {feedopt => str.to_i}
+          when 'max_items'
+            if str =~ /none|nil/i: newopts = {feedopt => nil}
+            else newopts = {feedopt => str.to_i}; end
+          when 'category'
+            if str =~ /none|nil/i: newopts = {feedopt => nil}
+            else newopts = {feedopt => str}; end
+          else newopts = {feedopt => str}
+          end
+
+          Engine::edit_feed($a_feed, newopts)  # change given option
+
+          # update info and close edit window
+          $wins[NcursesInterface::get_win_id('edit')].close(true)
+          NcursesInterface::populate_feed_win
+          NcursesInterface::set_status($config['msg_edit_success'])
+        else
+          NcursesInterface::set_status('')  # no change
+        end
       end
 
       #
@@ -2697,6 +2829,7 @@ ENDUSAGE
           }
         }
         win.draw_items
+        $wins[$a_win].draw_items  # so feed window doesn't cover active win
       end
 
       #
@@ -2797,7 +2930,7 @@ ENDUSAGE
           NcursesInterface::set_active_win(w_id)
           $wins[w_id].activate 0 
         else  # just go back to old window if category didn't change
-          NcursesInterface::set_active_win($old_win)
+          NcursesInterface::goto_old_win
         end
         
         # delete category window
@@ -2808,7 +2941,8 @@ ENDUSAGE
       # open an item's url in Ncurses mode
       #
       def NcursesInterface::open_link(item)
-        return unless item['title'] and item['url']  # need item info
+        return unless item['title'] and (item['url'] or item['site'])
+        url = item['site'] || item['url']
 
         # are we opening new screen windows?
         use_screen = $config['use_screen'] && in_screen?
@@ -2816,7 +2950,7 @@ ENDUSAGE
         # get browser command
         cmd = $config['browser_cmd'].map { |cmd_part|
         case cmd_part
-          when /%s/:  cmd_part % item['url'].escape
+          when /%s/:  cmd_part % url.escape
           when '${browser}':  $config['browser']
           else cmd_part
           end
@@ -4439,6 +4573,7 @@ def main
   # initialize default globals
   $view_source = false
   $update_wins = false
+  $old_win = [0]
 
   # Draw windows and such.
   # (unless we're running as a daemon)
@@ -4677,8 +4812,11 @@ $config = {
   'msg_find_feed'         => 'Find Feeds:',
   'msg_find_title'        => 'Search Results for "%s" - %s matching feeds',
   'msg_find_nomatches'    => 'No results found',
-  'msg_keys_title'        => 'Current key bindings',
-  'msg_added_existing'    => 'Warning: added existing feed',
+  'msg_keys_title'        => 'Current Key Bindings',
+  'msg_added_existing'    => 'Warning: Added existing feed',
+  'msg_edit_title'        => 'Edit Feed Options',
+  'msg_bad_option'        => 'Warning: Bad option for %s',
+  'msg_edit_success'      => 'New option saved',
   'msg_save_done'         => 'Configuration saved',
 
   # menu bar color
@@ -4822,6 +4960,7 @@ $config = {
     ?d                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::move_item_down} ),
 
     ?I                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::invalidate_feed} ),
+    ?e                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::edit_feed} ),
 
     ?/                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::find_entry(win)} ),
 

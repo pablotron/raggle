@@ -89,3 +89,5 @@ Raggle TODO
 [ ] XBEL import/export?
 [*] url arg to --import-opml (suggested by Doug Kearns
     <djkea2@mugca.its.monash.edu.au>)
+[ ] OCS support (http://internetalchemy.org/ocs/index.html)
+[ ] user ratings (either centralized or bayesian, etc)

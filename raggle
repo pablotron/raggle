@@ -158,11 +158,11 @@ class String
   def reflow(width = 72, line_delim_regex = /^(<br[^\/]*>|\.)$/)
     text = ''
     curr_line = ''
-    split(/\s+/).each { |word|
+    strip.split(/\s+/).each { |word|
       if line_delim_regex && word =~ line_delim_regex
         text << curr_line << "\n" 
         curr_line = ''
-      elsif curr_line.length + word.length > width - 2
+      elsif curr_line.length + (word.length + 1) > width - 2
         text << curr_line << "\n"
         curr_line = "#{word} "
       else

@@ -706,5 +706,9 @@
 	    Don't revert, come up with a *better* solution, ZZ is
 	    not obviously non-content.
 
+* Mon Jun 23 23:39:35 2003, richlowe <richlowe@richlowe.net>
+  * raggle (String#reflow): Allow for space when calculating used space
+
+
 
 

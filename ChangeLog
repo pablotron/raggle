@@ -2017,3 +2017,6 @@
     Raggle::Interfaces::DRbServerInteface::init
   * raggle: renamed Raggle::Interfaces::NcursesInterface::setup_win of
     Raggle::Interfaces::NcursesInterfaces::init
+
+* Thu Aug 12 17:40:35 2004, pabs <pabs@pablotron.org>
+	* TODO: added a couple of ideas I thought of

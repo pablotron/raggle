@@ -102,3 +102,6 @@ Raggle TODO
 [ ] automatic new item pseudo-feed (suggested by ")
 [ ] automatically opening the desc links in your browser via the 
     number keys (suggested by ")
+[ ] after completing 0.4 cleanup, rewrite raggle engine in C for
+    speed
+[ ] backend abstraction (be able to save to MySQL, LDAP, etc)

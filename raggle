@@ -541,15 +541,38 @@ class Window
       text = orig_text
     end
 
+    # handle color
+    col = @colors[color]
+    col_ary = []
+    if col.is_a? Array
+      col_ary = col
+      col = col_ary[0]
+      col_ary.each_index { |i|
+        @win.attron $config['attr_palette'][col_ary[i]] if i > 0
+      }
+    end
+
     # draw text in window
-    @win.color_set @colors[color], nil if color != 'text'
+    @win.color_set col, nil if color != 'text'
     text.each_line { |line|
       Ncurses::mvwprintw @win, y, x, line.gsub(/%/, '%%').slice(0, w - x - 1)
       y += 1
     }
-    @win.color_set @colors['text'], nil
+
+    # get default color, attributes
+    col = @colors['text']
+    col_ary = []
+    if col.is_a? Array
+      col_ary = col.dup
+      col = col_ary[0]
+    end
+
+    # set back to default color
+    @win.color_set col, nil
+    @win.attrset Ncurses::A_NORMAL
 
     refresh if refresh_win
+    y
   end
 
   # get window width and height
@@ -574,6 +597,9 @@ class Window
       end
     end
     draw_items
+
+    describe_feed(item) if $config['describe_hilited_feed'] == true &&
+                           @items[item].has_key?('feed')
     
     # Should I really have put this here? -- richlowe 2003-06-19
     status = ' ' << @items[@active_item]['title']
@@ -750,7 +776,8 @@ class Window
       @items.each { |i| 
         t = i['title'] || ''
         text = t + ((t.length < w) ? (' ' * (w - t.length)) : '')
-        if i.has_key?('item_count') && i['item_count'] == 0
+        if i.has_key?('item_count') && i['item_count'] == 0 &&
+           i['updated'] > 0
           color = (ic == @active_item) ? 'h_empty' : 'empty'
         elsif i.has_key?('read?') && i['read?'] == false
           color = (ic == @active_item) ? 'h_unread' : 'unread'
@@ -850,6 +877,62 @@ def expand_config
 end
 
 #
+# describe the hilited feed
+# 
+def describe_feed(id)
+  d_win = $wins[get_win_id('desc')]
+  d_win.active_item = 0
+  d_win.items.clear
+  d_win.clear
+
+  y = 0
+  feed = $config['feeds'].get(id)
+
+  # print title
+  str = feed['title'].strip
+  d_win.draw(str, 1, y += 1, 'f_title')
+
+  # print last update
+  if feed.has_key?('updated') && feed['updated'] > 0
+    str = 'Updated: ' << Time.at(feed['updated']).to_s
+    d_win.draw(str, 1, y += 1, 'f_update')
+  end
+  
+  # print site url
+  if $config['desc_show_site'] &&
+     feed.has_key?('site') && feed['site'].length > 0
+    str = feed['site']
+    d_win.draw(str, 1, y += 1, 'f_site')
+  end
+
+  # print site url
+  if $config['desc_show_url'] &&
+     feed.has_key?('site') && feed['site'].length > 0
+    str = feed['url']
+    d_win.draw(str, 1, y += 1, 'f_url')
+  end
+
+  # draw poor man's divider
+  if $config['desc_show_divider']
+    d_win.draw('-  ' * 100, 1, y += 2, 'box', true, false)
+  end
+
+  # print error
+  if feed.has_key?('error')
+    d_win.draw(feed['error'], 1, y += 2, 'f_error')
+  else 
+    # print description
+    if feed['desc'] && feed['desc'].length > 0
+      str = feed['desc']
+      d_win.draw(str, 1, y += 2, 'f_desc')
+    end
+  end
+  
+  # refresh window
+  d_win.refresh
+end
+
+#
 # set active feed by id
 #
 def select_feed(id)
@@ -944,7 +1027,8 @@ def populate_feed_win
       'title'       => title,
       'feed'        => i,
       'read?'       => unread_count == 0,
-      'item_count'  => feed['items'].size
+      'item_count'  => feed['items'].size,
+      'updated'     => feed['updated'],
     }
   }
   $wins[id].draw_items
@@ -1383,7 +1467,7 @@ def main
   if $config['feeds'].size == 0
     $config['default_feeds'].each {|feed|
       $config['feeds'].add(feed['title'], feed['url'], feed['refresh'],
-                        feed['site'], feed['desc'], feed['items'])
+                           feed['site'], feed['desc'], feed['items'])
     }
   end
   
@@ -1455,15 +1539,18 @@ def main
           # get channel
           begin
             chan = Feed::Channel.new(feed['url'])
+            feed.delete 'error'
           rescue
             # set_status "Error updating \"#{feed['title']}\"."
             log.puts "#{t}: Error: #$!"
+            feed['error'] = "#$!"
             next
           end
           
           # update feed attributes
           feed['title'] = chan.title unless $config['lock_feed_title'] ||
-            feed['lock_title?'] = true
+                                            feed['lock_title?'] = true
+          feed['desc'] = chan.desc
           feed['site'] = chan.link
           feed['updated'] = t.to_i
           
@@ -1544,7 +1631,7 @@ def main
     # draw status bar
     $new_status = ''
     set_status $config['msg_welcome']
-p    
+    
     # create windows
     $a_win = 0
     $wins = []
@@ -1561,6 +1648,7 @@ p
     
     select_feed(0)
     set_active_win(0)
+    describe_feed(0)
     
     # trap('WINCH') { resize_term }
     
@@ -1708,6 +1796,12 @@ $config = {
   # (you can lock individual feed titles with the --lock-title command)
   'lock_feed_title'       => false,
 
+  # feed info on hilite
+  'describe_hilited_feed' => true,
+  'desc_show_site'        => false,
+  'desc_show_url'         => false,
+  'desc_show_divider'     => false,
+
   # key bindings
   'keys'            => {
     Ncurses::KEY_RIGHT  => proc { |win, key| Key::next_window },
@@ -1777,6 +1871,21 @@ $config = {
     [ 37, Ncurses::COLOR_YELLOW,   Ncurses::COLOR_CYAN    ],
   ],
 
+  'attr_palette'          => {
+    'normal'        => Ncurses::A_NORMAL,
+    'normal'        => Ncurses::A_NORMAL,
+    'standout'      => Ncurses::A_STANDOUT,
+    'underline'     => Ncurses::A_UNDERLINE,
+    'reverse'       => Ncurses::A_REVERSE,
+    'blink'         => Ncurses::A_BLINK,
+    'dim'           => Ncurses::A_DIM,
+    'bold'          => Ncurses::A_BOLD,
+    'protect'       => Ncurses::A_PROTECT,
+    'invis'         => Ncurses::A_INVIS,
+    'altcharset'    => Ncurses::A_ALTCHARSET,
+    'chartext'      => Ncurses::A_CHARTEXT,
+  },
+
   # default theme settings
   'theme'           => {
     # theme information
@@ -1844,6 +1953,13 @@ $config = {
         'a_box'     => 3,
         'url'       => 6,
         'date'      => 6,
+
+        'f_title'   => [1, 'bold'],
+        'f_update'  => 1,
+        'f_url'     => 1,
+        'f_site'    => 1,
+        'f_error'   => 2,
+        'f_desc'    => 1,
       },
     },
   },
@@ -1863,7 +1979,13 @@ $config = {
       'url'       => 'http://www.pablotron.org/software/raggle/help.rss',
       'site'      => 'http://www.pablotron.org/software/raggle/',
       'refresh'   => -1,
-      'updated'   => 1055113783,
+      'updated'   => 1056265451,
+      'desc'      => 'Welcome to Raggle!
+. .
+Raggle is a command-line RSS aggregator, written in Ruby 
+(http://www.ruby-lang.org/).  Raggle is free software; please see the
+file COPYING or the License item in the Raggle feed for licensing and
+warranty information.',
       'items'     => [
         { 'title' => 'Introduction',
           'url'   => 'http://www.pablotron.org/software/raggle/',
@@ -1980,7 +2102,7 @@ ragglebug@pablotron.org.
       'site'      => 'http://www.alternet.org/',
       'desc'      => 'Alternative News and Information.',
       'refresh'   => 120,
-      'updated'   => 1055113783,
+      'updated'   => 0,
       'items'     => [ ],
     },
     { 'title'     => 'Anandtech (NiF)',
@@ -1988,7 +2110,7 @@ ragglebug@pablotron.org.
       'site'      => 'http://www.anandtech.com/',
       'desc'      => 'Anandtech',
       'refresh'   => 120,
-      'updated'   => 1055113783,
+      'updated'   => 0,
       'items'     => [ ],
     },
     { 'title'     => 'Consensus at Lawyerpoint',
@@ -1996,7 +2118,7 @@ ragglebug@pablotron.org.
       'site'      => 'http://www.eff.org/',
       'desc'      => 'Consensus at Lawyerpoint',
       'refresh'   => 120,
-      'updated'   => 1055113783,
+      'updated'   => 0,
       'items'     => [ ],
     },
     { 'title'     => 'Creative Commons',
@@ -2004,7 +2126,7 @@ ragglebug@pablotron.org.
       'site'      => 'http://creativecommons.org/',
       'desc'      => 'Creative Commons',
       'refresh'   => 120,
-      'updated'   => 1055113783,
+      'updated'   => 0,
       'items'     => [ ],
     },
     { 'title'     => 'Daily Daemon News',
@@ -2012,7 +2134,7 @@ ragglebug@pablotron.org.
       'site'      => 'http://daemonnews.org/',
       'desc'      => 'Daily Daemon News',
       'refresh'   => 120,
-      'updated'   => 1055113783,
+      'updated'   => 0,
       'items'     => [ ],
     },
     { 'title'     => 'EFF News (NiF)',
@@ -2020,7 +2142,7 @@ ragglebug@pablotron.org.
       'site'      => 'http://www.eff.org/',
       'desc'      => 'EFF News.',
       'refresh'   => 120,
-      'updated'   => 1055113783,
+      'updated'   => 0,
       'items'     => [ ],
     },
     { 'title'     => 'Exploding Cigar',
@@ -2028,7 +2150,7 @@ ragglebug@pablotron.org.
       'site'      => 'http://www.explodingcigar.com/',
       'desc'      => 'Exploding Cigar',
       'refresh'   => 120,
-      'updated'   => 1055113783,
+      'updated'   => 0,
       'items'     => [ ],
     },
     { 'title'     => 'FlipCode (NiF)',
@@ -2036,7 +2158,7 @@ ragglebug@pablotron.org.
       'site'      => 'http://www.flipcode.org/',
       'desc'      => 'FlipCode.',
       'refresh'   => 120,
-      'updated'   => 1055113783,
+      'updated'   => 0,
       'items'     => [ ],
     },
     { 'title'     => 'FreshMeat',
@@ -2044,7 +2166,7 @@ ragglebug@pablotron.org.
       'site'      => 'http://www.freshmeat.net/',
       'desc'      => 'FreshMeat.',
       'refresh'   => 120,
-      'updated'   => 1055113783,
+      'updated'   => 0,
       'items'     => [ ],
     },
     { 'title'     => 'KernelTrap',
@@ -2052,7 +2174,7 @@ ragglebug@pablotron.org.
       'site'      => 'http://www.kerneltrap.org/',
       'desc'      => 'KernelTrap',
       'refresh'   => 120,
-      'updated'   => 1055113783,
+      'updated'   => 0,
       'items'     => [ ],
     },
     { 'title'     => 'Kuro5hin',
@@ -2060,7 +2182,7 @@ ragglebug@pablotron.org.
       'site'      => 'http://www.kuro5hin.org/',
       'desc'      => 'Kuro5hin',
       'refresh'   => 120,
-      'updated'   => 1055113783,
+      'updated'   => 0,
       'items'     => [ ],
     },
     { 'title'     => 'Leoville',
@@ -2068,7 +2190,7 @@ ragglebug@pablotron.org.
       'site'      => 'http://www.leoville.com/',
       'desc'      => 'Leoville',
       'refresh'   => 120,
-      'updated'   => 1055113783,
+      'updated'   => 0,
       'items'     => [ ],
     },
     { 'title'     => 'Linux Magazine',
@@ -2076,7 +2198,7 @@ ragglebug@pablotron.org.
       'site'      => 'http://www.linux-mag.com/',
       'desc'      => 'Linux Magazine',
       'refresh'   => 120,
-      'updated'   => 1055113783,
+      'updated'   => 0,
       'items'     => [ ],
     },
     { 'title'     => 'Linux Weekly News',
@@ -2084,7 +2206,7 @@ ragglebug@pablotron.org.
       'site'      => 'http://www.lwn.net/',
       'desc'      => 'Linux Weekly News',
       'refresh'   => 120,
-      'updated'   => 1055113783,
+      'updated'   => 0,
       'items'     => [ ],
     },
     { 'title'     => 'MetaFilter',
@@ -2092,7 +2214,7 @@ ragglebug@pablotron.org.
       'site'      => 'http://www.metafilter.com/',
       'desc'      => 'MetaFilter',
       'refresh'   => 120,
-      'updated'   => 1055113783,
+      'updated'   => 0,
       'items'     => [ ],
     },
     { 'title'     => 'MovieComments',
@@ -2100,7 +2222,7 @@ ragglebug@pablotron.org.
       'site'      => 'http://www.moviecomments.com/',
       'desc'      => 'MovieComments',
       'refresh'   => 120,
-      'updated'   => 1055113783,
+      'updated'   => 0,
       'items'     => [ ],
     },
     { 'title'     => 'MTV News (NiF)',
@@ -2108,7 +2230,7 @@ ragglebug@pablotron.org.
       'site'      => 'http://www.mtv.com/',
       'desc'      => 'MTV News (NiF)',
       'refresh'   => 120,
-      'updated'   => 1055113783,
+      'updated'   => 0,
       'items'     => [ ],
     },
     { 'title'     => 'O\'Reilly Network',
@@ -2116,7 +2238,7 @@ ragglebug@pablotron.org.
       'site'      => 'http://www.oreillynet.com/',
       'desc'      => 'O\'Reilly Network',
       'refresh'   => 120,
-      'updated'   => 1055113783,
+      'updated'   => 0,
       'items'     => [ ],
     },
     { 'title'     => 'Open Sounds',
@@ -2124,7 +2246,7 @@ ragglebug@pablotron.org.
       'site'      => 'http://www.opensounds.net/',
       'desc'      => 'John Maguire.',
       'refresh'   => 120,
-      'updated'   => 1055113783,
+      'updated'   => 0,
       'items'     => [ ],
     },
     { 'title'     => 'PHP Journal',
@@ -2132,7 +2254,7 @@ ragglebug@pablotron.org.
       'site'      => 'http://www.phpj.com/',
       'desc'      => 'PHP Journal',
       'refresh'   => 120,
-      'updated'   => 1055113783,
+      'updated'   => 0,
       'items'     => [ ],
     },
     { 'title'     => 'Pigdog Journal',
@@ -2140,7 +2262,7 @@ ragglebug@pablotron.org.
       'site'      => 'http://www.pigdog.org/',
       'desc'      => 'Pigdog Journal',
       'refresh'   => 120,
-      'updated'   => 1055113783,
+      'updated'   => 0,
       'items'     => [ ],
     },
     { 'title'     => 'Political Wire',
@@ -2148,7 +2270,7 @@ ragglebug@pablotron.org.
       'site'      => 'http://politicalwire.com/',
       'desc'      => 'Political Wire',
       'refresh'   => 120,
-      'updated'   => 1055113783,
+      'updated'   => 0,
       'items'     => [ ],
     },
     { 'title'     => 'Slashdot',
@@ -2156,7 +2278,7 @@ ragglebug@pablotron.org.
       'site'      => 'http://www.slashdot.org/',
       'desc'      => 'Slashdot',
       'refresh'   => 120,
-      'updated'   => 1055113783,
+      'updated'   => 0,
       'items'     => [ ],
     },
     { 'title'     => 'This Modern World',
@@ -2164,7 +2286,7 @@ ragglebug@pablotron.org.
       'site'      => 'http://www.thismodernworld.com/',
       'desc'      => 'This Modern World',
       'refresh'   => 120,
-      'updated'   => 1055113783,
+      'updated'   => 0,
       'items'     => [ ],
     },
     { 'title'     => 'Universal Rule',
@@ -2172,7 +2294,7 @@ ragglebug@pablotron.org.
       'site'      => 'http://radio.weblogs.com/0112083/',
       'desc'      => 'Universal Rule',
       'refresh'   => 120,
-      'updated'   => 1055113783,
+      'updated'   => 0,
       'items'     => [ ],
     },
     { 'title'     => 'use Perl',
@@ -2180,7 +2302,7 @@ ragglebug@pablotron.org.
       'site'      => 'http://use.perl.org/',
       'desc'      => 'Universal Rule',
       'refresh'   => 120,
-      'updated'   => 1055113783,
+      'updated'   => 0,
       'items'     => [ ],
     },
     { 'title'     => 'W3C',
@@ -2188,7 +2310,7 @@ ragglebug@pablotron.org.
       'site'      => 'http://www.w3.org/',
       'desc'      => 'W3C',
       'refresh'   => 120,
-      'updated'   => 1055113783,
+      'updated'   => 0,
       'items'     => [ ],
     },
     { 'title'     => 'Webmonkey',
@@ -2196,7 +2318,7 @@ ragglebug@pablotron.org.
       'site'      => 'http://radio.weblogs.com/0112083/',
       'desc'      => 'Webmonkey',
       'refresh'   => 120,
-      'updated'   => 1055113783,
+      'updated'   => 0,
       'items'     => [ ],
     },
   ],

@@ -414,7 +414,20 @@
   * raggle: Spellcheck comments and strings.
 
 * Sun Jun 22 03:11:55 2003, richlowe <richlowe@richlowe.net>
-  * raggel: Default feeds refresh at 2 hours, rather than half an hour.
+  * raggle: Default feeds refresh at 2 hours, rather than half an hour.
 
+* Sun Jun 22 03:19:46 2003, pabs <pabs@pablotron.org>,
+  * raggle: add attributes to window colors
+  * raggle: add attribute handling to Window#draw
+  * raggle: added 'describe_hilited_feed' option; describe the 
+    hilited feed in the description window when hiliting them
+  * raggle: only hilite error feeds, not ones that havne't been updated
+  * raggle: remove strange p at the beginning of the line
+  * raggle: add description for Raggle feed (for the inital stuff in
+    the description window)
+  * raggle: add attribute palette (similar to the color palette)
+  * raggle: added new color keys to description window (for hiliting
+    the feed description options)
+  * raggle: change updated timestamp on all default feeds to zero
 	  
 

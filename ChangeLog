@@ -271,3 +271,9 @@
 * Fri Jun 20 03:47:26 2003, pabs <pabs@pablotron.org>
   * implemented Richard's key bindings idea.  Key bindings are now
     stored in $config and called as procs
+
+* Fri Jun 20 04:01:14 EDT 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Fix Window#scroll_up_page and Window#scroll_down_page logic.
+  * raggle: Make page up/down never wrap.  It's confusing
+
+

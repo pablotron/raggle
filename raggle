@@ -105,7 +105,7 @@ $config = {
 
   # Number of list items per "page" (wrt page up/down)
   # (if < 0, then the height of the window, minus N items)
-  'page_step'             => -1,
+  'page_step'             => -3,
 
   # date formats
   'item_date_format'      => '%c',
@@ -945,18 +945,31 @@ class Window
   end
   
   def scroll_up_page
-    step = $config['page_step']
-    step = dimensions[1] - 2 - step if step < 0
-    activate scroll_bound((@active_item - step) % @items.size)
+    if $config['page_step'] < 0
+      w,h = dimensions
+      step = (h - 2) + $config['page_step']
+    else
+      step = $config['page_step']
+    end
+      
+    pos = @active_item - step
+    pos < 0 ? activate(0) : activate(pos)
+
   end
 
   #
   # Scroll one page down.
   #
   def scroll_down_page
-    step = $config['page_step']
-    step = dimensions[1] - 2 - step if step < 0
-    activate scroll_bound((@active_item + step) % @items.size)
+    if $config['page_step'] < 0
+      w,h = dimensions
+      step = (h - 2) + $config['page_step']
+    else
+      step = $config['page_step']
+    end
+
+    pos = @active_item + step
+    pos >= @items.size ? activate(@items.size - 1) : activate(pos)
   end
        
   #

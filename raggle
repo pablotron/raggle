@@ -1902,8 +1902,8 @@ def set_active_win(a_win)
   $wins[$a_win].active = true
   $wins[$a_win].refresh
 
-  if $config['focus'] == 'auto' && $wins[$a_win].items.size > 0 &&
-     $a_win != get_win_id('desc')
+  if $config['focus'] == 'auto' && $a_win != get_win_id('desc') && 
+     $wins[$a_win].items && $wins[$a_win].items.size > 0
     $wins[$a_win].select_win_item
   end
 end

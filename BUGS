@@ -15,13 +15,15 @@ Bugs
 [ ] It's possible that sometimes the inline documentation ("Raggle"
     feed) items aren't created from the default list (We can't even
     decide if this is really happenening or not.
-[ ] I can *still* convince some feeds to flow description out of the
+[-] I can *still* convince some feeds to flow description out of the
     window.  Unfortunately, the '*still*' also applies to not knowing
     why.  This appears not to happen under Linux (Linux also shows
     extra characters in the specific feed that I'm testing with,
     though I don't know if that's related), the behaviour being
     correct under Linux suggests either a curses bug in the platform
-    I'm testing on, or Linux being kinder to the code in this specific case.
+    I'm testing on, or Linux being kinder to the code in this specific
+    case. (I can't reproduce this at all right now, but don't be
+    fooled into thinking that means it's gone).
 [*] One feed (actually, the same one that triggers the above) will
     reliably bend the description window over, and bugger it backwards
     with a steam iron.

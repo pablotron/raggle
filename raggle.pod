@@ -4,18 +4,46 @@ raggle - text mode RSS aggregator
 
 =head1 SYNOPSIS
 
-B<raggle> S<[B<-ahlv>] [B<--add>] [B<--force>] [B<--help>] [B<--usage>] [B<--list>]>
-          S<[B<--verbose>] [B<--lock-title>] [B<--save-items>] [B<--server>]>
-          S<[B<--purge>] [B<--sort>] [B<--sort-feeds>] [B<--diag>] [B<--usage>]>
-          S<[B<--unsave-items>] [B<--unlock-title>] [B<--verbose>] [B<--version>]>
-          S<[B<-c> I<file>] [B<--config> I<file>] [B<--config-file> I<file>]>
-          S<[B<-d> I<feed>] [B<--delete> I<feed>] [B<--delete-feed> I<feed>]>
-          S<[B<-e> I<feed>] [B<--edit> I<feed>] [B<--edit-feed> I<feed>]>
-          S<[B<--export-opml> I<file>] [B<--import-opml> I<file>]>
-          S<[B<-i> I<feed>] [B<--invalidate> I<feed>] [B<--invalidate-feed> I<feed>]>
-          S<[B<-r> I<refresh_time>] [B<--refresh> I<refresh_time>]>
-          S<[B<-t> I<title>] [B<--title> I<title>]>
-          S<[B<-u> I<url>] [B<--url> I<url>]>
+B<raggle> 
+[B<-ahlv>] 
+[B<--add>] 
+[B<--force>] 
+[B<--help>] 
+[B<--usage>] 
+[B<--list>]
+[B<--verbose>]
+[B<--lock-title>]
+[B<--save-items>]
+[B<--server>]
+[B<--purge>] 
+[B<--sort>]
+[B<--sort-feeds>]
+[B<--diag>]
+[B<--usage>]
+[B<--unsave-items>]
+[B<--unlock-title>]
+[B<--verbose>]
+[B<--version>]
+[B<-c> I<file>]
+[B<--config> I<file>]
+[B<--config-file> I<file>]
+[B<-d> I<feed>]
+[B<--delete> I<feed>]
+[B<--delete-feed> I<feed>]
+[B<-e> I<feed>]
+[B<--edit> I<feed>]
+[B<--edit-feed> I<feed>]
+[B<--export-opml> I<file>]
+[B<--import-opml> I<file>]
+[B<-i> I<feed>]
+[B<--invalidate> I<feed>]
+[B<--invalidate-feed> I<feed>]
+[B<-r> I<refresh_time>]
+[B<--refresh> I<refresh_time>]
+[B<-t> I<title>]
+[B<--title> I<title>]
+[B<-u> I<url>]
+[B<--url> I<url>]
 
 =head1 DESCRIPTION
 
@@ -253,6 +281,7 @@ rather than a FeedList for no apparent reason.
 This man page is hopelessly incomplete.
 
 =item B<*>
+
 And probably many, many more, please report any you find to <I<raggle-dev@raggle.org>>
 
 =back

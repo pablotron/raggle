@@ -1271,3 +1271,8 @@
 * Wed Sep 03 13:38:26 2003, pabs <pabs@pablotron.org>
   * raggle: slightly cleaner auto focus code in select_win_item
 
+* Wed Sep 03 23:24:01 2003, heap <vaine@cs.helsinki.fi>
+  * raggle.pod: fixed layout bugs in Synopsis and BUGS
+  * Makefile: changed man-target to output raggle.1 instead 
+    of raggle.1.new
+  * raggle.1: ran 'make man'

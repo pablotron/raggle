@@ -29,4 +29,4 @@ install :
 
 man :
 	pod2man --release 0.2 --center "User Commands Manual" \
-	    --official raggle.pod > raggle.1.new
+	    --official raggle.pod > raggle.1

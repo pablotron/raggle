@@ -125,7 +125,10 @@ $config = {
   'grab_log_mode'         => 'w',
 
   # strip html from item contents?
-  'strip_html'            => true,
+  'strip_html_tags'       => true,
+
+  # decode html escape sequences?
+  'unescape_html'         => true,
 
   # open new screen window for browser?
   'use_screen'            => true,
@@ -603,6 +606,26 @@ class String
   def escape!
     gsub!(/(["\\])/, "\\$1")
   end
+
+  # this bit of love is from the pickaxe
+  def unescape_html
+    gsub(/&(.*?);/n) {
+      case m = $1.dup
+      when /\Aamp\z/ni
+        '&'
+      when /\Aquot\z/ni
+        '"'
+      when /\Alt\z/ni
+        '<'
+      when /\Agt\z/ni
+        '>'
+      when /\A#(\d+)\z/n
+        Integer($1).chr
+      when /\A#x([0-9a-f]+)\z/ni
+        $1.hex.chr
+      end
+    }
+  end
 end
 
 module Feed
@@ -958,8 +981,8 @@ class Window
           # @win.color_set @colors['date'], nil
           draw(d_str, 7, y, 'date')
         end
-        str = item['title']
-        str = item['title'].gsub(/<[^>]+?>/, '') if $config['strip_html']
+        str = item['title'].unescape_html if $config['unescape_html']
+        str = item['title'].gsub(/<[^>]+?>/, '') if $config['strip_html_tags']
         draw(str, 1, y += 2)
       }
     else
@@ -1152,7 +1175,9 @@ end
 def load_feed_cache
   store = PStore::new $config['feed_cache_path']
   store.transaction { |s|
-    $config[$SRC].each { |feed| feed['items'] = s[feed['url']] }
+    $config[$SRC].each { |feed|
+      feed['items'] = s.root?(feed['url']) ? s[feed['url']] : []
+    }
   }
 end
 

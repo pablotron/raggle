@@ -166,3 +166,10 @@
 * Wed Jun 18 02:29:57 2003, pabs <pabs@pablotron.org>
   * raggle: added documentation for --edit
   * raggle: multi-instance cache disable now works correctly
+
+* Wed Jun 18 10:39:00 2003, pabs <pabs@pablotron.org>
+  * raggle: fixed bug add feed bug reported by Richard Lowe
+    <richlowe@richlowe.net>
+  * raggle: added 'unescape_html' option (decode html escape sequences
+    in feed item descriptions)
+  * raggle: renamed 'strip_html' option to 'strip_html_tags'

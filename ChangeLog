@@ -1692,3 +1692,6 @@
 	       you're focused on, and looking at.   This is the theme to
 	       use if you frequently use raggle on terminals that have
 	       support for bold, but not color.
+
+* Thu Nov 06 22:10:50 2003, pabs <pabs@pablotron.org>
+  * BUGS: add a few more outstanding bugs

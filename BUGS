@@ -70,3 +70,8 @@ Bugs
 [ ] over-zealous UTF-8 mangling (reported by Gea-Suan Lin
     <gslin@ccca.nctu.edu.tw>). see
     http://raggle.org/pipermail/raggle-dev/2003-September/000146.html.
+[ ] some URLs don't load properly in ncurses interface (bug in command-
+    line handling?) there was a post demonstrating this repeatedly on
+    the mailing list on October, but I don't have the URL handy at the
+    moment)
+[ ] outstanding terminal resize / redraw bug

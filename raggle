@@ -2718,6 +2718,16 @@ ENDUSAGE
         }
         win.draw_items
       end
+
+      #
+      # set active item by id in feeds list
+      #
+      def NcursesInterface::select_id(id)
+        item_win = $wins[NcursesInterface::get_win_id('item')]
+        item_no = -1
+        item_win.items.each_with_index {|item, i| item_no = i if item['id'] == id }
+        NcursesInterface::select_item(item_no) if item_no >= 0
+      end
       
       #
       # set active item by id in item window list
@@ -2854,41 +2864,48 @@ ENDUSAGE
       
       DIRECTION_BACKWARD = -1
       DIRECTION_FORWARD = 1
-      
-      #
-      # Select next unread item in direction +direction+. Direction
-      # can be either +DIRECTION_FORWARD+ or +DIRECTION_BACKWARD+
-      #
-      def NcursesInterface::select_unread_item(direction)
-        win = $wins[NcursesInterface::get_win_id('item')]
-      
-        return unless win.items.size > 0
-        
-        i = ($a_item + direction) % win.items.size
-        while i != $a_item
-          if win.items[i]['read?'] == false
-            NcursesInterface::select_item i
-            win.activate i
-            win.draw_items
-            return
-          end
-      
-          i = (i + direction) % win.items.size
-        end
-      end
-      
+
       #
       # select next unread item
       #
       def NcursesInterface::select_next_unread
-        select_unread_item NcursesInterface::DIRECTION_FORWARD
+        NcursesInterface::select_unread_item NcursesInterface::DIRECTION_FORWARD
       end
       
       #
       # select previous unread item
       #
       def NcursesInterface::select_prev_unread
-        select_unread_item NcursesInterface::DIRECTION_BACKWARD
+        NcursesInterface::select_unread_item NcursesInterface::DIRECTION_BACKWARD
+      end
+
+      #
+      # Select next unread item in direction +direction+. Direction
+      # can be either +DIRECTION_FORWARD+ or +DIRECTION_BACKWARD+
+      #
+      def NcursesInterface::select_unread_item(direction)
+        item_win = $wins[NcursesInterface::get_win_id('item')]
+        feed_win = $wins[NcursesInterface::get_win_id('feed')]
+        feed = $a_feed; item = $a_item  # start at current feed/item
+        max = $config['feeds'].get(feed)['items'].size
+
+        begin  # until we get back to original feed
+          begin  # until we hit a window border
+            cur_item = $config['feeds'].get(feed)['items'][item]
+            # activate and return if unread visible item found
+            if cur_item['read?'] == false and cur_item['visible'] != false
+              NcursesInterface::select_feed(feed)
+              NcursesInterface::select_id(item)
+              feed_win.activate(feed)
+              item_win.activate(item)
+              return 0
+            end
+            item += direction
+          end until item < 0 or item >= max  # switch feeds to find prev/next
+          feed = (feed + direction) % $config['feeds'].size
+          max = $config['feeds'].get(feed)['items'].size
+          (direction > 0) ? item = 0 : item = max - 1  # set sensible search start
+        end until feed == $a_feed
       end
 
       #

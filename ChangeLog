@@ -2215,3 +2215,8 @@
     reorganized the related code
   * raggle: updated usage messages for new features
   * raggle, AUTHORS, raggle.1, raggle.pod: added myself to authors list
+
+* Thu Dec 23 22:51:00 2004, redshift <redshift@halffull.org>
+  * raggle: 'n' and 'p' will now span feeds to find unread items
+  * raggle: added select_id to select item by id from feed list, rather
+    than by id in item window list (includes invisible items)

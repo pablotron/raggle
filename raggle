@@ -1648,9 +1648,11 @@ end
 def edit_feed(id, opts)
   refresh_interval_check opts['refresh'] if !opts['force'] && 
                                              opts.has_key?('refresh')
+  ourl = $config[$SRC][id]['url']
   %w{title url refresh lock_title?}.each { |key|
     $config[$SRC][id][key] = opts[key] if opts.has_key? key
   }
+  invalidate_feed id if $config[$SRC][id]['url'] != ourl
 end
 
 # 

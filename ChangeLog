@@ -288,5 +288,10 @@
   * raggle: Allow a user to invalidate a feed (force a re-fetch)
 	./raggle (-i | --invalidate | --invalidate-feed) <feed id>
 
+* Fri Jun 20 04:39:10 EDT 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Invalidate a feed if it's URL changes in an edit.
+
+
+
 
 

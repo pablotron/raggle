@@ -474,7 +474,7 @@ module Key
 
       # create window and add it to window list
       $wins << win = ListWindow::new({
-        'title'   => 'Display Feed Category',
+        'title'   => $config['msg_cat_title'],
         'key'     => 'cat',
         'coords'  => [20, 3, $config['w'] - 40, h],
         'colors'  => $wins[get_win_id('item')].colors,
@@ -484,7 +484,7 @@ module Key
       win.items << { 'title' => 'All', 'cat' => 'All' }
       cats.each_with_index do |c, i| 
         win.items << { 'title' => c, 'cat' => c }
-        win.active_item = i + 1 if $category == c
+        win.activate(i + 1) if $category == c
       end
 
       # add window to window list and draw item list
@@ -3770,6 +3770,7 @@ $config = {
   'msg_links'             => 'Links:',
   'msg_add_feed'          => 'Enter URL:',
   'msg_find_entry'        => 'Find:',
+  'msg_cat_title'         => 'Display Category',
 
   # menu bar color
   'menu_bar_cols'         => 24,

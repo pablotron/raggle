@@ -250,3 +250,12 @@
   * raggle: added '--unlock-title' command-line option; it does the
     opposite of '--lock-title'
   * raggle: added brief descriptions to methods missing them
+
+* Fri Jun 20 02:29:18 2003, pabs <pabs@pablotron.org>
+  * raggle: Window#clear actually works now
+  * raggle: clear description window when selecting a new feed
+  * raggle: added command-line documentation for --lock-title,
+    --sort-feeds, and --unlock-title
+  * raggle: added '--purge' command-line option: purge extra feeds
+    in feed cache (only necessary if you manually edit your feed list, 
+    since it's called automatically on delete).

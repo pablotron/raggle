@@ -818,12 +818,18 @@ class Window
     win.color_set @colors[@active ? 'a_title' : 'title'], nil
     Ncurses::mvwprintw win, 0, 1, " #{@title} "
     win.color_set @colors['text'], nil
-    Ncurses::wrefresh win
+    Ncurses::wrefresh @win
   end
 
+  #
+  # clear window contents
+  #
   def clear
     @win.color_set @colors['text'], nil
-    @win.clear
+    w, h = dimensions
+    1.upto(h - 2) { |y| Ncurses::mvwprintw @win, y, 1, ' ' * (w - 2)}
+    # Ncurses::mvwprintw @win, 1, 1, 'asdf'
+    @win.refresh
   end
 
   #
@@ -1155,6 +1161,10 @@ def select_feed(id)
   $wins[item_id].active_item = 0
   $wins[item_id].items.clear
 
+  # clear desc window
+  desc_id = get_win_id 'desc'
+  $wins[desc_id].clear
+
   # unused.. remove it?
   fmt = $config['item_date_format']
 
@@ -1357,10 +1367,16 @@ Options:
   -h, --help, --usage           Display this usage screen.
   -l, --list                    List existing feeds (use '--verbose' to 
                                 show URLs as well).
+  --lock-title                  Lock Title attribute of feed (for '--add'
+                                and '--edit').
+  --purge                       Purge deleted feeds from feed cache.
   -r, --refresh                 Refresh attribute of feed (for '--add' and
                                 '--edit').
+  --sort, --sort-feeds          Sort feeds by title (case-insensitive).
   -t, --title                   Title attribute of feed (for '--add' and
                                 '--edit').
+  --unlock-title                Unlock Title attribute of feed (for '--add'
+                                and '--edit').
   -u, --url                     URL attribute of feed (for '--add' and
                                 '--edit').
   --verbose                     Turn on verbose output.
@@ -1378,6 +1394,9 @@ Examples:
 
   # set the title and refresh of an existing feed
   #$0 --edit 10 --title 'hi there!' -r 20
+
+  # set and lock the title of feed 12
+  #$0 -e 12 -t 'short title' --lock-title
   
 About the Author:
 Paul Duncan <pabs@pablotron.org>
@@ -1470,6 +1489,8 @@ def handle_Command_line(opts)
     when '--version'
       puts "Raggle v#$VERSION"
       exit 0
+    when '--purge'
+      ret['mode'] = 'purge'
     when '--sort'
       ret['mode'] = 'sort'
     when '--sort-feeds'
@@ -1544,11 +1565,29 @@ def add_feed(opts)
   }
 end
 
+#
+# purge extra feeds in cache
+#
+def purge_feed_cache
+  urls = {}
+  $config[$SRC].each { |feed| urls[feed['url']] = true }
+  PStore::new($config['feed_cache_path']) { |cache|
+    cache.roots.each { |root| 
+      unless urls[root]
+        $stderr.puts "Purging \"#{root}\"" if $config['verbose']
+        cache[root] = nil
+      end
+    }
+  }
+end
+
 # 
 # delete a feed by id
 #
 def delete_feed(id)
   die "Unknown feed id #{id}." unless $config[$SRC].delete_at(id)
+  # clean up the feed cache here
+  purge_feed_cache
 end
 
 # 
@@ -1688,6 +1727,9 @@ when 'edit'
 when 'sort'
   sort_feeds
   save_feed_list
+  exit 0
+when 'purge'
+  purge_feed_cache
   exit 0
 end
 

@@ -143,6 +143,61 @@ def in_screen?
   ENV['WINDOW'] != nil
 end
 
+#
+# The following bit of magic allows us to Marshal Procs, or get
+# their code from proc.source; use either the proc method or Proc.new
+# with %{} rather than {} for the block.  (This passes a string literal,
+# stored in the Proc.  Be careful creating these in hashes - spaces kill)
+# (this is used to create the help window)
+#
+class Proc
+  attr_accessor :source
+
+  # can't use 1.8-style marshal_{dump,load}
+  # because Procs lack allocators
+  def Proc._load(input)
+    result = eval input
+    result.source = input
+    result
+  end
+
+  def _dump(depth)
+    @source or raise "Proc needs source to dump"
+  end
+
+  def Proc.new(string=nil, &block)
+    Kernel.proc(string, &block)
+  end
+
+  # strips off proc{}
+  alias :old_to_s :to_s
+  def to_s()
+    if @source
+      @source[6..-2].strip
+    else
+      old_to_s
+    end
+  end
+end
+
+module Kernel
+  alias :old_proc :proc
+
+  def Kernel.proc(string=nil, &block)
+    raise "string or block, not both" if string and block
+    if string
+      Proc._load("proc {#{string}}")
+    else
+      old_proc(&block)
+    end
+  end
+
+  def proc(string=nil, &block)
+    Kernel.proc(string, &block)
+  end
+end
+
+
 ##########################
 # String utility methods #
 ##########################
@@ -216,24 +271,15 @@ class String
     str.gsub!(/&(.*?);/n) {
       m = $1.dup
       case m
-      when /^amp$/ni
-        '&'
-      when /^nbsp$/ni
-        ' '
-      when /^quot$/ni
-        '"'
-      when /^lt$/ni
-        '<'
-      when /^gt$/ni
-        '>'
-      when /^copy/
-        '(c)'
-      when /^trade/
-        '(tm)'
-      when /^#8212$/n
-        ","
-      when /^#8217$/n
-        "'"
+      when /^amp$/ni:   '&'
+      when /^nbsp$/ni:  ' '
+      when /^quot$/ni:  '"'
+      when /^lt$/ni:    '<'
+      when /^gt$/ni:    '>'
+      when /^copy/:     '(c)'
+      when /^trade/:    '(tm)'
+      when /^#8212$/n:  ","
+      when /^#8217$/n:  "'"
       when /^#(\d+)$/n
         r = $1.to_i # Integer() interprets leading zeros as octal
         r.between?(0, 255) ? r.chr : $config['unicode_munge_str']
@@ -1452,7 +1498,7 @@ ENDUSAGE
         ['--delete', '-d',     '--delete-feed',     GetoptLong::REQUIRED_ARGUMENT],
         ['--invalidate', '-i', '--invalidate-feed', GetoptLong::REQUIRED_ARGUMENT],
         ['--config', '-c',     '--config-file',     GetoptLong::REQUIRED_ARGUMENT],
-        ['--force',                                 GetoptLong::NO_ARGUMENT],		 
+        ['--force',                                 GetoptLong::NO_ARGUMENT], 
         ['--list', '-l',                            GetoptLong::NO_ARGUMENT],
         ['--title', '-t',                           GetoptLong::REQUIRED_ARGUMENT],
         ['--url', '-u',                             GetoptLong::REQUIRED_ARGUMENT],
@@ -1491,48 +1537,34 @@ ENDUSAGE
             when '--invalidate'
               ret['mode'] = 'invalidate'
               ret['id'] = arg.to_i
-            when '--config'
-              $config['config_path'] = arg
-            when '--force'
-              ret['force'] = true
-            when '--list'
-              ret['mode'] = 'list'
-            when '--title'
-              ret['title'] = arg
-            when '--url'
-              ret['url'] = arg
-            when '--refresh'
-              ret['refresh'] = arg.to_i
+            when '--config':  $config['config_path'] = arg
+            when '--force':   ret['force'] = true
+            when '--list':    ret['mode'] = 'list'
+            when '--title':   ret['title'] = arg
+            when '--url':     ret['url'] = arg
+            when '--refresh': ret['refresh'] = arg.to_i
             when '--version'
               puts "Raggle v#$VERSION"
               exit 0
-            when '--purge'
-              ret['mode'] = 'purge'
+            when '--purge':   ret['mode'] = 'purge'
             when '--sort', '--sort-feeds'
               ret['mode'] = 'sort'
-            when '--lock-title'
-              ret['lock_title?'] = true
-            when '--unlock-title'
-              ret['lock_title?'] = false
-            when '--save-items'
-              ret['save_items?'] = true
+            when '--lock-title':    ret['lock_title?'] = true
+            when '--unlock-title':  ret['lock_title?'] = false
+            when '--save-items':    ret['save_items?'] = true
             when '--max-items'
               ret['max_items'] = arg.to_i
               ret['save_items?'] = true if ret['max_items'] > 0
-            when '--unsave-items'
-              ret['save_items?'] = false
-            when '--verbose'
-              $config['verbose'] = true
+            when '--unsave-items':  ret['save_items?'] = false
+            when '--verbose':       $config['verbose'] = true
             when '--import-opml'
               ret['mode'] = 'import_opml'
               ret['opml_file'] = arg
             when '--export-opml'
               ret['mode'] = 'export_opml'
               ret['opml_file'] = arg
-            when '--diag'
-              $config['diag'] = true
-            when '--ascii'
-              ret['ascii'] = true
+            when '--diag':          $config['diag'] = true
+            when '--ascii':         ret['ascii'] = true
             when '--server'
               if $HAVE_LIB['webrick']
                 $config['run_http_server'] = true
@@ -1707,6 +1739,17 @@ ENDUSAGE
           NcursesInterface::set_active_win(win_id)
         end
 
+        #
+        # Dispatch closing of extraneous windows
+        #
+        def Key::close_window
+          case $a_win
+          when NcursesInterface::get_win_id('find'): $wins[$a_win].close('find')
+          when NcursesInterface::get_win_id('cat'): $wins[$a_win].close('cat')
+          when NcursesInterface::get_win_id('keys'): $wins[$a_win].close('keys')
+          end
+        end
+
         def Key::select_item
           $wins[$a_win].select_win_item
         end
@@ -1838,16 +1881,58 @@ ENDUSAGE
               win.activate(i + 1) if $category == c.title
             end
 
-            # add window to window list and draw item list
+            # add window to window list, draw and activate
             win.draw_items
+            NcursesInterface::set_active_win(NcursesInterface::get_win_id('cat'))
+          else
+            if id == $a_win # window open; toggle to closed
+              NcursesInterface::Key::close_window
+            else # window open but not selected; select it
+              NcursesInterface::set_active_win(id)
+            end
           end
-
-          # activate category window
-          NcursesInterface::set_active_win(NcursesInterface::get_win_id('cat'))
         end
 
         def Key::gui_find_feed
           NcursesInterface::find_feeds if $HAVE_LIB['xmlrpc']
+        end
+
+        #
+        # Displays a window showing current key bindings
+        #
+        def Key::show_key_bindings
+          id = NcursesInterface::get_win_id('keys')
+
+          if id == -1     # new window; will activate it either way
+            keys = NcursesInterface::get_key_bindings
+
+            # determine window width/height
+            w, h = $config['w'] - 40, $config['h'] - 5
+            h = keys.length + 3 if h > keys.length + 3
+
+            # create window and add it to window list
+            $wins << win = NcursesInterface::ListWindow::new({
+              'title'   => $config['msg_keys_title'],
+              'key'     => 'keys',
+              'coords'  => [20, 3, w, h],
+              'colors'  => $wins[NcursesInterface::get_win_id('item')].colors,
+            })
+
+            # build item list and draw items
+            keys.each { |key, value|
+              title = ' ' + key + ' '*(w - key.length - value.length - 4) + value
+              #title = key + " " + value
+              win.items <<  { 'title' => title, 'key' => key }
+            }
+            win.draw_items
+            NcursesInterface::set_active_win(NcursesInterface::get_win_id('keys'))
+          else
+            if id == $a_win # window open; toggle to closed
+              NcursesInterface::Key::close_window
+            else # window open but not selected; select it
+              NcursesInterface::set_active_win(id)
+            end
+          end
         end
       end
 
@@ -1968,7 +2053,20 @@ ENDUSAGE
           y 
         end
 
+        #
+        # Close and delete an Ncurses window
+        #
+        def close(win_name)
+          old_wins = $wins.dup
+          @win.del if $a_win == NcursesInterface::get_win_id(win_name)
+          $wins.delete_if { |i| i.key == win_name }
+          NcursesInterface::set_active_win($prev_win) unless old_wins == $wins
+          $wins.each { |i| i.refresh }
+        end
+
+        #
         # get window width and height
+        #
         def dimensions
           ha = []; wa = []
           Ncurses::getmaxyx @win, ha, wa
@@ -1999,12 +2097,9 @@ ENDUSAGE
               # get browser command
               cmd = $config['browser_cmd'].map do |cmd_part|
               case cmd_part
-                when /%s/
-                  cmd_part % @items[@active_item]['url'].escape
-                when '${browser}'
-                  $config['browser']
-                else
-                  cmd_part
+                when /%s/:  cmd_part % @items[@active_item]['url'].escape
+                when '${browser}':  $config['browser']
+                else cmd_part
                 end
               end
 
@@ -2425,6 +2520,7 @@ ENDUSAGE
           $wins[$a_win].refresh
         end
 
+        $prev_win = $a_win
         $a_win = a_win
 
         $wins[$a_win].active = true
@@ -2598,10 +2694,8 @@ ENDUSAGE
           item_content = item_content.gsub(/href\s*=\s*["']([^'"]+?)['"]/m) {
             m = $1.dup
             new_url = case m
-              when (/^(\w+):\/\//)
-                m
-              else
-                [host_url, m].join('/')
+              when (/^(\w+):\/\//): m
+              else [host_url, m].join('/')
             end
             "href='#{new_url}'"
           }
@@ -2609,10 +2703,8 @@ ENDUSAGE
           # fix host-relative item URL
           item_url = feed['items'][id]['url'].dup
           item_url = case item_url
-            when (/(\w+):\/\//)
-              item_url
-            else
-              [host_url, item_url].join('/')
+            when (/(\w+):\/\//):  item_url
+            else [host_url, item_url].join('/')
           end
         end
         
@@ -2818,6 +2910,10 @@ ENDUSAGE
         if str && str.length > 0
           th = Thread.new do
             results = Engine::find_feeds(str)
+            if results.length == 0
+              $new_status = $config['msg_find_nomatches']
+              return 1
+            end
             id = NcursesInterface::get_win_id('find')
       
             # determine window height
@@ -2825,22 +2921,18 @@ ENDUSAGE
             h = $config['h'] - 5 
             h = results.size + 2 if h > results.size + 2
       
+            new_win = {
+              'title' => $config['msg_find_title'] % [ str, results.size ],
+              'key'     => 'find',
+              'coords'  => [5, 3, w, h],
+              'colors'  => $wins[NcursesInterface::get_win_id('item')].colors,
+            }
             if id == -1
               # create window and add it to window list
-              $wins << win = NcursesInterface::ListWindow::new({
-                'title'   => $config['msg_find_title'] % [ str, results.size ],
-                'key'     => 'find',
-                'coords'  => [5, 3, w, h],
-                'colors'  => $wins[NcursesInterface::get_win_id('item')].colors,
-              })
+              $wins << win = NcursesInterface::ListWindow::new(new_win)
             else
               # use existing window
-              $wins[id] = win = NcursesInterface::ListWindow::new({
-                'title'   => $config['msg_find_title'] % [ str, results.size ],
-                'key'     => 'find',
-                'coords'  => [5, 3, w, h],
-                'colors'  => $wins[NcursesInterface::get_win_id('item')].colors,
-              })
+              $wins[id] = win = NcursesInterface::ListWindow::new(new_win)
             end
       
             # build item list
@@ -2866,9 +2958,6 @@ ENDUSAGE
         $new_status = $status
         $status = msg
         NcursesInterface::set_status($new_status)
-      
-        # force update now
-        $feed_thread.run if $config['update_after_add']
       end
       
       #
@@ -2926,6 +3015,46 @@ ENDUSAGE
           $status = msg
           NcursesInterface::set_status($new_status)
         end
+      end
+
+      #
+      # Formats info about key bindings into a hash
+      #
+      def NcursesInterface::get_key_bindings
+        # Create our integer <=> name array, first Ncurses keys
+        key_names = Ncurses::constants.grep(/^KEY/).inject([]) { |ret, name|
+          ret[Ncurses::const_get(name)] = name
+          ret
+        }
+        # then standard ASCII keys
+        0.upto(255) { |i| key_names[i] = i.chr }
+
+        # create keys hash, stores key names => method called
+        keys = {}
+        $config['keys'].each { |key, value| keys[key_names[key]] = value }
+        # make the key names useful
+        keys.each_key { |key|
+          old_key = key
+          key = key.gsub(/^KEY_/, '')
+          case key
+          when 'DC':        key = 'Delete'
+          when ' ':         key = 'Space'
+          when 'NPAGE':     key = 'Page Down'
+          when 'PPAGE':     key = 'Page Up'
+          when '':        key = 'Control-L'
+          when '	':  key = 'Tab'
+          end
+          unless key == old_key
+            keys[key] = keys[old_key]
+            keys.delete(old_key) 
+          end
+        }
+        # strip off extraneous method info and return hash
+        keys.each { |key, value|
+          keys[key] = value.to_s.sub(/^\|.*\|\s?/, '').sub(/.*::/, '').gsub(/_/, ' ').capitalize
+        }
+        # Note: I can't get \n to display properly in the help window, so:
+        keys.delete_if { |key, value| value == 'Select item' and key != 'Space' }
       end
 
       def NcursesInterface::resize_term
@@ -3023,12 +3152,9 @@ ENDUSAGE
         $wins = []
         $config['theme']['window_order'].each { |i|
           case i
-            when /feed/
-              cl = NcursesInterface::ListWindow
-            when /item/
-              cl = NcursesInterface::ListWindow
-            when /desc/
-              cl = NcursesInterface::TextWindow
+            when /feed/:  cl = NcursesInterface::ListWindow
+            when /item/:  cl = NcursesInterface::ListWindow
+            when /desc/:  cl = NcursesInterface::TextWindow
           else
             raise "Unknown window #{i}"
           end
@@ -4441,6 +4567,8 @@ $config = {
   'msg_cat_title'         => 'Display Category',
   'msg_find_feed'         => 'Find Feeds:',
   'msg_find_title'        => 'Search Results for "%s" - %s matching feeds',
+  'msg_find_nomatches'    => 'No results found',
+  'msg_keys_title'        => 'Current key bindings',
   'msg_added_existing'    => 'Warning: added existing feed',
   'msg_save_done'         => 'Configuration saved',
 
@@ -4551,76 +4679,79 @@ $config = {
 
   # key bindings
   'keys'            => ($HAVE_LIB['ncurses'] ? {
-    Ncurses::KEY_RIGHT  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::next_window },
-    ?\t                 => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::next_window },
+    Ncurses::KEY_RIGHT  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::next_window} ),
+    ?\t                 => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::next_window} ),
 
-    Ncurses::KEY_LEFT   => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::prev_window },
-    ?\\                 => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::view_source },
+    Ncurses::KEY_LEFT   => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::prev_window} ),
+    ?\\                 => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::view_source} ),
 
-    Ncurses::KEY_F12    => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::quit },
-    ?q                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::quit },
+    Ncurses::KEY_F12    => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::quit} ),
+    ?q                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::quit} ),
 
-    Ncurses::KEY_UP     => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_up },
-    Ncurses::KEY_DOWN   => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_down },
-    Ncurses::KEY_HOME   => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_top },
-    ?0                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_top },
-    Ncurses::KEY_END    => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_bottom },
-    ?$                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_bottom },
-    Ncurses::KEY_PPAGE  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_up_page },
-    Ncurses::KEY_NPAGE  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_down_page },
+    Ncurses::KEY_UP     => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_up} ),
+    Ncurses::KEY_DOWN   => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_down} ),
+    Ncurses::KEY_HOME   => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_top} ),
+    ?0                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_top} ),
+    Ncurses::KEY_END    => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_bottom} ),
+    ?$                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_bottom} ),
+    Ncurses::KEY_PPAGE  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_up_page} ),
+    Ncurses::KEY_NPAGE  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_down_page} ),
 
     # vi keybindings
-    ?h                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::prev_window },
-    ?j                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_down },
-    ?k                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_up },
-    ?l                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::next_window },
-    ?g                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_top },
-    ?G                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_bottom },
+    ?h                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::prev_window} ),
+    ?j                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_down} ),
+    ?k                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_up} ),
+    ?l                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::next_window} ),
+    ?g                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_top} ),
+    ?G                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_bottom} ),
 
-    ?\n                 => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::select_item },
-    ?\                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::select_item },
+    ?\n                 => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::select_item} ),
+    ?\                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::select_item} ),
 
-    ?u                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::move_item_up },
-    ?d                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::move_item_down },
+    ?u                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::move_item_up} ),
+    ?d                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::move_item_down} ),
 
-    ?I                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::invalidate_feed },
+    ?I                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::invalidate_feed} ),
 
-    ?/                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::find_entry(win) },
+    ?/                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::find_entry(win)} ),
 
-    Ncurses::KEY_DC     => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::delete },
+    Ncurses::KEY_DC     => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::delete} ),
     ##
     # XXX: Meta can be dropped after spawned browser exits
     # So A, B, C or D should *not* be bound until this is fixed
     # -- richlowe 2003-06-22 (actually --pabs 2003-06-21)
-    # ?D                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::delete },
+    # ?D                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::delete} ),
 
 
     # Literal control L is horrid -- richlowe 2003-06-26
-    ?\                => proc { |win, key| Raggle::Interfaces::NcursesInterface::resize_term },
-    Ncurses::KEY_RESIZE => proc { |win, key| Raggle::Interfaces::NcursesInterface::resize_term },
+    ?\                => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::resize_term} ),
+    Ncurses::KEY_RESIZE => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::resize_term} ),
 
-    ?s                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::sort_feeds },
+    ?s                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::sort_feeds} ),
 
-    ?o                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::open_link },
+    ?o                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::open_link} ),
 
-    ?m                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::mark_items_as_read },
-    ?M                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::mark_items_as_unread },
-    ?N                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::mark_current_as_unread },
+    ?m                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::mark_items_as_read} ),
+    ?M                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::mark_items_as_unread} ),
+    ?N                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::mark_current_as_unread} ),
 
-    ?!                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::drop_to_shell },
+    ?!                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::drop_to_shell} ),
 
-    ?p                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::select_prev_unread },
-    ?n                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::select_next_unread },
+    ?p                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::select_prev_unread} ),
+    ?n                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::select_next_unread} ),
 
-    ?U                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::manual_update },
-    ?S                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::manual_save },
-    ?a                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::gui_add_feed },
+    ?U                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::manual_update} ),
+    ?S                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::manual_save} ),
+    ?a                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::gui_add_feed} ),
 
     # i know this is using 'c'.. we'll see if this fucks us (see note
     # about 'C' above)
     # -- pabs (Sat Mar 20 21:10:55 2004)
-    ?c                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::gui_cat_list },
-    ?f                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::gui_find_feed },
+    ?c                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::gui_cat_list} ),
+    ?f                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::gui_find_feed} ),
+    ?C                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::close_window} ),
+
+    ??                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::show_key_bindings} ),
   } : {}),
 
   # color palette (referenced by themes)

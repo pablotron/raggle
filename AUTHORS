@@ -63,4 +63,5 @@ Thomas Kirchner <redshift@halffull.org>
 * feed sorting fixes
 * periodic and manual feeds/config saving
 * duplicate feed checking
+* help window
 * miscellaneous cleanup

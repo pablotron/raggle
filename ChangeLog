@@ -2019,23 +2019,23 @@
     Raggle::Interfaces::NcursesInterfaces::init
 
 * Thu Aug 12 17:40:35 2004, pabs <pabs@pablotron.org>
-	* TODO: added a couple of ideas I thought of
+  * TODO: added a couple of ideas I thought of
 
 * Mon Aug 23 15:02:00 2004, pabs <pabs@pablotron.org>
-	* raggle: fix null deref in populate_feed_win
+  * raggle: fix null deref in populate_feed_win
 
 * Tue Aug 24 14:56:44 2004, pabs <pabs@pablotron.org>
-	* raggle: PLATFORM => RUBY_PLATFORM, VERSION => RUBY_VERSION (reported
-		by Robert McGovern <robertm@spellmanhv.co.uk>.  Apparently that
-		causes Cygwin to have a fit.
+  * raggle: PLATFORM => RUBY_PLATFORM, VERSION => RUBY_VERSION (reported
+    by Robert McGovern <robertm@spellmanhv.co.uk>.  Apparently that
+    causes Cygwin to have a fit.
 
 * Tue Aug 24 23:26:01 2004, pabs <pabs@pablotron.org>
   * raggle: minor TODO update
 
 * Thu Aug 26 15:54:53 2004, pabs <pabs@pablotron.org>
   * raggle: apply patch from Michael Ablassmeier <abi@grinser.de> that
-		fixes import of Amphetadesk OPML files (closes
-		http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=266046)
+    fixes import of Amphetadesk OPML files (closes
+    http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=266046)
 
 * Tue Sep 21 02:44:40 2004, pabs <pabs@pablotron.org>
   * TODO: add note about delicious integration
@@ -2137,3 +2137,16 @@
     the beginning so the "Raggle Help" feed would show up at the top
     the first time people run Raggle, and through sorts.  If you have
     a better solution, I'm all ears.
+
+* Tue Dec 14 21:44:01 2004, redshift <redshift@halffull.org>
+  * raggle: added ability to marshal procs, used for help window
+  * raggle: added closing of Ncurses windows, used for new window features
+  * raggle: added toggling of category/find/help windows - press same key to
+    open as close
+  * raggle: added help window, default key ?, that displays current
+    keybindings and their functions
+  * raggle: updated bound key procs to new style for help window
+  * raggle: added key to close cat/find/help windows, default C, that causes
+    no side effects (like adding/deleting feeds, etc.)
+  * raggle: don't display find results if zero - fixes some window issues
+  * raggle: minor code cleanup

@@ -11,3 +11,4 @@ Raggle TODO
 [x] theme shouldn't save hard-coded window coordinates
 [ ] scrolling in Description window
 [ ] fix blocking for feed grabbing (grab feeds in parallel?)
+[ ] Convert manpage (raggle.1) to -ms

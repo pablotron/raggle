@@ -857,7 +857,7 @@ class TextWindow < Window
     draw("Link: ", 1, y)
     # @win.color_set @colors['url'], nil
     draw(item['url'], 7, y, 'url', true, false)
-    
+
     # don't draw the date if it isn't set (silly RSS)
     if item['date'] && item['date'] != ''
       y += 1
@@ -873,9 +873,9 @@ class TextWindow < Window
       # draw date string
       # @win.color_set @colors['date'], nil
       draw(d_str, 7, y, 'date', true, false)
-      y += 2
     end
     if item['title']
+      y += 2
       str = item['title'].strip_tags if $config['strip_html_tags']
       str = str.unescape_html if $config['unescape_html']
       # Offset + 1, so we scroll on the *first* press

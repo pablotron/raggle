@@ -633,5 +633,10 @@
   * raggle: The clearrange clearing was clearing a line too high, with
             humourous results, fix.
 
+* Tue Jun 24 12:00:58 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Fix subtley missplaced math in TextWindow#draw_items, drawing
+            happens as you would expect now.
+
+
 
 

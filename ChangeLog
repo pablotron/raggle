@@ -1639,3 +1639,6 @@
     (this you can have a config with only one or two options instead
     and it'll fall back to defaults for everything else)
 
+* Thu Sep 25 20:57:07 2003, pabs <pabs@pablotron.org>
+  * raggle: remove commented GC thread, we're not going to use
+    it

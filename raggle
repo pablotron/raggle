@@ -3339,16 +3339,6 @@ def main
     }
   end
 
-# 
-#   # explicit GC thread
-#   gc_thread = Thread.new { 
-#     loop {
-#       GC::start
-#       sleep $config['gc_sleep_interval'] || 600
-#     }
-#   }
-# 
-
   # set thread priorities
   Thread::main.priority = $config['thread_priority_main'] || 5
   $feed_thread.priority = $config['thread_priority_feed'] || 0

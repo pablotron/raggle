@@ -1002,7 +1002,7 @@ class FeedList
       'content'    => $config['feeds'][id]['desc'],
       'date'       => $config['feeds'][id]['date'],
       'url'        => $config['feeds'][id]['url'],
-      'date'       => $config['feeds'][id]['updated'].to_s,
+      'date'       => Time.at($config['feeds'][id]['updated']).strftime('%c'),
       'read?'      => false
     }
 
@@ -2272,9 +2272,9 @@ end
 #
 def expand_config
   $config.each { |key, val| 
-    next unless val.class == String && val =~ /\${(.+?)}/
+    next unless val.class == String && val =~ /\$\{(.+?)\}/
     orig_val = val.dup
-    val.gsub!(/\${(.+?)}/, $config[$1])
+    val.gsub!(/\$\{(.+?)\}/, $config[$1])
     # puts "\"#{orig_val}\" expands to \"#{val}\""
   }
 end
@@ -2311,7 +2311,7 @@ def select_feed(id)
     if item['date'] && item['date'].size > 0
       d_str = item['date']
       if item['date'] =~ /^\d+$/ && item['date'].to_i > 0
-        d_str = Time.at(item['date'].to_i).strftime(fmt)
+        d_str = Time.at(d_str.to_i).strftime(fmt)
       end
       title = item['title'] ? "#{item['title'].strip} (#{d_str})" : d_str
     elsif item['title'] !~ /^\s*$/ 
@@ -3411,9 +3411,14 @@ def main
 
             # wait for outstanding feed grabbing threads to finish
             threads.each { |th| 
-              if th && th.status
-                $log.puts "#{Time.now}: Waiting on \"#{th['feed']['title']}\""
-                th.join($config['thread_reap_timeout'] || 2)
+              begin
+                if th && th.status && th.alive?
+                  $log.puts "#{Time.now}: Waiting on \"#{th['feed']['title']}\""
+                  th.join($config['thread_reap_timeout'] || 2)
+                end
+              rescue Exception
+                $log.puts "Feed Thread Reap Error: \"#$!\"."
+                next
               end
             }
           rescue
@@ -3430,6 +3435,11 @@ def main
           log.puts "#{Time.now}: Done checking."
           Thread::stop
         else
+          Thread::list.each { |th|
+            if th && th.status && th.alive? && th['feed']
+              $log.puts "DEBUG: thread list: #{th['feed']['title']}"
+            end
+          }
           log.puts "#{Time.now}: Done checking.  Sleeping for #{interval}s."
           sleep interval
         end
@@ -3765,7 +3775,7 @@ $config = {
   # Force raggle to accept shell metacharacters in urls.
   'force_url_meta'        => false,
   # Regular expression matching shell metacharacters to not allow in URLs
-  'shell_meta_regex'       => /([\`\$]|\#{)/, # the #{ is to stop ruby
+  'shell_meta_regex'       => /([\`\$]|\#\{)/, # the #{ is to stop ruby
                                               # expansion.
                                               # Is that necessary?
 

@@ -1735,3 +1735,9 @@
   * raggle: added $config['thread_priority_grab']
   * raggle: added $config['max_threads']
   * doc/pauls_feeds.opml.gz: updated to the latest and greatest
+
+* Thu Feb 19 21:11:51 2004, pabs <pabs@pablotron.org>
+  * raggle: fixed reap stuff.  this has been running for over a 
+    week now w/o crashing. so i _think_ it's stable now
+  * raggle: fix regex warnings (reported by Brian Almeida)
+  * raggle: fix date description showing as timestamp for feeds

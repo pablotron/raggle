@@ -284,7 +284,7 @@ module Raggle
     #
     # find a proxy in windows by checking the registry
     #
-    def find_win32_proxy
+    def Proxy::find_win32_proxy
       ret = nil
 
       Win32::Registry::open(
@@ -317,11 +317,11 @@ module Raggle
     # get the proxy host and port from $config['proxy'], or
     # ENV['http_proxy'] / ENV['no_proxy'] if $config['proxy'] isn't set
     #
-    def find_proxy(host)
+    def Proxy::find_proxy(host)
       ret = nil
 
       # if we're in windows, check the registry as well
-      ret = find_win32_proxy if RUBY_PLATFORM =~ /win32/
+      ret = Proxy::find_win32_proxy if RUBY_PLATFORM =~ /win32/
 
       # get proxy settings from $config, and if they're not there, then
       # check ENV
@@ -340,686 +340,704 @@ module Raggle
       ret
     end
   end
-end
 
-module Key
-  def Key::scroll_up
-    $wins[$a_win].scroll_up
-  end
-
-  def Key::scroll_down
-    $wins[$a_win].scroll_down
-  end
-
-  def Key::scroll_top
-    $wins[$a_win].scroll_top
-  end
-
-  def Key::scroll_bottom
-    $wins[$a_win].scroll_bottom
-  end
-
-  def Key::scroll_up_page
-    $wins[$a_win].scroll_up_page
-  end
-
-  def Key::scroll_down_page
-    $wins[$a_win].scroll_down_page
-  end
-
-  def Key::quit
-    $done = true
-  end
-
-  def Key::gui_add_feed
-    ncurses_add_feed
-  end
-
-  def Key::next_window
-    set_active_win(($a_win + 1) % $wins.size)
-  end
-
-  def Key::prev_window
-    set_active_win((($a_win - 1 < 0) ? $wins.size : $a_win) - 1)
-  end
-
-  def Key::select_item
-    $wins[$a_win].select_win_item
-  end
-
-  def Key::move_item_up
-    win = $wins[get_win_id('feed')]
-    $a_feed = $config['feeds'].move_up(win.active_item)
-    win.move_item_up
-  end
-
-  def Key::move_item_down
-    win = $wins[get_win_id('feed')]
-    $a_feed = $config['feeds'].move_down(win.active_item)
-    win.move_item_down
-  end
-
-  def Key::delete
-    if $config['feeds'].size > 0
-      win = $wins[get_win_id('feed')]
-      $config['feeds'].delete(win.active_item)
-      win.delete_item
-      win.active_item = (win.active_item > 0) ? win.active_item - 1 : 0
-      win.draw_items
-      win.clearrange(win.items.size + 1, win.dimensions[1] - 2)
+  module Key
+    def Key::scroll_up
+      $wins[$a_win].scroll_up
     end
-  end
 
-  def Key::invalidate_feed
-    id = $wins[get_win_id('feed')].active_item
-    name = $config['feeds'].get(id)['title']
-    $config['feeds'].invalidate(id)
-    set_status " Forcing update for \"#{name}\""
-  end
+    def Key::scroll_down
+      $wins[$a_win].scroll_down
+    end
 
-  def Key::sort_feeds
-    win = $wins[get_win_id('feed')]
+    def Key::scroll_top
+      $wins[$a_win].scroll_top
+    end
 
-    # get old active window
-    a_win = $a_win
+    def Key::scroll_bottom
+      $wins[$a_win].scroll_bottom
+    end
 
-    # sort list, repopulate window
-    $config['feeds'].sort
-    populate_feed_win
+    def Key::scroll_up_page
+      $wins[$a_win].scroll_up_page
+    end
+
+    def Key::scroll_down_page
+      $wins[$a_win].scroll_down_page
+    end
+
+    def Key::quit
+      $done = true
+    end
+
+    def Key::gui_add_feed
+      ncurses_add_feed
+    end
+
+    def Key::next_window
+      set_active_win(($a_win + 1) % $wins.size)
+    end
+
+    def Key::prev_window
+      set_active_win((($a_win - 1 < 0) ? $wins.size : $a_win) - 1)
+    end
+
+    def Key::select_item
+      $wins[$a_win].select_win_item
+    end
+
+    def Key::move_item_up
+      win = $wins[get_win_id('feed')]
+      $a_feed = $config['feeds'].move_up(win.active_item)
+      win.move_item_up
+    end
+
+    def Key::move_item_down
+      win = $wins[get_win_id('feed')]
+      $a_feed = $config['feeds'].move_down(win.active_item)
+      win.move_item_down
+    end
+
+    def Key::delete
+      if $config['feeds'].size > 0
+        win = $wins[get_win_id('feed')]
+        $config['feeds'].delete(win.active_item)
+        win.delete_item
+        win.active_item = (win.active_item > 0) ? win.active_item - 1 : 0
+        win.draw_items
+        win.clearrange(win.items.size + 1, win.dimensions[1] - 2)
+      end
+    end
+
+    def Key::invalidate_feed
+      id = $wins[get_win_id('feed')].active_item
+      name = $config['feeds'].get(id)['title']
+      $config['feeds'].invalidate(id)
+      set_status " Forcing update for \"#{name}\""
+    end
+
+    def Key::sort_feeds
+      win = $wins[get_win_id('feed')]
+
+      # get old active window
+      a_win = $a_win
+
+      # sort list, repopulate window
+      $config['feeds'].sort
+      populate_feed_win
+      
+      # select first feed, redraw feed window
+      win.active_item = 0
+      win.draw_items
+      win.select_win_item
+
+      # reselect previous window
+      set_active_win a_win
+    end
     
-    # select first feed, redraw feed window
-    win.active_item = 0
-    win.draw_items
-    win.select_win_item
+    def Key::open_link
+      win = $wins[get_win_id('desc')]
+      win.select_win_item
+    end
 
-    # reselect previous window
-    set_active_win a_win
-  end
-  
-  def Key::open_link
-    win = $wins[get_win_id('desc')]
-    win.select_win_item
-  end
+    def Key::manual_update
+      $feed_thread.run
+    end
 
-  def Key::manual_update
-    $feed_thread.run
-  end
+    def Key::find_entry(win)
+      ncurses_find_entry(win)
+    end
 
-  def Key::find_entry(win)
-    ncurses_find_entry(win)
-  end
+    #
+    # toggle view (html) source mode
+    #
+    def Key::view_source
+      # toggle global
+      $view_source = !$view_source
+      win = $wins[$a_win]
 
-  #
-  # toggle view (html) source mode
-  #
-  def Key::view_source
-    # toggle global
-    $view_source = !$view_source
-    win = $wins[$a_win]
+      if $a_win == get_win_id('desc')
+        if win.items 
+          # clear formatted content to force refresh
+          # (evil, but it works ;D)
+          win.items[0]['fmt_content'] = nil
+          win.draw_items
+        end
+      else
+        # if we're not in the desc window, just reselect the current
+        # item to force a refresh
+        win.select_win_item 
+      end
+    end
 
-    if $a_win == get_win_id('desc')
-      if win.items 
-        # clear formatted content to force refresh
-        # (evil, but it works ;D)
-        win.items[0]['fmt_content'] = nil
+    def Key::build_cat_title(cat, count, width)
+      ret, count_str = "#{cat}  ", "(#{count})"
+      ret << ' ' * (width - ret.size - count_str.size) << count_str
+    end
+
+    def Key::gui_cat_list
+      id = get_win_id('cat')
+      if id == -1
+        cats = $config['feeds'].categories
+
+        # determine window width/height
+        w = $config['w'] - 40
+        h = $config['h'] - 5 
+        h = cats.size + 3 if h > cats.size + 3
+
+        # create window and add it to window list
+        $wins << win = ListWindow::new({
+          'title'   => $config['msg_cat_title'],
+          'key'     => 'cat',
+          'coords'  => [20, 3, w, h],
+          'colors'  => $wins[get_win_id('item')].colors,
+        })
+
+        # build item list
+        win.items << { 
+          'title' => build_cat_title('All', $config['feeds'].size, w - 3),
+          'cat'   => 'All'
+        }
+
+        # iterate and append
+        cats.each_with_index do |c, i| 
+          win.items << {
+            'title' => build_cat_title(c.title, c.count, w - 3), 
+            'cat'   => c.title 
+          }
+          win.activate(i + 1) if $category == c.title
+        end
+
+        # add window to window list and draw item list
         win.draw_items
       end
-    else
-      # if we're not in the desc window, just reselect the current
-      # item to force a refresh
-      win.select_win_item 
+
+      # activate category window
+      set_active_win(get_win_id('cat'))
+    end
+
+    def Key::gui_find_feed
+      ncurses_find_feeds if $HAVE_LIB['xmlrpc']
     end
   end
 
-  def Key::build_cat_title(cat, count, width)
-    ret, count_str = "#{cat}  ", "(#{count})"
-    ret << ' ' * (width - ret.size - count_str.size) << count_str
-  end
+  module HTML
+    # Tag set defines all tags that the renderer
+    # can handle
+    #
+    # Each tag can modify the context by
+    # defining +:context+ key (see pre).
+    #
+    # Tag's can also have actions which
+    # will be executed sequentially when
+    # the tag occurs in the token stream.
+    # Actions must be defined to occurences
+    # of start tags and end tags separately.
+    class TagSet
+      class Tag
+        def initialize
+          @context = nil
+          @start_actions = []
+          @end_actions = []
+        end
 
-  def Key::gui_cat_list
-    id = get_win_id('cat')
-    if id == -1
-      cats = $config['feeds'].categories
+        attr_accessor :context
+        attr_reader :start_actions
+        attr_reader :end_actions
 
-      # determine window width/height
-      w = $config['w'] - 40
-      h = $config['h'] - 5 
-      h = cats.size + 3 if h > cats.size + 3
+        def start_actions=(*actions)
+          @start_actions = actions.flatten
+        end
 
-      # create window and add it to window list
-      $wins << win = ListWindow::new({
-        'title'   => $config['msg_cat_title'],
-        'key'     => 'cat',
-        'coords'  => [20, 3, w, h],
-        'colors'  => $wins[get_win_id('item')].colors,
-      })
-
-      # build item list
-      win.items << { 
-        'title' => build_cat_title('All', $config['feeds'].size, w - 3),
-        'cat'   => 'All'
-      }
-
-      # iterate and append
-      cats.each_with_index do |c, i| 
-        win.items << {
-          'title' => build_cat_title(c.title, c.count, w - 3), 
-          'cat'   => c.title 
-        }
-        win.activate(i + 1) if $category == c.title
+        def end_actions=(*actions)
+          @end_actions = actions.flatten
+        end
       end
-
-      # add window to window list and draw item list
-      win.draw_items
-    end
-
-    # activate category window
-    set_active_win(get_win_id('cat'))
-  end
-
-  def Key::gui_find_feed
-    ncurses_find_feeds if $HAVE_LIB['xmlrpc']
-  end
-end
-
-module HTML
-  # Tag set defines all tags that the renderer
-  # can handle
-  #
-  # Each tag can modify the context by
-  # defining +:context+ key (see pre).
-  #
-  # Tag's can also have actions which
-  # will be executed sequentially when
-  # the tag occurs in the token stream.
-  # Actions must be defined to occurences
-  # of start tags and end tags separately.
-  class TagSet
-    class Tag
+      
       def initialize
-        @context = nil
-        @start_actions = []
-        @end_actions = []
+        @tags = Hash.new
+        yield self
       end
 
-      attr_accessor :context
-      attr_reader :start_actions
-      attr_reader :end_actions
-
-      def start_actions=(*actions)
-        @start_actions = actions.flatten
-      end
-
-      def end_actions=(*actions)
-        @end_actions = actions.flatten
-      end
-    end
-    
-    def initialize
-      @tags = Hash.new
-      yield self
-    end
-
-    def define_tag(*names)
-      yield tag_spec = Tag.new
-      names.each do |name|
-        yield @tags[name] = tag_spec
-      end
-    end
-
-    def defined?(name)
-      @tags.has_key?(name)
-    end
-    
-    def [](name)
-      @tags[name]
-    end
-  end
-
-  TAG_SET = TagSet.new do |tag_set|
-    tag_set.define_tag 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'  do |tag|
-      tag.start_actions = :maybe_new_paragraph
-      tag.end_actions = :new_paragraph
-    end
-
-    tag_set.define_tag 'pre' do |tag|
-      tag.context = :in_pre
-      tag.start_actions = :maybe_new_paragraph
-      tag.end_actions = :new_paragraph
-    end
-
-    tag_set.define_tag 'br', 'br/' do |tag|
-      tag.start_actions = :force_line_break
-    end
-
-    tag_set.define_tag 'a' do |tag|
-      tag.start_actions = :save_href
-      tag.end_actions = :insert_link_ref
-    end
-  end
-
-  def self.render_html(source, width=72)
-    r = Renderer.new(source, width)
-    r.rendered_text
-  end
-  
-  class Renderer
-    def initialize(source, width)
-      @source, @width = source, width
-      @links = []
-      @rendered_text = render
-    end
-
-    attr_reader :rendered_text
-    
-    # Execute actions defined for +tag+ in this
-    # +phase+.
-    #
-    # actions:: actions set
-    # tag::     tag from tag set
-    # phase::   either +:start+ or +:end+
-    # params::  params passed to the actions
-    def call_actions(tag, phase, *params)
-      actions = phase == :start ? tag.start_actions : tag.end_actions
-      actions.each do |action|
-        self.send("action_#{action}", *params)
-      end
-    end
-    
-    # Enter to context defined by tag (if any)
-    #
-    # context:: current context stack
-    # tag::     tag from tag set
-    def context_enter(context, tag)
-      if tag.context
-        context << tag.context
-      end
-    end
-    
-    # Exit from context defined by tag (if any)
-    #
-    # context:: current context stack
-    # tag::     tag from tag set
-    def context_exit(context, tag)
-      if tag.context
-        context.pop
-      end
-    end
-    
-    # Reflow +text+, and append the result to
-    # +lines+
-    #
-    # lines:: line array representing lines on screen
-    # text::  text to be reflown
-    # width:: maximum width of each line on screen
-    def reflow_text(text)
-      cur_line = @lines.pop || ''
-      text.split(/\s+/).each do |word|
-        if cur_line.length + word.length > @width
-          @lines << cur_line
-          cur_line = ""
+      def define_tag(*names)
+        yield tag_spec = Tag.new
+        names.each do |name|
+          yield @tags[name] = tag_spec
         end
-        cur_line << " " unless cur_line.empty? || cur_line[-1] == ?\ # fix emacs
-        cur_line << word.chomp
       end
-      @lines << cur_line
-    end
-    
-    
-    # Renders HTML in +src+ to a screen
-    # with maximum width +width+. Returns
-    # +String+ containing rendered text.
-    #
-    # src::   HTML source
-    # width:: Screen width
-    def render
-      @lines = []
-      @context = []
+
+      def defined?(name)
+        @tags.has_key?(name)
+      end
       
-      Parser::each_token(@source) do |token, data, attributes|
-      #puts "C: #{context[-1]} T: #{token} D: <#{data}> L: #{lines.inspect}"
-      case token
-      when :TEXT
-        if @context[-1] == :in_pre
-          @lines.pop if @lines[-1] == ""
-          @lines += data.split("\n", -1)
-        else
-          reflow_text(data)
-        end
-      when :START_TAG
-        @current_attributes = attributes
-        tag = TAG_SET[data]
-        next unless tag
-        context_enter(@context, tag)
-        call_actions(tag, :start)
-      when :END_TAG
-        tag = TAG_SET[data]
-        next unless tag
-        context_exit(@context, tag)
-        call_actions(tag, :end)
+      def [](name)
+        @tags[name]
       end
+    end
+
+    TAG_SET = TagSet.new do |tag_set|
+      tag_set.define_tag 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'  do |tag|
+        tag.start_actions = :maybe_new_paragraph
+        tag.end_actions = :new_paragraph
       end
 
-      # trim trailine new lines
-      until @lines[-1] != ''
-        @lines.delete_at(@lines.size - 1)
+      tag_set.define_tag 'pre' do |tag|
+        tag.context = :in_pre
+        tag.start_actions = :maybe_new_paragraph
+        tag.end_actions = :new_paragraph
       end
 
-      # If there are links, insert the them here
-      unless @links.empty?
-        @lines << ''
-        @lines << $config['msg_links']
-        padding = @links.size / 10 + 1
-        @links.each_with_index do |link, index|
-          @lines << "%#{padding}d. %s" % [index + 1, link]
+      tag_set.define_tag 'br', 'br/' do |tag|
+        tag.start_actions = :force_line_break
+      end
+
+      tag_set.define_tag 'a' do |tag|
+        tag.start_actions = :save_href
+        tag.end_actions = :insert_link_ref
+      end
+    end
+
+    def self.render_html(source, width=72)
+      r = Renderer.new(source, width)
+      r.rendered_text
+    end
+    
+    class Renderer
+      def initialize(source, width)
+        @source, @width = source, width
+        @links = []
+        @rendered_text = render
+      end
+
+      attr_reader :rendered_text
+      
+      # Execute actions defined for +tag+ in this
+      # +phase+.
+      #
+      # actions:: actions set
+      # tag::     tag from tag set
+      # phase::   either +:start+ or +:end+
+      # params::  params passed to the actions
+      def call_actions(tag, phase, *params)
+        actions = phase == :start ? tag.start_actions : tag.end_actions
+        actions.each do |action|
+          self.send("action_#{action}", *params)
         end
       end
       
-      rendered_text = @lines.join("\n") + "\n"
-      $config['unescape_html'] ? rendered_text.unescape_html : rendered_text
-    end
+      # Enter to context defined by tag (if any)
+      #
+      # context:: current context stack
+      # tag::     tag from tag set
+      def context_enter(context, tag)
+        if tag.context
+          context << tag.context
+        end
+      end
+      
+      # Exit from context defined by tag (if any)
+      #
+      # context:: current context stack
+      # tag::     tag from tag set
+      def context_exit(context, tag)
+        if tag.context
+          context.pop
+        end
+      end
+      
+      # Reflow +text+, and append the result to
+      # +lines+
+      #
+      # lines:: line array representing lines on screen
+      # text::  text to be reflown
+      # width:: maximum width of each line on screen
+      def reflow_text(text)
+        cur_line = @lines.pop || ''
+        text.split(/\s+/).each do |word|
+          if cur_line.length + word.length > @width
+            @lines << cur_line
+            cur_line = ""
+          end
+          cur_line << " " unless cur_line.empty? || cur_line[-1] == ?\ # fix emacs
+          cur_line << word.chomp
+        end
+        @lines << cur_line
+      end
+      
+      
+      # Renders HTML in +src+ to a screen
+      # with maximum width +width+. Returns
+      # +String+ containing rendered text.
+      #
+      # src::   HTML source
+      # width:: Screen width
+      def render
+        @lines = []
+        @context = []
+        
+        Parser::each_token(@source) do |token, data, attributes|
+        #puts "C: #{context[-1]} T: #{token} D: <#{data}> L: #{lines.inspect}"
+        case token
+        when :TEXT
+          if @context[-1] == :in_pre
+            @lines.pop if @lines[-1] == ""
+            @lines += data.split("\n", -1)
+          else
+            reflow_text(data)
+          end
+        when :START_TAG
+          @current_attributes = attributes
+          tag = TAG_SET[data]
+          next unless tag
+          context_enter(@context, tag)
+          call_actions(tag, :start)
+        when :END_TAG
+          tag = TAG_SET[data]
+          next unless tag
+          context_exit(@context, tag)
+          call_actions(tag, :end)
+        end
+        end
 
-    # Actions used in the tag set
+        # trim trailine new lines
+        until @lines[-1] != ''
+          @lines.delete_at(@lines.size - 1)
+        end
 
-    # Append paragraph break
-    def action_new_paragraph
-      @lines.push(*['', ''])
-    end
+        # If there are links, insert the them here
+        unless @links.empty?
+          @lines << ''
+          @lines << $config['msg_links']
+          padding = @links.size / 10 + 1
+          @links.each_with_index do |link, index|
+            @lines << "%#{padding}d. %s" % [index + 1, link]
+          end
+        end
+        
+        rendered_text = @lines.join("\n") + "\n"
+        $config['unescape_html'] ? rendered_text.unescape_html : rendered_text
+      end
 
-    # Append paragraph break, unless there
-    # is one already.
-    def action_maybe_new_paragraph
-      unless @lines[-1] == '' || @lines.empty?
+      # Actions used in the tag set
+
+      # Append paragraph break
+      def action_new_paragraph
         @lines.push(*['', ''])
       end
-    end
 
-    # Force line break.
-    def action_force_line_break
-      @lines << ''
-    end
+      # Append paragraph break, unless there
+      # is one already.
+      def action_maybe_new_paragraph
+        unless @lines[-1] == '' || @lines.empty?
+          @lines.push(*['', ''])
+        end
+      end
 
-    # Save href of the current tag (if it exists)
-    def action_save_href
-      @links << @current_attributes['href']
-    end
+      # Force line break.
+      def action_force_line_break
+        @lines << ''
+      end
 
-    # insert reference to the latest link into the
-    # rendered text
-    def action_insert_link_ref
-      if @lines[-1]
-        @lines[-1] << '[%d]' % @links.size
+      # Save href of the current tag (if it exists)
+      def action_save_href
+        @links << @current_attributes['href']
+      end
+
+      # insert reference to the latest link into the
+      # rendered text
+      def action_insert_link_ref
+        if @lines[-1]
+          @lines[-1] << '[%d]' % @links.size
+        end
       end
     end
-  end
 
-  module Parser
-    NO_ATTRIBUTES = {}.freeze
-    ATTRIBUTE_LIST_RE = /\s*([^>=\s]+)\s*(?:=\s*(?:(?:['"]([^'">]*)['"])|([^'"\s>]+)))?/ #'
-    PARSER_RE = %r!<(/?\w+[^>]*?/?)>|([^<]*)!m
-    
-    # Parses tag's attributes and returns them
-    # in a hash.
-    def self.parse_attributes(source)
-      #puts "SOURCE: ", source
-      attributes = {}
-      source.scan(ATTRIBUTE_LIST_RE) do |name, value, unquoted_value|
-	attributes[name] = value || unquoted_value || ''
+    module Parser
+      NO_ATTRIBUTES = {}.freeze
+      ATTRIBUTE_LIST_RE = /\s*([^>=\s]+)\s*(?:=\s*(?:(?:['"]([^'">]*)['"])|([^'"\s>]+)))?/ #'
+      PARSER_RE = %r!<(/?\w+[^>]*?/?)>|([^<]*)!m
+      
+      # Parses tag's attributes and returns them
+      # in a hash.
+      def self.parse_attributes(source)
+        #puts "SOURCE: ", source
+        attributes = {}
+        source.scan(ATTRIBUTE_LIST_RE) do |name, value, unquoted_value|
+    attributes[name] = value || unquoted_value || ''
+        end
+        attributes
       end
-      attributes
-    end
-    
-    # Parses HTML in +source+ and invokes
-    # block with each token as a paramater.
-    #
-    # Parameters to the block:
-    #  token id   | data        | attributes
-    #  :TEXT      | text        | NO_ATTRIBUTES
-    #  :START_TAG | tag's name  | attributes of current tag
-    #  :END_TAG   | tag's name  | NO_ATTRIBUTES
-    #
-    # source:: HTML source
-    def self.each_token(source)
-      if source 
-        source.scan(PARSER_RE) do |tag, text|
-          #p tag, text
-          if tag
-            if tag[0] == ?/
-              yield :END_TAG, tag[1..-1], NO_ATTRIBUTES
-            else
-              if tag =~ /\A(\w+)\s*(.*)\z/m
-                attributes = NO_ATTRIBUTES
-                attributes = parse_attributes($2) if $2
-                yield :START_TAG, $1, attributes
+      
+      # Parses HTML in +source+ and invokes
+      # block with each token as a paramater.
+      #
+      # Parameters to the block:
+      #  token id   | data        | attributes
+      #  :TEXT      | text        | NO_ATTRIBUTES
+      #  :START_TAG | tag's name  | attributes of current tag
+      #  :END_TAG   | tag's name  | NO_ATTRIBUTES
+      #
+      # source:: HTML source
+      def self.each_token(source)
+        if source 
+          source.scan(PARSER_RE) do |tag, text|
+            #p tag, text
+            if tag
+              if tag[0] == ?/
+                yield :END_TAG, tag[1..-1], NO_ATTRIBUTES
+              else
+                if tag =~ /\A(\w+)\s*(.*)\z/m
+                  attributes = NO_ATTRIBUTES
+                  attributes = parse_attributes($2) if $2
+                  yield :START_TAG, $1, attributes
+                end
               end
+            else
+              yield :TEXT, text, NO_ATTRIBUTES unless text == ""
             end
-          else
-            yield :TEXT, text, NO_ATTRIBUTES unless text == ""
           end
         end
       end
     end
   end
-end
 
-# Very simple OPML importer/exporter
-module OPML
-  # Import OPML file
-  # file_name::  OPML file
-  # refresh::    refresh rate used for all imported feeds.
-  #              If nil, then value of option +default_feed_refresh+
-  #              is used.
-  # lock_title:: If true, then all titles of imported feeds
-  #              will be locked
-  # save_items:: If true, then all imported feeds' items will be saved.
-  def OPML::import(file_name, refresh=nil, lock_title=false, save_items=false, force=false)
-    refresh = $config['default_feed_refresh'] unless refresh
-    feed_list = $config['feeds']
-
-    begin
-      contents = if file_name =~ /:\/\//
-        Feed::get_url(file_name)[0]
-      else
-        file = (file_name == '-') ? $stdin : File::open(file_name)
-        raise "Couldn't open input file \"#{file_name}\"." unless file
-        file.read
-      end
-
-      if contents && contents.size > 0
-        doc = REXML::Document.new(contents)
-        doc.root.elements.each('//outline') do |outline|
-          title = outline.attributes['title']
-          url = outline.attributes['xmlUrl']
-          site = outline.attributes['htmlUrl'] || ''
-          desc = outline.attributes['description'] || ''
-
-          if title.nil? || url.nil?
-            $stderr.puts "Warning: skipping incomplete OPML entry: #{outline}"
-            next
-          end
-          raise "WARNING!!! EXEC URL IN OPML IMPORT" if (url =~ /^exec:/)
-          feed_list.add(title, url, refresh, lock_title, save_items,
-                        site, desc, [], nil, nil, force)
-        end
-      else
-        raise "Empty input file \"#{file_name}\"."
-      end
-    rescue REXML::ParseException
-      die "Parsing #{file_name} failed: #{$!.message}"
-    rescue
-      die $!.message
-    end
-  end
-
-
-  # Export all feeds to OPML format
-  def OPML::export(file_name)
-    begin
+  #
+  # Very simple OPML importer/exporter
+  #
+  module OPML
+    #
+    # Import OPML file
+    #
+    # file_name::  OPML file
+    # refresh::    refresh rate used for all imported feeds.
+    #              If nil, then value of option +default_feed_refresh+
+    #              is used.
+    # lock_title:: If true, then all titles of imported feeds
+    #              will be locked
+    # save_items:: If true, then all imported feeds' items will be saved.
+    #
+    def OPML::import(file_name, refresh=nil, lock_title=false, save_items=false, force=false)
+      refresh = $config['default_feed_refresh'] unless refresh
       feed_list = $config['feeds']
 
-      opml = REXML::Element.new("opml")
-      opml.attributes['version'] = '1.1'
+      begin
+        contents = if file_name =~ /:\/\//
+          Feed::get_url(file_name)[0]
+        else
+          file = (file_name == '-') ? $stdin : File::open(file_name)
+          raise "Couldn't open input file \"#{file_name}\"." unless file
+          file.read
+        end
 
-      opml.add_element(opml_head)
-      
-      body = REXML::Element.new('body')
-      opml.add_element(body)
-      feed_list.each do |feed|
-        body.add_element(feed_to_outline(feed))
-      end
+        if contents && contents.size > 0
+          doc = REXML::Document.new(contents)
+          doc.root.elements.each('//outline') do |outline|
+            title = outline.attributes['title']
+            url = outline.attributes['xmlUrl']
+            site = outline.attributes['htmlUrl'] || ''
+            desc = outline.attributes['description'] || ''
 
-      doc = REXML::Document.new
-      doc << REXML::Document::DECLARATION
-      doc.add(opml)
-
-      file = (file_name == '-') ? $stdout : File::open(file_name, 'w')
-      if file
-        doc.write(file, 0)
-      else
-        raise "Couldn't open output file \"#{file_name}\"."
-      end
-    rescue
-      die $!.message
-    end
-  end
-
-  # Generate OPML header
-  def OPML::opml_head
-    head = REXML::Element.new('head')
-    title = REXML::Element.new('title')
-    title.text = 'Raggle subscriptions'
-    head.add_element(title)
-    head
-  end
-
-  # Convert feed hash to outline-element
-  def OPML::feed_to_outline(feed)
-    outline = REXML::Element.new('outline')
-    outline.attributes['title'] = feed['title'] || ''
-    outline.attributes['description'] = feed['desc'] || ''
-    outline.attributes['xmlUrl'] = feed['url'] || ''
-    outline.attributes['htmlUrl'] = feed['site'] if feed.has_key?('site')
-    outline.attributes['version'] = 'RSS'
-    outline.attributes['type'] = 'rss'
-    outline
-  end
-end
-
-class FeedList
-  attr_accessor :feeds
-  def initialize
-    @feeds = []
-  end
-
-  def size
-    @feeds.size
-  end
-  
-  def add(title, url, refresh, lock_title=false, save_items=false, site='',
-          desc='', items=[], image = nil, category = nil, force=true)
-    refresh_interval_check(refresh) unless force || url =~ /^(file|exec):/
-    lock_title = false if !lock_title
-    save_items = false if !save_items
-    @feeds << {
-      'title'       => title,
-      'url'         => url,
-      'refresh'     => refresh,
-      'site'        => site,
-      'desc'        => desc,
-      'updated'     => 0,
-      'image'       => image,
-      'items'       => items,
-      'category'    => category, 
-      'lock_title?' => lock_title,
-      'save_items?' => save_items,
-    }
-  end
-
-  def <<(feed)
-    @feeds << feed
-  end
-
-  def categories
-    category = Struct::new(:title, :count)
-    cats = {}
-    @feeds.each { |feed|
-      if feed['category']
-        feed['category'].split(/\s*,\s*/).each { |cat|
-          if cats.has_key? cat.downcase
-            cats[cat.downcase].count += 1
-          else
-            cats[cat.downcase] = category.new(cat, 1)
+            if title.nil? || url.nil?
+              $stderr.puts "Warning: skipping incomplete OPML entry: #{outline}"
+              next
+            end
+            raise "WARNING!!! EXEC URL IN OPML IMPORT" if (url =~ /^exec:/)
+            feed_list.add(title, url, refresh, lock_title, save_items,
+                          site, desc, [], nil, nil, force)
           end
-        }
+        else
+          raise "Empty input file \"#{file_name}\"."
+        end
+      rescue REXML::ParseException
+        die "Parsing #{file_name} failed: #{$!.message}"
+      rescue
+        die $!.message
       end
-    }
-    cats.values.sort { |a, b| a.title <=> b.title }
-  end
+    end
 
-  def category(cat = 'all')
-    if cat !~ /\ball\b/i
-      re = /\b#{cat}\b/i
-      @feeds.map { |feed| feed['category'] =~ re ? feed : nil }.compact
-    else
-      @feeds
+    #
+    # Export all feeds to OPML format
+    #
+    def OPML::export(file_name)
+      begin
+        feed_list = $config['feeds']
+
+        opml = REXML::Element.new("opml")
+        opml.attributes['version'] = '1.1'
+
+        opml.add_element(opml_head)
+        
+        body = REXML::Element.new('body')
+        opml.add_element(body)
+        feed_list.each do |feed|
+          body.add_element(feed_to_outline(feed))
+        end
+
+        doc = REXML::Document.new
+        doc << REXML::Document::DECLARATION
+        doc.add(opml)
+
+        file = (file_name == '-') ? $stdout : File::open(file_name, 'w')
+        if file
+          doc.write(file, 0)
+        else
+          raise "Couldn't open output file \"#{file_name}\"."
+        end
+      rescue
+        die $!.message
+      end
+    end
+
+    #
+    # Generate OPML header
+    #
+    def OPML::opml_head
+      head = REXML::Element.new('head')
+      title = REXML::Element.new('title')
+      title.text = 'Raggle subscriptions'
+      head.add_element(title)
+      head
+    end
+
+    #
+    # Convert feed hash to outline-element
+    #
+    def OPML::feed_to_outline(feed)
+      outline = REXML::Element.new('outline')
+      outline.attributes['title'] = feed['title'] || ''
+      outline.attributes['description'] = feed['desc'] || ''
+      outline.attributes['xmlUrl'] = feed['url'] || ''
+      outline.attributes['htmlUrl'] = feed['site'] if feed.has_key?('site')
+      outline.attributes['version'] = 'RSS'
+      outline.attributes['type'] = 'rss'
+      outline
     end
   end
 
-  def [](*n)
-    @feeds[*n]
-  end
-  
-  def get(id)
-    raise "Invalid feed id: #{id}" unless id < @feeds.size
-    @feeds[id]
-  end
-  
-  def delete(id)
-    raise "Invalid feed id: #{id}" unless id < @feeds.size
-    @feeds.delete_at(id)
-  end
+  class FeedList
+    attr_accessor :feeds
+    def initialize
+      @feeds = []
+    end
 
-  def invalidate(id)
-    if id == -1
-      @feeds.each { |feed| feed['updated'] = 0 }
-    else
+    def size
+      @feeds.size
+    end
+    
+    def add(title, url, refresh, lock_title=false, save_items=false, site='',
+            desc='', items=[], image = nil, category = nil, force=true)
+      refresh_interval_check(refresh) unless force || url =~ /^(file|exec):/
+      lock_title = false if !lock_title
+      save_items = false if !save_items
+      @feeds << {
+        'title'       => title,
+        'url'         => url,
+        'refresh'     => refresh,
+        'site'        => site,
+        'desc'        => desc,
+        'updated'     => 0,
+        'image'       => image,
+        'items'       => items,
+        'category'    => category, 
+        'lock_title?' => lock_title,
+        'save_items?' => save_items,
+      }
+    end
+
+    def <<(feed)
+      @feeds << feed
+    end
+
+    def categories
+      category = Struct::new(:title, :count)
+      cats = {}
+      @feeds.each { |feed|
+        if feed['category']
+          feed['category'].split(/\s*,\s*/).each { |cat|
+            if cats.has_key? cat.downcase
+              cats[cat.downcase].count += 1
+            else
+              cats[cat.downcase] = category.new(cat, 1)
+            end
+          }
+        end
+      }
+      cats.values.sort { |a, b| a.title <=> b.title }
+    end
+
+    def category(cat = 'all')
+      if cat !~ /\ball\b/i
+        re = /\b#{cat}\b/i
+        @feeds.map { |feed| feed['category'] =~ re ? feed : nil }.compact
+      else
+        @feeds
+      end
+    end
+
+    def [](*n)
+      @feeds[*n]
+    end
+    
+    def get(id)
       raise "Invalid feed id: #{id}" unless id < @feeds.size
-      @feeds[id]['updated'] = 0
+      @feeds[id]
     end
-  end
+    
+    def delete(id)
+      raise "Invalid feed id: #{id}" unless id < @feeds.size
+      @feeds.delete_at(id)
+    end
 
-  def each_with_index
-    @feeds.each_with_index { |feed, i| yield feed, i }
-  end
+    def invalidate(id)
+      if id == -1
+        @feeds.each { |feed| feed['updated'] = 0 }
+      else
+        raise "Invalid feed id: #{id}" unless id < @feeds.size
+        @feeds[id]['updated'] = 0
+      end
+    end
 
-  def each
-    @feeds.each { |feed| yield feed }
-  end
+    def each_with_index
+      @feeds.each_with_index { |feed, i| yield feed, i }
+    end
 
-  def each_index
-    @feeds.each_index { |i| yield i }
-  end
+    def each
+      @feeds.each { |feed| yield feed }
+    end
 
-  #
-  # Sort feeds by title (case-insensitive).
-  #
-  def sort
-    @feeds.sort! { |a, b|
-      re = /^\s*(a|the)\s+/i
-      
-      a_c, b_c = a['title'].gsub(re, '').downcase, 
-                 b['title'].gsub(re, '').downcase
+    def each_index
+      @feeds.each_index { |i| yield i }
+    end
 
-      a_c <=> b_c
-    }
-  end
+    #
+    # Sort feeds by title (case-insensitive).
+    #
+    def sort
+      @feeds.sort! { |a, b|
+        re = /^\s*(a|the)\s+/i
+        
+        a_c, b_c = a['title'].gsub(re, '').downcase, 
+                   b['title'].gsub(re, '').downcase
 
-  def edit(id, opts)
-    die "Invalid feed id: #{id}" unless id < @feeds.size
-    refresh_interval_check opts['refresh'] if !opts['force'] &&
-                                              opts.has_key?('refresh')
-    if id == -1
-      0.upto($config['feeds'].size - 1) do |id|
+        a_c <=> b_c
+      }
+    end
+
+    def edit(id, opts)
+      die "Invalid feed id: #{id}" unless id < @feeds.size
+      refresh_interval_check opts['refresh'] if !opts['force'] &&
+                                                opts.has_key?('refresh')
+      if id == -1
+        0.upto($config['feeds'].size - 1) do |id|
+          ourl = $config['feeds'].get(id)['url']
+          %w{title url refresh lock_title? save_items? max_items}.each { |key|
+            $config['feeds'].get(id)[key] = opts[key] if opts.has_key? key
+          }
+          if opts.has_key?('url') and opts['url'] != ourl
+            $config['feeds'].invalidate(id)
+          end
+        end
+      else 
         ourl = $config['feeds'].get(id)['url']
         %w{title url refresh lock_title? save_items? max_items}.each { |key|
           $config['feeds'].get(id)[key] = opts[key] if opts.has_key? key
@@ -1028,72 +1046,64 @@ class FeedList
           $config['feeds'].invalidate(id)
         end
       end
-    else 
-      ourl = $config['feeds'].get(id)['url']
-      %w{title url refresh lock_title? save_items? max_items}.each { |key|
-        $config['feeds'].get(id)[key] = opts[key] if opts.has_key? key
-      }
-      if opts.has_key?('url') and opts['url'] != ourl
-        $config['feeds'].invalidate(id)
+    end
+
+    def move_up(id)
+      if id > 0
+        pitem = @feeds[id - 1]
+        @feeds[id - 1] = @feeds[id]
+        @feeds[id] = pitem
+        id - 1
+      else
+        id
       end
     end
-  end
 
-  def move_up(id)
-    if id > 0
-      pitem = @feeds[id - 1]
-      @feeds[id - 1] = @feeds[id]
-      @feeds[id] = pitem
-      id - 1
-    else
-      id
+    def move_down(id)
+      if id < @feeds.size - 1
+        nitem = @feeds[id + 1]
+        @feeds[id + 1] = @feeds[id]
+        @feeds[id] = nitem
+        id + 1
+      else
+        id
+      end
     end
-  end
 
-  def move_down(id)
-    if id < @feeds.size - 1
-      nitem = @feeds[id + 1]
-      @feeds[id + 1] = @feeds[id]
-      @feeds[id] = nitem
-      id + 1
-    else
-      id
+    def describe(id)
+      # clear desc window
+      win = $wins[get_win_id('desc')]
+      win.clear
+      
+      win.items.clear # This should only ever have one entry
+      win.items << {
+        # 'real_title' => $config['feeds'][id]['title'],
+        'title'      => $config['feeds'][id]['title'],
+        'content'    => $config['feeds'][id]['desc'],
+        'date'       => $config['feeds'][id]['date'],
+        'url'        => $config['feeds'][id]['url'],
+        'date'       => Time.at($config['feeds'][id]['updated']).strftime('%c'),
+        'read?'      => false
+      }
+
+      win.draw_items
     end
-  end
-
-  def describe(id)
-    # clear desc window
-    win = $wins[get_win_id('desc')]
-    win.clear
+      
     
-    win.items.clear # This should only ever have one entry
-    win.items << {
-      # 'real_title' => $config['feeds'][id]['title'],
-      'title'      => $config['feeds'][id]['title'],
-      'content'    => $config['feeds'][id]['desc'],
-      'date'       => $config['feeds'][id]['date'],
-      'url'        => $config['feeds'][id]['url'],
-      'date'       => Time.at($config['feeds'][id]['updated']).strftime('%c'),
-      'read?'      => false
-    }
-
-    win.draw_items
-  end
-    
-  
-  def refresh_interval_check(interval)
-    if interval > 0 && interval < $config['feed_refresh_warn']
-        err = <<ENDWARNING
-Using a refresh interval of less than #{$config['feed_refresh_warn']} minutes
-_really_ irritates some system administrators.  If you're sure you want to do
-this, use the '--force' option to bypass this warning.
+    def refresh_interval_check(interval)
+      if interval > 0 && interval < $config['feed_refresh_warn']
+          err = <<ENDWARNING
+  Using a refresh interval of less than #{$config['feed_refresh_warn']} minutes
+  _really_ irritates some system administrators.  If you're sure you want to do
+  this, use the '--force' option to bypass this warning.
 ENDWARNING
 # '
-      $stderr.puts err.reflow
-      exit -1
+        $stderr.puts err.reflow
+        exit -1
+      end
     end
+    private :refresh_interval_check
   end
-  private :refresh_interval_check
 end
 
 module Feed

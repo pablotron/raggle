@@ -1119,3 +1119,7 @@
 
 * Tue Aug 19 14:14:02 2003, pabs <pabs@pablotron.org>
   * BUGS: mark "connection is already set up" off the list
+
+* Tue Aug 19 17:35:35 2003, pabs <pabs@pablotron.org>
+  * raggle: don't restrict ourselves to ruby1.8 (dont' know how that got
+    there...)

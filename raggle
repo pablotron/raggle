@@ -1781,27 +1781,27 @@ ENDUSAGE
     module NcursesInterface
       module Key
         def Key::scroll_up
-          $wins[$a_win].scroll_up
+          $wins[$a_win].scroll_up if $wins[$a_win]
         end
 
         def Key::scroll_down
-          $wins[$a_win].scroll_down
+          $wins[$a_win].scroll_down if $wins[$a_win]
         end
 
         def Key::scroll_top
-          $wins[$a_win].scroll_top
+          $wins[$a_win].scroll_top if $wins[$a_win]
         end
 
         def Key::scroll_bottom
-          $wins[$a_win].scroll_bottom
+          $wins[$a_win].scroll_bottom if $wins[$a_win]
         end
 
         def Key::scroll_up_page
-          $wins[$a_win].scroll_up_page
+          $wins[$a_win].scroll_up_page if $wins[$a_win]
         end
 
         def Key::scroll_down_page
-          $wins[$a_win].scroll_down_page
+          $wins[$a_win].scroll_down_page if $wins[$a_win]
         end
 
         def Key::quit

@@ -1876,7 +1876,7 @@ feed_thread = Thread.new {
         end
 
         # redraw feed / item windows
-        $update_windows = true
+        $update_wins = true
       }
 
       # finish log entries

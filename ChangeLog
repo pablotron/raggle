@@ -276,4 +276,7 @@
   * raggle: Fix Window#scroll_up_page and Window#scroll_down_page logic.
   * raggle: Make page up/down never wrap.  It's confusing
 
+* Fri Jun 20 04:07:44 EDT 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Fix bug preventing feed item number updating (misnamed variable).
+
 

@@ -990,6 +990,8 @@ module Feed
     # initialize http connection
     http = Net::HTTP::new(host, port, proxy['host'], proxy['port'])
     http.use_ssl = use_ssl if $HAVE_LIB['ssl']
+    http.open_timeout = $config['http_open_timeout'] || 10
+    http.read_timeout = $config['http_read_timeout'] || 20
     http.start
     raise "Couldn't connect to host \"#{host}:#{port}\"" unless http
 
@@ -1202,6 +1204,40 @@ module Feed
         }
       end
     end
+
+# disabled until it's working right -- paul 
+#     #
+#     # set ncurses color
+#     #
+#     def set_color(color_name = 'text')
+#       col = @colors[color_name]
+#       col_ary = []
+#       if col.is_a? Array
+#         col_ary = col
+#         col = col_ary[0]
+#         col_ary.each_index { |i|
+#           @win.attron $config['attr_palette'][col_ary[i]] if i > 0
+#         }
+#       end
+# 
+#       @win.color_set col, nil
+#     end
+# 
+#       draw_text(text, x, y, reflow_text, offset)
+# 
+#       # get default color, attributes
+#       col = @colors['text']
+#       col_ary = []
+#       if col.is_a? Array
+#         col_ary = col.dup
+#         col = col_ary[0]
+#       end
+# 
+#       # set back to default color
+#       @win.color_set col, nil
+#       @win.attrset Ncurses::A_NORMAL
+#     end
+# 
 
     def find_element(elem, name)
       if $config['item_element_xpaths'][name]
@@ -3249,6 +3285,10 @@ $config = {
 
   # input select timeout (in seconds)
   'input_select_timeout'  => 0.2,
+
+  # http timeouts (in seconds)
+  'http_open_timeout'     => 10,
+  'http_read_timeout'     => 10,
 
   # thread sleep intervals (in seconds)
   'feed_sleep_interval'   => 60,

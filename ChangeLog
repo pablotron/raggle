@@ -1391,3 +1391,9 @@
     might be kind of annoying if you're reading the feed, since it would 
     lose your place.  thoughts anyone?)
   * BUGS: mark aformentioned bug off the list o' bugs
+
+* Wed Sep 10 11:01:51 2003, pabs <pabs@pablotron.org>
+  * raggle: add preliminary Window#set_color implementation (dsiabled
+    for now, the code is basically copied and pasted)
+  * raggle: added http open and read timeouts (set to 10 and 30 seconds
+    respectively)

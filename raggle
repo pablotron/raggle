@@ -738,6 +738,7 @@ module Feed
     ret
   end
 
+
   class Channel
     attr_accessor :title, :link, :desc, :lang, :items
 
@@ -1304,17 +1305,6 @@ def save_feed_cache
   store = PStore::new $config['feed_cache_path']
   store.transaction { |s|
     $config[$SRC].each { |feed| s[feed['url']] = feed['items'] }
-  }
-end
-
-#
-# old save feed cache 
-#
-def old_save_feed_cache
-  File::open($config['feed_cache_path'], 'w') { |f|
-    $stdout.puts $config['msg_save_feeds']
-    $stdout.flush
-    f.puts $config[$SRC].to_yaml
   }
 end
 

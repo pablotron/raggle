@@ -1762,3 +1762,6 @@
     their feed url to point at http://raggle.org/rss/help/ (it uses the
     version included in the HTTP request to figure out which file to 
     point at)
+
+* Fri Feb 20 04:31:13 2004, pabs <pabs@pablotron.org>
+  * doc/pauls_feeds.opml.gz: updated

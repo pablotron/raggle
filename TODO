@@ -28,3 +28,5 @@ Raggle TODO
     visual accounts "Highlighted", but the items from another, since
     just because a feed is highlighted, doesn't mean it's *selected*
     too (though possibly it should, but that's what this is all about).
+[ ] Add an option ('force_reflow') that will forcibly wrap lines that
+    would otherwise evade it (by not having spaces in it, say).

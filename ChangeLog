@@ -792,6 +792,9 @@
   * raggle: aplied patch from Ville Aine: select_next_unread shouldn't
     crash if there's no unread items
 
+* Mon Jun 30 21:30:28 2003, pabs <pabs@pablotron.org>
+  * raggle: applied patch from Ville Aine: Key::delete shouldn't crash
+    if the feed list is empty
 
 
 

@@ -234,12 +234,14 @@ module Key
   end
 
   def Key::delete
-    win = $wins[get_win_id('feed')]
-    $config['feeds'].delete(win.active_item)
-    win.delete_item
-    win.active_item = (win.active_item > 0) ? win.active_item - 1 : 0
-    win.clear
-    win.draw_items
+    if $config['feeds'].size > 0
+      win = $wins[get_win_id('feed')]
+      $config['feeds'].delete(win.active_item)
+      win.delete_item
+      win.active_item = (win.active_item > 0) ? win.active_item - 1 : 0
+      win.clear
+      win.draw_items
+    end
   end
 
   def Key::sort_feeds

@@ -46,3 +46,11 @@ Bugs
     http://www.raggle.org/files/swedish_char_corruption/)
 [ ] doesn't handle host relative URLs properly (reported by Harry Ohlsen
     <harryo@qiqsolutions.com>)
+[ ] some feeds report bizarre errors (reported by karl d'adamo
+    <karld@ugcs.caltech.edu>):
+    undefined method `write' for nil:NilClass
+    malformed UTF-8 character
+    undefined method `node_type' for #<REXML::Entity:0x4035f4f0>
+    etc
+    (a full list is available here:
+    http://raggle.org/pipermail/raggle-dev/2003-September/000099.html)

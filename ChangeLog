@@ -1320,3 +1320,5 @@
   * added extras/win32/raggle_server.bat (server batch file)
   * added extras/win32/win32.html (windows documentation)
 
+* Thu Sep 04 02:31:04 2003, pabs <pabs@pablotron.org>
+  * BUGS: add feed errors reported by karl d'adamo

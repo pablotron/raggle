@@ -1,0 +1,439 @@
+#!/usr/bin/env ruby
+
+$VERSION = '0.1.0'
+
+# load ncurses
+require 'ncurses'
+
+# default config
+$config = {
+  'config_path'           => ENV['HOME'] << '.raggle/config.rb',
+
+  # ui options
+  'item_focus'            => false,
+  'item_date_format'      => '%c',
+
+  # messages
+  'msg_welcome'           => " Welcome to Raggle #{$VERSION}.",
+  'msg_exit'              => "| Press F12 or Q to exit ",
+  'msg_close'             => '[X] ',
+
+  # menu bar color
+  'menu_bar_cols'         => 24,
+
+  # status bar color
+  'status_bar_cols'       => 24,
+
+  # color palette (referenced by window attributes)
+  'color_palette'         => [
+    [  1, Ncurses::COLOR_WHITE,    Ncurses::COLOR_BLACK   ],
+    [  2, Ncurses::COLOR_RED,      Ncurses::COLOR_BLACK   ],
+    [  3, Ncurses::COLOR_GREEN,    Ncurses::COLOR_BLACK   ],
+    [  4, Ncurses::COLOR_BLUE,     Ncurses::COLOR_BLACK   ],
+    [  5, Ncurses::COLOR_MAGENTA,  Ncurses::COLOR_BLACK   ],
+    [  6, Ncurses::COLOR_CYAN,     Ncurses::COLOR_BLACK   ],
+    [  7, Ncurses::COLOR_YELLOW,   Ncurses::COLOR_BLACK   ],
+    [ 11, Ncurses::COLOR_BLACK,    Ncurses::COLOR_WHITE   ],
+    [ 12, Ncurses::COLOR_BLACK,    Ncurses::COLOR_RED     ],
+    [ 13, Ncurses::COLOR_BLACK,    Ncurses::COLOR_GREEN   ],
+    [ 14, Ncurses::COLOR_BLACK,    Ncurses::COLOR_BLUE    ],
+    [ 15, Ncurses::COLOR_BLACK,    Ncurses::COLOR_MAGENTA ],
+    [ 16, Ncurses::COLOR_BLACK,    Ncurses::COLOR_CYAN    ],
+    [ 17, Ncurses::COLOR_BLACK,    Ncurses::COLOR_YELLOW  ],
+    [ 21, Ncurses::COLOR_BLACK,    Ncurses::COLOR_WHITE   ],
+    [ 22, Ncurses::COLOR_WHITE,    Ncurses::COLOR_RED     ],
+    [ 23, Ncurses::COLOR_WHITE,    Ncurses::COLOR_GREEN   ],
+    [ 24, Ncurses::COLOR_WHITE,    Ncurses::COLOR_BLUE    ],
+    [ 25, Ncurses::COLOR_WHITE,    Ncurses::COLOR_MAGENTA ],
+    [ 26, Ncurses::COLOR_WHITE,    Ncurses::COLOR_CYAN    ],
+    [ 27, Ncurses::COLOR_WHITE,    Ncurses::COLOR_YELLOW  ],
+  ],
+
+  # feed window attributes
+  'win_feed'      => {
+    'key'         => 'feed',
+    'title'       => 'Feeds',
+    'coords'      => [0, 1, 20, -1],
+    'colors'      => { 
+      'title'     => 1,
+      'text'      => 1,
+      'h_text'    => 16,
+      'box'       => 2,
+      'a_title'   => 21,
+      'a_box'     => 2,
+    },
+  },
+
+  # item window attributes
+  'win_item'      => {
+    'key'         => 'item',
+    'title'       => 'Items',
+    'coords'      => [20, 1, -1, 20],
+    'colors'      => {
+      'title'     => 1,
+      'text'      => 1,
+      'h_text'    => 16,
+      'box'       => 4,
+      'a_title'   => 21,
+      'a_box'     => 4,
+    },
+  },
+
+  # desc window attributes
+  'win_desc'      => {
+    'key'         => 'desc',
+    'title'       => 'Description',
+    'coords'      => [20, 21, -1, -1],
+    'colors'      => {
+      'title'     => 1,
+      'text'      => 1,
+      'h_text'    => 16,
+      'box'       => 6,
+      'a_title'   => 21,
+      'a_box'     => 6,
+    },
+  },
+
+  # debugging options (don't touch)
+  'use_raw_mode'  => true,
+  'use_noecho'    => true,
+
+  'debug_feeds'   => [
+    { 'title'     => 'Slashdot',
+      'url'       => 'http://slashdot.org/slashdot.rss',
+      'refresh'   => 30,
+      'items'     => [
+        { 'title' => 'test item 1',
+          'url'   => 'http://www.pablotron.org/test?item=1',
+          'date'  => 89743298,
+          'desc'  => 'this is a test item', },
+        { 'title' => 'test item 2',
+          'url'   => 'http://www.pablotron.org/test?item=2',
+          'date'  => 3243298,
+          'desc'  => 'this is another test item', },
+        { 'title' => 'test item 3',
+          'url'   => 'http://www.pablotron.org/test?item=3',
+          'date'  => 112239847,
+          'desc'  => 'more fun with testing', },
+      ],
+    },
+    { 'title'     => 'Alternet',
+      'url'       => 'http://www.alternet.org/alternet.rss',
+      'refresh'   => 30,
+      'items'     => [
+        { 'title' => 'asdfkjsaldkjfs1',
+          'url'   => 'http://www.pablotron.org/test?item=1',
+          'date'  => 32743298,
+          'desc'  => 'asdfklasjdfldsa', },
+        { 'title' => 'blarhg blargh blarh2',
+          'url'   => 'http://www.pablotron.org/test?item=1',
+          'date'  => 32897498,
+          'desc'  => 'asdfklasjdfldsa', },
+        { 'title' => 'cripes 3',
+          'url'   => 'http://www.pablotron.org/test?item=1',
+          'date'  => 32893298,
+          'desc'  => 'asdfklasjdfldsa', },
+        { 'title' => 'diddly doo 4',
+          'url'   => 'http://www.pablotron.org/test?item=1',
+          'date'  => 32893298,
+          'desc'  => 'this is a test item', },
+        { 'title' => 'erarrgh 5',
+          'url'   => 'http://www.pablotron.org/test?item=2',
+          'date'  => 3243298,
+          'desc'  => 'this is another test item', },
+        { 'title' => 'bleh de bleh bleh6',
+          'url'   => 'http://www.pablotron.org/test?item=3',
+          'date'  => 112239847,
+          'desc'  => 'more fun with testing', },
+      ],
+    },
+  ],
+}
+
+# parse command-line options
+# TODO
+
+# load user config ($HOME/.raggle/config.rb)
+load $config['config_path'], false if test ?e, $config['config_path']
+
+class Window
+  attr_accessor :win, :title, :key, :colors, :active, :items, :active_item
+
+  #
+  # window constructor
+  #
+  def initialize(opts)
+    coords = opts['coords']
+    coords[2] = $config['w'] - coords[0] if coords[2] == -1
+    coords[3] = $config['h'] - coords[1] if coords[3] == -1
+
+    @active_item = 0
+    @items = []
+
+    @title = opts['title']
+    @key = opts['key']
+    @colors = opts['colors'].dup
+
+    @win = Ncurses::newwin coords[3], coords[2], coords[1], coords[0]
+    refresh
+  end
+
+  #
+  # refresh window title and border (but not the contents)
+  # 
+  def refresh(refresh_contents = false)
+    win.color_set @colors[@active ? 'a_box' : 'box'], nil
+    Ncurses::box win, 0, 0
+    win.color_set @colors[@active ? 'a_title' : 'title'], nil
+    Ncurses::mvwprintw win, 0, 1, " #{@title} "
+    win.color_set @colors['text'], nil
+    Ncurses::wrefresh win
+  end
+
+  def clear
+    @win.color_set @colors['text'], nil
+    @win.clear
+  end
+
+  #
+  # draw text in window
+  #
+  def draw(text, x = 1, y = 1, hilited = false, refresh_win = true)
+    ha = []; wa = []
+    Ncurses::getmaxyx win, ha, wa
+    w, h = wa[0], ha[0]
+
+    @win.color_set @colors['h_text'],nil if hilited
+    text.each_line { |line|
+      Ncurses::mvwprintw @win, y, x, line.slice(0, w - x - 1)
+      y += 1
+    }
+    @win.color_set @colors['text'], nil
+
+    refresh if refresh_win
+  end
+
+  def handle_key(key)
+    case key
+    when Ncurses::KEY_UP
+      if @items.size > 0
+        ai = @active_item
+        @active_item = ((ai - 1 < 0) ? @items.size : ai) - 1
+        draw_items
+      end
+    when Ncurses::KEY_DOWN
+      if @items.size > 0
+        @active_item = (@active_item + 1) % @items.size
+        draw_items
+      end
+    when Ncurses::KEY_RIGHT
+      # select_feed 0
+      # @items[@active_item]['proc'].call if @items.size > 0
+      select_win_item
+    end
+  end
+
+  def select_win_item
+    if @items[@active_item].has_key? 'feed'
+      select_feed @items[@active_item]['feed']
+    elsif @items[@active_item].has_key? 'item'
+      select_item @items[@active_item]['item']
+    elsif @items[@active_item].has_key? 'url'
+      # exec ['Eterm', '-e', 'links', @items[@active_item]['url']] if fork == 0
+    end
+  end
+
+  def draw_items
+    y = 0
+    @items.each { |item| draw(item['title'], 1, y += 1, y - 1== @active_item) }
+    refresh(true)
+  end
+end
+
+def set_status(str)
+  str += ' ' * ($config['w'] / 2 - str.length)
+  e_msg = $config['msg_exit']
+  e_msg = ' ' * ($config['w'] / 2 - e_msg.length) + e_msg
+  msg = str << e_msg
+
+  Ncurses::wcolor_set Ncurses::stdscr, $config['status_bar_cols'], nil
+  Ncurses::mvprintw $config['h'], 0, msg
+  Ncurses::refresh
+end
+
+def set_active_win(a_win)
+  $wins[$a_win].active = false
+  $a_win = a_win
+  $wins[$a_win].active = true
+end
+
+def get_win_id(str)
+  $wins.each_index { |i| return i if $wins[i].key == str }
+  -1
+end
+
+def select_feed(id)
+  $a_feed = id
+  $a_item = 0
+
+  set_status "selecting feed #{id}"
+  item_id = get_win_id 'item'
+  $wins[item_id].active_item = 0
+  $wins[item_id].items.clear
+
+  fmt = $config['item_date_format']
+  $config['debug_feeds'][id]['items'].each_with_index { |item, i|
+    title = item['title'] + ' (' +
+            Time.at(item['date'].to_i).strftime(fmt) << ')'
+    $wins[item_id].items << {
+      'title' => title,
+      'item'  => i,
+    }
+  }
+
+  $wins[item_id].win.clear
+  $wins[item_id].draw_items
+
+  set_active_win(item_id) if $config['item_focus']
+end
+
+def select_item(id)
+  $a_item = id
+
+  set_status "selecting item #{id}"
+  desc_id = get_win_id 'desc'
+  $wins[desc_id].active_item = 0
+  $wins[desc_id].items.clear
+
+  $wins[desc_id].items << {
+    'title' => $config['debug_feeds'][$a_feed]['items'][id]['desc'],
+    'url'   => $config['debug_feeds'][$a_feed]['items'][id]['url'],
+  }
+  $wins[desc_id].win.clear
+  $wins[desc_id].draw_items
+
+  set_active_win(desc_id) if $config['item_focus']
+end
+
+begin
+  # initialize screen & keyboard
+  Ncurses::initscr
+  Ncurses::raw if $config['use_raw_mode']
+  Ncurses::keypad Ncurses::stdscr, 1
+  Ncurses::noecho if $config['use_noecho']
+  Ncurses::start_color
+
+  # exit -1 unless Ncurses::has_colors?
+
+  # initialize color pairs
+  $config['color_palette'].each { |ary| Ncurses::init_pair *ary }
+
+  # get screen coordinates
+  h = []; w = []
+  Ncurses::getmaxyx Ncurses::stdscr, h, w
+  $config['w'] = w[0]
+  $config['h'] = h[0] - 1
+
+  # draw menu bar
+  c_msg = $config['msg_close']
+  msg = (' ' * ($config['w'] - c_msg.length)) << c_msg
+  Ncurses::wcolor_set Ncurses::stdscr, $config['menu_bar_cols'], nil
+  Ncurses::mvprintw 0, 0, msg
+  Ncurses::refresh
+
+
+  # draw status bar
+  set_status $config['msg_welcome']
+  
+  LONG_STRING =<<ENDSTRING
+hi this is a 
+really long test string to test the 
+function draw() which will eventually be put in 
+a member method of Window or wahtever I decide to call
+the window class....
+
+it seems like Window might be a good idea
+
+lkasdf
+lkasd
+lksad
+flkads
+lfkas
+dlk
+l
+asldlkasjdflkasjdflkajsdflkajsdfdj
+asdlfklsdalfjaskljfasljk
+lkjasdlkjadflkjasdlkjfdsldjflkj
+alksddlksflkajdlkjaalk
+lasdlksadflkjadsflkjdlkas
+alksjsakljflksadklasjdflkjaslk
+ENDSTRING
+  
+  # create windows
+  $a_win = 0
+  $wins = []
+  ['feed', 'item', 'desc'].each { |i|
+    $wins << Window.new($config["win_#{i}"])
+    # $wins[-1].draw LONG_STRING
+  }
+  set_active_win(0)
+  
+  $a_feed, $a_item = 0, 0
+  
+  id = get_win_id 'feed'
+  $config['debug_feeds'].each_with_index { |feed, i|
+    title = feed['title'] + ' (%d)' % feed['items'].size
+    $wins[id].items << {
+      'title' => title,
+      'feed'  => i,
+    }
+  }
+  $wins[id].draw_items
+  
+  select_feed(0)
+# 
+#   id = get_win_id 'item'
+#   $config['debug_feeds'][0]['items'].each { |item|
+#     $wins[id].items << {
+#       'title' => item['title'],
+#       'proc'  => proc { select_item(i) }
+#     }
+#   }
+#   $wins[id].draw_items
+# 
+
+  # LONG_STRING.each_line { |line| $wins[$a_win].items << line }
+  # $wins[$a_win].draw_items
+
+  # LONG_STRING.each_line { |line| $wins[1].items << line }
+  # $wins[1].draw_items
+  
+  # main loop
+  done = false
+  while !done
+    # handle keyboard input
+    case c = Ncurses::getch
+    when ?\t
+      set_active_win(($a_win + 1) % $wins.size)
+    when ?\\
+      set_active_win((($a_win - 1 < 0) ? $wins.size : $a_win) - 1)
+    when Ncurses::KEY_F12
+      done = true
+    when ?q
+      done = true
+    when ?
+      resize_wins
+    else  
+      $wins[$a_win].handle_key c
+    end
+
+    # refresh each window
+    $wins.each { |win| win.refresh }
+
+    # refresh screen (is this necessary?)
+    # Ncurses::refresh # Ncurses::stdscr
+  end
+ensure
+  # make sure the screen gets cleaned up on exit
+  Ncurses::endwin
+end

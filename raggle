@@ -233,13 +233,13 @@ module Key
 
   def Key::move_item_up
     win = $wins[get_win_id('feed')]
-    $config['feeds'].move_up(win.active_item)
+    $a_feed = $config['feeds'].move_up(win.active_item)
     win.move_item_up
   end
 
   def Key::move_item_down
     win = $wins[get_win_id('feed')]
-    $config['feeds'].move_down(win.active_item)
+    $a_feed = $config['feeds'].move_down(win.active_item)
     win.move_item_down
   end
 
@@ -458,6 +458,9 @@ class FeedList
       pitem = @feeds[id - 1]
       @feeds[id - 1] = @feeds[id]
       @feeds[id] = pitem
+      id - 1
+    else
+      id
     end
   end
 
@@ -466,6 +469,9 @@ class FeedList
       nitem = @feeds[id + 1]
       @feeds[id + 1] = @feeds[id]
       @feeds[id] = nitem
+      id + 1
+    else
+      id
     end
   end
 

@@ -945,3 +945,7 @@
 * Thu Jul 10 05:10:49 2003, pabs <pabs@pablotron.org>
   * raggle: use the term "online help" instead of inline help in
     online documentation refresh URL (is this more or less ambiguous?)
+
+* Thu Jul 10 08:42:41 2003, pabs <pabs@pablotron.org>
+  * raggle: apply patch from Ville Aine to fix bug reported by radsaq
+    (kmradlof@colby.edu).

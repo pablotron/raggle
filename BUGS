@@ -79,7 +79,7 @@ Bugs
     sometimes Raggle along with it
 [*] regex range warnings (reported by Brian Almeida)
 [*] feed dates showed as timestamps
-[ ] nil feed title empty borks sort (reported by Manpreet Singh
+[*] nil feed title empty borks sort (reported by Manpreet Singh
     <junkblocker@yahoo.com)
-[ ] left pane isn't cleared when deleting last feed (reported by
+[-] left pane isn't cleared when deleting last feed (reported by
     Manpreet Singh <junkblocker@yahoo.com)

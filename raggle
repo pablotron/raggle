@@ -1989,7 +1989,7 @@ $config = {
 
   'default_feeds' => [
     { 'title'     => ' Raggle', # add a space so sorting puts it at top
-      'url'       => 'http://www.pablotron.org/software/raggle/',
+      'url'       => "http://www.pablotron.org/software/raggle/help-#{$VERSION}.xml",
       'site'      => 'http://www.pablotron.org/software/raggle/',
       'refresh'   => -1,
       'updated'   => 1056271511,

@@ -533,6 +533,10 @@
   * raggle: pretty error for unknown options, not an exception
   * okay, __really__ release 0.1.0 now
 
+* Mon Jun 23 19:48:17 2003, pabs <pabs@pablotron.org>
+  * raggle: fix Raggle feed URL, just in case someone mucks with the
+    refresh interval (which is set to -1 by default)
+  * raggle: seriously, 0.1.0
 
 
 

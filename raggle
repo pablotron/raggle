@@ -54,6 +54,7 @@ $config = {
     'key'         => 'feed',
     'title'       => 'Feeds',
     'coords'      => [0, 1, 20, -1],
+    'type'        => 'list',
     'colors'      => { 
       'title'     => 1,
       'text'      => 1,
@@ -69,6 +70,7 @@ $config = {
     'key'         => 'item',
     'title'       => 'Items',
     'coords'      => [20, 1, -1, 20],
+    'type'        => 'list',
     'colors'      => {
       'title'     => 1,
       'text'      => 1,
@@ -84,6 +86,7 @@ $config = {
     'key'         => 'desc',
     'title'       => 'Description',
     'coords'      => [20, 21, -1, -1],
+    'type'        => 'text',
     'colors'      => {
       'title'     => 1,
       'text'      => 1,
@@ -140,7 +143,15 @@ $config = {
         { 'title' => 'erarrgh 5',
           'url'   => 'http://www.pablotron.org/test?item=2',
           'date'  => 3243298,
-          'desc'  => 'this is another test item', },
+          'desc'  => 'Some sample text:
+The Saturn Game, by Poul Anderson
+One of the writing problems peculiar to science fiction is that science has a
+wa y of catching up with your imagining. Just as you finish writing a book
+about th e poor folks who live on the perpetually dark side of Mercury, the
+damned Marine r flyby shows that there\'s no such thing as a dark side. Out the
+window with the manuscript (maybe followed by the typewriter and even the
+writer).
+', },
         { 'title' => 'bleh de bleh bleh6',
           'url'   => 'http://www.pablotron.org/test?item=3',
           'date'  => 112239847,
@@ -157,7 +168,7 @@ $config = {
 load $config['config_path'], false if test ?e, $config['config_path']
 
 class Window
-  attr_accessor :win, :title, :key, :colors, :active, :items, :active_item
+  attr_accessor :win, :win_type, :title, :key, :colors, :active, :items, :active_item
 
   #
   # window constructor
@@ -171,6 +182,7 @@ class Window
     @items = []
 
     @title = opts['title']
+    @win_type = opts['type']
     @key = opts['key']
     @colors = opts['colors'].dup
 
@@ -203,7 +215,7 @@ class Window
     Ncurses::getmaxyx win, ha, wa
     w, h = wa[0], ha[0]
 
-    @win.color_set @colors['h_text'],nil if hilited
+    @win.color_set @colors['h_text'],nil if @win_type == 'list' && hilited
     text.each_line { |line|
       Ncurses::mvwprintw @win, y, x, line.slice(0, w - x - 1)
       y += 1
@@ -341,33 +353,8 @@ begin
   Ncurses::mvprintw 0, 0, msg
   Ncurses::refresh
 
-
   # draw status bar
   set_status $config['msg_welcome']
-  
-  LONG_STRING =<<ENDSTRING
-hi this is a 
-really long test string to test the 
-function draw() which will eventually be put in 
-a member method of Window or wahtever I decide to call
-the window class....
-
-it seems like Window might be a good idea
-
-lkasdf
-lkasd
-lksad
-flkads
-lfkas
-dlk
-l
-asldlkasjdflkasjdflkajsdflkajsdfdj
-asdlfklsdalfjaskljfasljk
-lkjasdlkjadflkjasdlkjfdsldjflkj
-alksddlksflkajdlkjaalk
-lasdlksadflkjadsflkjdlkas
-alksjsakljflksadklasjdflkjaslk
-ENDSTRING
   
   # create windows
   $a_win = 0
@@ -391,22 +378,6 @@ ENDSTRING
   $wins[id].draw_items
   
   select_feed(0)
-# 
-#   id = get_win_id 'item'
-#   $config['debug_feeds'][0]['items'].each { |item|
-#     $wins[id].items << {
-#       'title' => item['title'],
-#       'proc'  => proc { select_item(i) }
-#     }
-#   }
-#   $wins[id].draw_items
-# 
-
-  # LONG_STRING.each_line { |line| $wins[$a_win].items << line }
-  # $wins[$a_win].draw_items
-
-  # LONG_STRING.each_line { |line| $wins[1].items << line }
-  # $wins[1].draw_items
   
   # main loop
   done = false

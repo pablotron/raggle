@@ -4,3 +4,7 @@
 
 * Sat Jun 07 23:09:10 2003, pabs <pabs@pablotron.org>
   * README: added requirements (YAML?)
+
+* Sat Jun 07 23:50:58 2003, pabs <pabs@pablotron.org>
+  * raggle: added window type (for scrolling and selection behavior)
+  * raggle: removed some old comments

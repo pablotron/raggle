@@ -239,8 +239,8 @@ module Key
       $config['feeds'].delete(win.active_item)
       win.delete_item
       win.active_item = (win.active_item > 0) ? win.active_item - 1 : 0
-      win.clear
       win.draw_items
+      win.clearrange(win.items.size + 1, win.dimensions[1] - 2)
     end
   end
 

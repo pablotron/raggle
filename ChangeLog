@@ -837,5 +837,11 @@
   * raggle: unbind r, ^L is good enough.
   * raggle: Properly redraw when the feedcache has loaded.
 
+* Tue Jul  1 07:06:52 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Only clear the part of the window that's necessary in
+            Key::delete (real fix follows).
+	
+
+
 
 

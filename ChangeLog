@@ -60,3 +60,5 @@
 
 * Sun Jun 08 20:56:41 2003, pabs <pabs@pablotron.org>
   * raggle: added additional online documentation
+  * raggle: reenabled save_feed_cache (oops)
+  * raggle: added 'site' option

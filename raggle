@@ -18,7 +18,7 @@ $config = {
 
   # feed cache handling
   'load_feed_cache'       => true,
-  'save_feed_cache'       => false,
+  'save_feed_cache'       => true,
 
   # ui options
   'focus'                 => 'select', # ['none', 'select', 'auto']
@@ -121,6 +121,7 @@ $config = {
   'feeds'         => [
     { 'title'     => 'Raggle',
       'url'       => 'http://www.pablotron.org/software/raggle/help.rss',
+      'site'      => 'http://www.pablotron.org/software/raggle/',
       'refresh'   => -1,
       'updated'   => 1055113783,
       'items'     => [
@@ -197,7 +198,8 @@ ragglebug@pablotron.org.
       ],
     },
     { 'title'     => 'Alternet',
-      'url'       => 'http://www.alternet.org/',
+      'url'       => 'http://www.alternet.org/rss/rss.xml',
+      'site'      => 'http://www.alternet.org/',
       'desc'      => 'Alternative News and Information.',
       'refresh'   => -1,
       'updated'   => 1055113783,

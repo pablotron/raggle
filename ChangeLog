@@ -430,7 +430,6 @@
     the feed description options)
   * raggle: change updated timestamp on all default feeds to zero
 	  
-
 * Sun Jun 22 04:09:24 2003, pabs <pabs@pablotron.org>
   * raggle: duplicate url in get_url (prevent prefix stripping)
   * raggle: move .to_i back into option handling (opts['id'] should
@@ -456,6 +455,24 @@
 * Sun Jun 22 04:56:14 2003, richlowe <richlowe@richlowe.net>
   * raggle.1: Mention the email address that bug reports should be sent to.
 
+* Sun Jun 22 04:49:57 2003, pabs <pabs@pablotron.org>
+  * raggle: ONLY I HOLD HTE COPYRIGHT MWHEHHAWHHAHAEHEH :)
+  * raggle: change ncurses to "console"; it sounds nicer.
+  * raggle: make sure richard is listed as an author everywhere
+  * raggle: upped 'feed_refresh_warn' to 60 minutes
+  * raggle: make 's' sort, instead of 'S'
+  * raggle: updated timestamps on all raggle feed items
+  * raggle: removed Ruby URL from welcome message (raggle feed
+    description)
+  * raggle: added basic navigation information to welcome message
+  * raggle: updated welcome feed item
+  * raggle: removed usage feed item
+  * raggle: updated keyboard feed item
+  * raggle: cleaned up reading feeds feed item
+  * raggle: wrote adding feeds feed item
+  * raggle: removed "Configuring Raggle" feed item
+  * raggle: added "Files" feed item
+  * raggle: updated reporting bugs section
 
 
 

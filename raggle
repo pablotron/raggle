@@ -2,7 +2,7 @@
 # -*- Mode: Ruby -*-
 
 #######################################################################
-# Raggle - NCurses RSS aggregator                                     #
+# Raggle - Console RSS aggregator                                     #
 # by Paul Duncan <pabs@pablotron.org> and                             #
 #    Richard Lowe <richlowe@richlowe.net>                             #
 #                                                                     #
@@ -12,8 +12,7 @@
 # this software.                                                      #
 #                                                                     #
 #                                                                     #
-# Copyright (C) 2003 Paul Duncan, Richard Lowe, and various           #
-# contributors.                                                       #
+# Copyright (C) 2003 Paul Duncan, and various contributors.           #
 #                                                                     #
 # Permission is hereby granted, free of charge, to any person         #
 # obtaining a copy of this software and associated documentation      #
@@ -1131,7 +1130,8 @@ end
 def print_usage
   puts <<ENDUSAGE
 Raggle - Console RSS feed aggregator.
-Version #$VERSION, by Paul Duncan <pabs@pablotron.org>
+Version #$VERSION, by Paul Duncan <pabs@pablotron.org> and
+                      Richard Lowe <richlowe@richlowe.net>
 
 Usage:
   #$0 [options]
@@ -1786,7 +1786,7 @@ $config = {
   'unicode_munge_str'     => 'ZZ',
 
   # warn if feed refresh is set to less than this
-  'feed_refresh_warn'     => 30,
+  'feed_refresh_warn'     => 60,
 
   # open new screen window for browser?
   'use_screen'            => true,
@@ -1840,7 +1840,7 @@ $config = {
 
     Ncurses::KEY_RESIZE => proc { |win, key| resize_term },
 
-    ?S                  => proc { |win, key| Key::sort_feeds },
+    ?s                  => proc { |win, key| Key::sort_feeds },
 
     ?o                  => proc { |win, key| Key::open_link },
   },
@@ -1977,35 +1977,37 @@ $config = {
   'use_raw_mode'  => true,
   'use_noecho'    => true,
 
-  # debugging feeds (these will be removed at some point)
-  'debug_feeds'   => [ ],
-
   'default_feeds' => [
     { 'title'     => ' Raggle', # add a space so sorting puts it at top
-      'url'       => 'http://www.pablotron.org/software/raggle/help.rss',
+      'url'       => 'http://www.pablotron.org/software/raggle/',
       'site'      => 'http://www.pablotron.org/software/raggle/',
       'refresh'   => -1,
-      'updated'   => 1056265451,
+      'updated'   => 1056271511,
       'desc'      => 'Welcome to Raggle!
 . .
-Raggle is a command-line RSS aggregator, written in Ruby 
-(http://www.ruby-lang.org/).  Raggle is free software; please see the
-file COPYING or the License item in the Raggle feed for licensing and
-warranty information.',
+Raggle is a console RSS aggregator, written in Ruby.  Raggle is
+free software; please see the file COPYING for licensing and warranty
+information.
+. .
+You can use the left and right arrow keys to navigate between windows.
+Press Enter or Space to select the hilited item in the active window.
+To launch a browser and view an item, select the item, navigate to the
+Description window and press Enter.
+',
       'items'     => [
         { 'title' => 'Introduction',
           'url'   => 'http://www.pablotron.org/software/raggle/',
-          'date'  => 1055074823,
+          'date'  => 1056271511,
           'read?' => false,
           'desc'  => 'Welcome to Raggle!
 . .
-Raggle is a command-line RSS aggregator, written in Ruby
-(http://www.ruby-lang.org/).  Raggle is free software; please see the
-file COPYING or the License item in this feed for licensing and
-warranty information.', },
+Raggle is a console RSS aggregator, written in Ruby.  Raggle is
+free software; please see the file COPYING for licensing and warranty
+information.
+', },
         { 'title' => 'License',
           'url'   => 'http://www.pablotron.org/software/raggle/',
-          'date'  => 1055074823,
+          'date'  => 1056271511,
           'read?' => false,
           'desc'  => 'Copyright (C) 2003
 Paul Duncan, and various contributors.
@@ -2029,77 +2031,76 @@ THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           ', },
-        { 'title' => 'Usage',
-          'url'   => 'http://www.pablotron.org/software/raggle/',
-          'date'  => 1055074823,
-          'read?' => false,
-          'desc'  => 'Keyboard .
-========                            .
-- Tab, <-, -> : Window navigation   .
-- Up, Down : Item navigation        .
-- Home, End : Start, end of list.   .
-- Enter, Space : Select active item .
-- Q, F12 : Exit Raggle              .
-.
-', },
         { 'title' => 'Keyboard',
           'url'   => 'http://www.pablotron.org/software/raggle/',
-          'date'  => 1055074823,
+          'date'  => 1056271511,
           'read?' => false,
-          'desc'  => 'Keyboard .
-========                            .
-- Tab, <-, -> : Window navigation   .
+          'desc'  => '- Tab, <-, -> : Window navigation   .
 - Up, Down : Item navigation        .
-- Home, End : Start, end of list.   .
+- Page Up, Page Down : Move up, down a page. .
+- u, d : Move the current feed up or down. .
+- s : Sort the feed list alphabetically. .
+- Del: Delete the hilited feed. .
+- o : Open the currently selected feed item. .
 - Enter, Space : Select active item .
 - Q, F12 : Exit Raggle              .
 .
 ', },
         { 'title' => 'Reading Feeds',
           'url'   => 'http://www.pablotron.org/software/raggle/',
-          'date'  => 1055074823,
+          'date'  => 1056271511,
           'read?' => false,
-          'desc'  => 'Reading Feeds .
-============= .
-To read a given feed, hilite it in the Feed window and press Enter or
+          'desc'  => 'To read a given feed,
+hilite it in the Feed window and press Enter or
 Space.  The list of items available from that feed will be displayed in
-the Item window.  Unread feed items are marked slightly differently than
-read feed items (the color is adjustable on a per-theme basis).  To view
-the full story linked from a feed item, navigate to the Description
-window (using Tab or the Left and Right arrow keys) and press Space or
-Enter.  If Raggle is running in a screen session, it will invoke your
-browser of choice in a separate screen window (this behavior is
-configurable; see the \'use_screen\' option in the "Configuring Raggle"
-section for additional information).  There are several different window
-navigation modes available, see the \'focus\' "Configuring Raggle"
-section for additional information.
+the Item window.  Unread feed items are hilited in cyan.  To view the
+full story linked from a feed item, navigate to the Description window
+(using Tab or the Left and Right arrow keys) and press Enter.  
+. .
+If Raggle is running in a screen session, it will invoke your browser of
+choice in a separate screen window (this behavior is configurable; see the
+\'use_screen\' option for additional information).  There are also several
+different window navigation modes available, see the \'focus\' option for
+additional information.
 ', },
         { 'title' => 'Adding Feeds',
           'url'   => 'http://www.pablotron.org/software/raggle/',
-          'date'  => 1055074823,
+          'date'  => 1056271511,
           'read?' => false,
-          'desc'  => 'Adding Feeds .
-============ .
-TODO (right now you have to edit the feed cache manually) .
-.
+          'desc'  => 'To add a new RSS feed to Raggle,
+quit out of Raggle and run the following command:
+. .
+raggle --add -t "title" -u "url" -r "refresh"
+. .
+Where "title" is the title of the feed, "url" is the URL of the feed,
+and "refresh" is the refresh interval (in minutes) of the feed.
+. .
+
+Note: The title will be overwritten by the feed unless you lock the
+title using the --lock-title command-line option.
 ', },
-        { 'title' => 'Configuring Raggle',
+        { 'title' => 'Configuration Files',
           'url'   => 'http://www.pablotron.org/software/raggle/',
-          'date'  => 1055074823,
+          'date'  => 1056271511,
           'read?' => false,
-          'desc'  => 'Configuring Raggle .
-================== .
-TODO
+          'desc'  => \
+'$HOME/.raggle/config.rb : main configuration file .
+ $HOME/.raggle/feeds.yaml : feed list .
+ $HOME/.raggle/feed_cache.store : cached feed items .
+ $HOME/.raggle/theme.yaml : colors, window layout .
+ . .
+ Note: Raggle will fall back to internal defaults if any of these
+ files are deleted, or if they don\'t exist.
 ', },
         { 'title' => 'Reporting Bugs',
           'url'   => 'http://www.pablotron.org/software/raggle/',
-          'date'  => 1055074823,
+          'date'  => 1056271511,
           'read?' => false,
-          'desc'  => 'Reporting Bugs .
-============== .
-Please make sure you\'re using the latest version of Raggle before
-reporting bugs.  That said, you can submit bug reports to
-ragglebug@pablotron.org.
+          'desc'  => 'Please make sure you are
+using the latest version of Raggle before reporting bugs.  That said,
+you can submit bug reports via email to i_hate_raggle@pablotron.org.
+Please make sure the phrase "RAGGLE BUG" is in the subject of the
+message.
 ', },
       ],
     },
@@ -2147,6 +2148,14 @@ ragglebug@pablotron.org.
       'url'       => 'http://www.lwn.net/headlines/rss',
       'site'      => 'http://www.lwn.net/',
       'desc'      => 'Linux Weekly News',
+      'refresh'   => 120,
+      'updated'   => 0,
+      'items'     => [ ],
+    },
+    { 'title'     => 'Pablotron',
+      'url'       => 'http://www.pablotron.org/?theme=rss&amp;max=15',
+      'site'      => 'http://www.pablotron.org/',
+      'desc'      => 'Paul Duncan\'s personal site.',
       'refresh'   => 120,
       'updated'   => 0,
       'items'     => [ ],

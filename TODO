@@ -87,3 +87,5 @@ Raggle TODO
 [ ] update keybindings documentation
 [ ] save feed attributes on OPML export
 [ ] XBEL import/export?
+[ ] url arg to --import-opml (suggested by Doug Kearns
+    <djkea2@mugca.its.monash.edu.au>)

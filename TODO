@@ -105,3 +105,4 @@ Raggle TODO
 [ ] after completing 0.4 cleanup, rewrite raggle engine in C for
     speed
 [ ] backend abstraction (be able to save to MySQL, LDAP, etc)
+[ ] use URI lib for url handling

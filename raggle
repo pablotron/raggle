@@ -343,7 +343,7 @@ class FeedList
     refresh_interval_check opts['refresh'] if !opts['force'] &&
                                               opts.has_key?('refresh')
     ourl = $config['feeds'].get(id)['url']
-    %w{title url refresh lock_title?}.each { |key|
+    %w{title url refresh lock_title? save_items?}.each { |key|
       $config['feeds'].get(id)[key] = opts[key] if opts.has_key? key
     }
     if opts.has_key?('url') and opts['url'] != ourl

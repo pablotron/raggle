@@ -764,6 +764,9 @@
   * raggle.1: Document 's', 'o', 'm', '!' and 'n' in the KEYS section.
   * raggle: Document 'm', '!' and 'n' in the Keyboard section of the
             internal documentation feed.
+
+* Fri Jun 27 17:14:16 2003, pabs <pabs@pablotron.org>
+  * raggle: fix bug in FeedList#edit so --save-items works again
   
 
 

@@ -1374,6 +1374,7 @@ Options:
   --force                       Force behavior Raggle won't normally allow.
                                 Use this option with caution.
   -h, --help, --usage           Display this usage screen.
+  -i, --invalidate              Invalidate a feed (force an update).
   -l, --list                    List existing feeds (use '--verbose' to 
                                 show URLs as well).
   --lock-title                  Lock Title attribute of feed (for '--add'

@@ -2164,3 +2164,10 @@
   * raggle: more accurate line counting for String#lines
   * raggle: fixed saving of item position when changing windows
     if you've scrolled to other pages in item window
+
+* Sat Dec 18 12:48:00 2004, redshift <redshift@halffull.org>
+  * raggle: added feed sort priorities - no need for spaces before important
+    thread titles anymore
+  * raggle: added CLI options and Ncurses keys to raise/lower priorities -
+    --priority or -p, and R and r respectively, by default
+  * raggle: fixed feed sorting to not automatically select first feed

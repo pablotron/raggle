@@ -878,6 +878,7 @@ module Raggle
             url = outline.attributes['xmlUrl'] || outline.attributes['xmlurl']
             site = outline.attributes['htmlUrl'] || outline.attributes['htmlurl'] || ''
             desc = outline.attributes['description'] || ''
+            priority = outline.attributes['priority'].to_i || $config['default_feed_priority']
 
             if title.nil? || url.nil?
               $stderr.puts "Warning: skipping incomplete OPML entry: #{outline}"
@@ -885,7 +886,7 @@ module Raggle
             end
             raise "WARNING!!! EXEC URL IN OPML IMPORT" if (url =~ /^exec:/)
             feed_list.add(title, url, refresh, lock_title, save_items,
-                          site, desc, [], nil, nil, force)
+                          site, desc, [], nil, nil, force, priority)
           end
         else
           raise "Empty input file \"#{file_name}\"."
@@ -950,6 +951,7 @@ module Raggle
       outline.attributes['description'] = feed['desc'] || ''
       outline.attributes['xmlUrl'] = feed['url'] || ''
       outline.attributes['htmlUrl'] = feed['site'] if feed.has_key?('site')
+      outline.attributes['priority'] = feed['priority'].to_i || $config['default_feed_priority']
       outline.attributes['version'] = 'RSS'
       outline.attributes['type'] = 'rss'
       outline
@@ -1049,7 +1051,8 @@ module Raggle
       #   feeds.add('pablotron', 'http://www.pablotron.org/rss/', 120)
       #
       def add(title, url, refresh, lock_title=false, save_items=false, site='',
-              desc='', items=[], image = nil, category = nil, force=true)
+              desc='', items=[], image = nil, category = nil, force=false,
+              priority=0)
         refresh_interval_check(refresh) unless force || url =~ /^(file|exec):/
         lock_title = false if !lock_title
         save_items = false if !save_items
@@ -1065,6 +1068,7 @@ module Raggle
           'category'    => category, 
           'lock_title?' => lock_title,
           'save_items?' => save_items,
+          'priority'    => priority,
         }
       end
 
@@ -1183,16 +1187,22 @@ module Raggle
       #
       def sort
         @feeds.sort! { |a, b|
-          rePrefix = /^\s*(a|the)\s+/i
-          reSpaces = /^\s*(.*?)\s*$/s
-
           a['title'] ||= $config['default_feed_title']
           b['title'] ||= $config['default_feed_title']
+          a['priority'] ||= $config['default_feed_priority']
+          b['priority'] ||= $config['default_feed_priority']
           
-          a_c, b_c = a['title'].gsub(rePrefix, '').gsub(reSpaces, '\1').downcase, 
-                     b['title'].gsub(rePrefix, '').gsub(reSpaces, '\1').downcase
+          if a['priority'] != b['priority']  # higher priorities first
+            b['priority'] <=> a['priority']
+          else  # just sort by title
+            rePrefix = /^\s*(a|the)\s+/i
+            reSpaces = /^\s*(.*?)\s*$/s
 
-          a_c <=> b_c
+            a_c, b_c = a['title'].gsub(rePrefix, '').gsub(reSpaces, '\1').downcase, 
+                       b['title'].gsub(rePrefix, '').gsub(reSpaces, '\1').downcase
+
+            a_c <=> b_c
+          end
         }
       end
 
@@ -1427,6 +1437,9 @@ Options:
                                 and '--edit').
   --max-items                   Set the maximum number of items for a feed
                                 (for '--add' and '--edit').
+  -p, --priority                Feed sorting priority: 0 by default, higher
+                                values will sort feeds to the top (for
+                                '--add' and '--edit').
   --purge                       Purge deleted feeds from feed cache.
   -r, --refresh                 Refresh attribute of feed (for '--add' and
                                 '--edit').
@@ -1500,6 +1513,7 @@ ENDUSAGE
         ['--url', '-u',                             GetoptLong::REQUIRED_ARGUMENT],
         ['--refresh', '-r',                         GetoptLong::REQUIRED_ARGUMENT],
         ['--version', '-v',                         GetoptLong::NO_ARGUMENT],
+        ['--priority', '-p',                        GetoptLong::REQUIRED_ARGUMENT],
         ['--purge',                                 GetoptLong::NO_ARGUMENT],
         ['--sort', '--sort-feeds',                  GetoptLong::NO_ARGUMENT],
         ['--lock-title',                            GetoptLong::NO_ARGUMENT],
@@ -1542,7 +1556,8 @@ ENDUSAGE
             when '--version'
               puts "Raggle v#$VERSION"
               exit(0)
-            when '--purge':   ret['mode'] = 'purge'
+            when '--priority':      ret['priority'] = arg.to_i
+            when '--purge':         ret['mode'] = 'purge'
             when '--sort', '--sort-feeds'
               ret['mode'] = 'sort'
             when '--lock-title':    ret['lock_title?'] = true
@@ -1781,6 +1796,23 @@ ENDUSAGE
           NcursesInterface::set_status " Forcing update for \"#{name}\""
         end
 
+        #
+        # Raises a feed's sort priority
+        #
+        def Key::raise_feed_priority
+          $config['feeds'][$a_feed]['priority'] += 1
+        end
+
+        #
+        # Lowers a feed's sort priority
+        #
+        def Key::lower_feed_priority
+          $config['feeds'][$a_feed]['priority'] -= 1
+        end
+
+        #
+        # Sort feeds by priority and then title, case insensitive
+        #
         def Key::sort_feeds
           win = $wins[NcursesInterface::get_win_id('feed')]
 
@@ -1791,8 +1823,7 @@ ENDUSAGE
           $config['feeds'].sort
           NcursesInterface::populate_feed_win
           
-          # select first feed, redraw feed window
-          win.active_item = 0
+          # redraw feed window
           win.draw_items
           win.select_win_item
 
@@ -3655,7 +3686,7 @@ ENDUSAGE
         %w{title refresh}.each { |i| opts[i] ||= $config["default_feed_#{i}"] }
         $config['feeds'].add(opts['title'], opts['url'], opts['refresh'],
                              opts['lock_title?'], opts['save_items?'],
-                             '', '', [], nil, nil, opts['force'])
+                             '', '', [], nil, nil, opts['force'], opts['priority'])
     
         # can't keep adding params to Feed::List#add forever :/
         if opts['max_items']
@@ -4633,6 +4664,7 @@ $config = {
   # default feed name and refresh rate
   'default_feed_title'    => 'Untitled Feed',
   'default_feed_refresh'  => 120,
+  'default_feed_priority' => 0,
 
   # open new screen window for browser?
   'use_screen'            => true,
@@ -4741,6 +4773,9 @@ $config = {
 
     ?p                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::select_prev_unread} ),
     ?n                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::select_next_unread} ),
+
+    ?r                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::lower_feed_priority} ),
+    ?R                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::raise_feed_priority} ),
 
     ?U                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::manual_update} ),
     ?S                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::manual_save} ),
@@ -4889,7 +4924,7 @@ $config = {
   'use_noecho'    => true,
 
   'default_feeds' => [
-    { 'title'     => '  Raggle Help', # add a space so sorting puts it at top
+    { 'title'     => 'Raggle Help',
       'url'       => "http://www.raggle.org/rss/help/",
       'site'      => 'http://www.raggle.org/',
       'refresh'   => 240,
@@ -4897,6 +4932,7 @@ $config = {
       'desc'      => '',
       'category'  => 'Raggle',
       'items'     => [ ],
+      'priority'  => 5,
     },
     { 'title'     => 'Alternet',
       'url'       => 'http://www.alternet.org/rss/rss.xml',

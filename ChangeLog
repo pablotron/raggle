@@ -1620,3 +1620,7 @@
   * extras/win32/win32.html: no more raggle server/client nonsense
   * extras/win32/win32.html: update keywords
   * extras/win32/win32.html: update summary of bugs (remove a few!)
+
+* Thu Sep 25 17:32:04 2003, pabs <pabs@pablotron.org>
+  * README: update documentation to account for new 0.3.0 features 
+    (including the web interface).

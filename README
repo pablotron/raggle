@@ -1,18 +1,23 @@
 Raggle 0.3.0 README
 ===================
 
-This document was last updated on Sat Aug 16 11:00:54 2003.
+This document was last updated on Thu Sep 25 13:40:01 2003.
 Please see the file COPYING for licensing and warranty information.  The
 latest version of this software is available at the following URL:
 http://www.raggle.org/.
 
 Introduction
 ============
-Raggle is a console RSS (RDF Site Summary) aggregator, written in Ruby
-(http://www.ruby-lang.org/).  Raggle has been tested under Linux and
-OpenBSD, and should work properly with various RSS versions.  If this is
-the first time you've used Raggle, please read the "Getting Started"
-section below for a brief overview of the keyboard controls.
+Raggle is a RSS (RDF Site Summary) aggregator, written in Ruby
+(http://www.ruby-lang.org/).  Raggle has two interfaces: a console
+interface and a web interface.  Features include HTTP proxy support,
+OPML import/export, themes, and support for various versions of RSS.
+The console interface also features customizable keybindings, basic HTML
+rendering, Screen support, and browser auto-detection.  Raggle has been
+tested under Linux, OpenBSD, OSX, and Windows, and should work properly
+under other Unix variants as well.  If this is the first time you've
+used Raggle, please read the "Getting Started" section below for a brief
+overview of the keyboard controls and command-line options.
 
 
 System Requirements
@@ -21,12 +26,6 @@ System Requirements
   http://www.ruby-lang.org/
 * REXML, version 2.4.0 (or newer) (included in Ruby 1.8.x):
   http://www.germane-software.com/software/rexml/
-* NCurses-Ruby, version 0.7.1 (or newer):
-  http://ncurses-ruby.berlios.de/
-* WEBrick, version 1.2.3 (or newer):
-  http://www.webrick.org/
-  (note: WEBrick is _optional_, and only necessary for the Raggle web
-  interface)
 * YAML support
   Either:
     o YAML-Ruby, version 0.49.1 (or newer):
@@ -34,16 +33,38 @@ System Requirements
     o Syck, version 0.35 (included in Ruby 1.8.x)
       http://whytheluckystiff.net/syck/ 
 
+You'll also need either Ncurses-Ruby or WEBrick depending the Raggle
+interface you're using.  Requirements for each interface are covered
+below.
+
+
+System Requirements (Console Interface)
+=======================================
+* NCurses-Ruby, version 0.7.1 (or newer):
+  http://ncurses-ruby.berlios.de/
+
 Raggle will run properly in an 80x25 terminal, but a slightly larger
 terminal (say, 80x35 or 80x40) is recommended.
 
 
+System Requirements (Web Interface)
+===================================
+* WEBrick, version 1.2.3 (or newer):
+  http://www.webrick.org/
+
+The Raggle web interface requires a web browser with support for frames
+and JavaScript.
+
+
 Installation
 ============
-The easiest way to install raggle is to use the included Makefile.  This
-will install the Raggle executable in a system-wide executable
-directory, install the Raggle documentation, and install the Raggle
-themes.  Here's the command:
+The easiest way to install Raggle is to use a package for your system.
+There are Raggle packages available for Debian, Gentoo, and FreeBSD.  If
+you're determined to install Raggle from the tarball, read on.
+
+The included Makefile will install the Raggle executable in a system-
+wide executable directory, install the Raggle documentation, and install
+the Raggle themes.  Here's the command:
 
   # install raggle, raggle docs, and raggle data
   sudo make install
@@ -71,11 +92,11 @@ the left side of the screen), the Item window (in the top-right corner),
 and the Description window (in the bottom-right corner).  The Feed
 window contains a list of RSS feeds you're currently subscribed to.
 I've included a handful of sample feeds to get you started raggling.  If
-you'd like more feeds, copy my feed list from "doc/pauls_feeds.yaml" to
-your raggle directory with the following command:
+you'd like more feeds, you can import my feed list from the file
+"doc/pauls_feeds.opml.gz" with the following command:
 
   # try out a big feed list
-  cp doc/pauls_feeds.yaml $HOME/.raggle/feeds.yaml
+  gzip -d < doc/pauls_feeds.yaml.gz | raggle --import-opml -
 
 Alternatively, there are several RSS feed directory and search engine
 links in the "Related Links" section below.
@@ -92,9 +113,10 @@ Here's how you add a new RSS feed to Raggle:
   # add a new feed to raggle
   raggle --add --url "url"
 
-Where "url" is the URL to the RSS feed.  A complete list of feed editing
-commands available from the command-line is available in the Raggle man
-page, or by typing "raggle --help".
+Where "url" is the URL to the RSS feed.  You can also add a feed inside
+Raggle by pressing 'a'.  A complete list of feed editing commands
+available from the command-line is available in the Raggle man page, or
+by typing "raggle --help".
 
 And that's it!  If you have any questions or comments about Raggle, feel
 free to subscribe to the Raggle mailing list, or email Richard, Ville,
@@ -108,6 +130,7 @@ Configuration Files
   $HOME/.raggle/feeds.yaml         - feed list
   $HOME/.raggle/feed_cache.store   - cached feed items
   $HOME/.raggle/theme.yaml         - colors, window layout
+  $HOME/.raggle/web_ui/            - web interface
 
 Raggle will fall back to internal defaults if any of these files are
 deleted, or if they don't exist.  The feed list, feed cache, and theme
@@ -120,6 +143,8 @@ command:
   # copy config to your raggle directory
   cp doc/default_config.rb $HOME/.raggle/config.rb
 
+Note: In Windows, these files are all stored in %USERPROFILE%\.raggle\,
+except for web_ui, which is located in "C:\Program Files\Raggle\web_ui\".
 
 Related Links
 =============

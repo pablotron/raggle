@@ -1838,3 +1838,7 @@
 * Tue Mar 30 10:04:54 2004, pabs <pabs@pablotron.org>
   * raggle: categories window now displays number of feeds with
     each category
+
+* Thu Apr 15 05:38:11 2004, pabs <pabs@pablotron.org>
+  * raggle: applied patch from Ralf Horstmann
+    <ralf.horstmann@webwasher.com>

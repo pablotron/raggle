@@ -740,7 +740,9 @@ module HTML
     # insert reference to the latest link into the
     # rendered text
     def action_insert_link_ref
-      @lines[-1] << '[%d]' % @links.size
+      if @lines[-1]
+        @lines[-1] << '[%d]' % @links.size
+      end
     end
   end
 

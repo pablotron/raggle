@@ -52,3 +52,6 @@ Nelson D. Guerrero <raggle@nelsong.com>
 
 Tom Paine <twp@gentoo.org>
 * Gentoo package maintainer
+
+Ralf Horstmann <ralf.horstmann@webwasher.com
+* action_insert_link_href() nil reference fix

@@ -7,3 +7,7 @@ Bugs
     is the FeedList were an array, (not reproducible here)
 [ ] Code *very* untidy in places, (will be fixed post-release)
 [ ] Man page is worthlessly incomplete
+[ ] It's possible that sometimes the inline documentation ("Raggle"
+    feed) items aren't created from the default list (We can't even
+    decide if this is really happenening or not.
+ 

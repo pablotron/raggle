@@ -1561,7 +1561,9 @@ About the Authors:
   http://www.richlowe.net/ (RSS: http://www.richlowe.net/diary/index.rss)
 
   Ville Aine <vaine@cs.helsinki.fi>
+
   Thomas Kirchner <redshift@halffull.org>
+  http://halffull.org/ (RSS: http://halffull.org/feed/rss/)
 ENDUSAGE
 
       exit(0)

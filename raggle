@@ -189,6 +189,14 @@ module Key
     $wins[$a_win].scroll_down
   end
 
+  def Key::scroll_top
+    $wins[$a_win].scroll_top
+  end
+
+  def Key::scroll_bottom
+    $wins[$a_win].scroll_bottom
+  end
+
   def Key::scroll_up_page
     $wins[$a_win].scroll_up_page
   end
@@ -1999,6 +2007,7 @@ $config = {
 
     Ncurses::KEY_UP     => proc { |win, key| Key::scroll_up },
     Ncurses::KEY_DOWN   => proc { |win, key| Key::scroll_down },
+    Ncurses::KEY_HOME   => proc { |win, key| Key::scroll_top },
     Ncurses::KEY_END    => proc { |win, key| Key::scroll_bottom },
     Ncurses::KEY_PPAGE  => proc { |win, key| Key::scroll_up_page },
     Ncurses::KEY_NPAGE  => proc { |win, key| Key::scroll_down_page },

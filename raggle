@@ -1222,7 +1222,8 @@ Options:
   -d, --delete, --delete-feed   Delete an existing feed.
   -e, --edit, --edit-feed       Edit an existing feed.
   -h, --help, --usage           Display this usage screen.
-  -l, --list:                   List existing feeds.
+  -l, --list                    List existing feeds.
+  --verbose                     Turn on verbose output.
   -v, --version                 Display version information.
 
 Examples:
@@ -1314,16 +1315,18 @@ def handle_Command_line(opts)
       ret['url'] = opts[i + 1]
     when '-r'
       grab_next = 1
-      ret['refresh'] = opts[i + 1]
+      ret['refresh'] = opts[i + 1].to_i
     when '--refresh'
       grab_next = 1
-      ret['refresh'] = opts[i + 1]
+      ret['refresh'] = opts[i + 1].to_i
     when '-v'
       puts "Raggle v#$VERSION"
       exit 0
     when '--version'
       puts "Raggle v#$VERSION"
       exit 0
+    when '--verbose'
+      $config['verbose'] = true
     when '-h'
       print_usage
     when '--help'
@@ -1356,9 +1359,17 @@ end
 
 def list_feeds
   i = -1
-  puts 'ID, Title'
-  $config[$SRC].each { |feed| puts "%2d, #{feed['title']}" % (i += 1) }
-  exit 0
+  if $config['verbose']
+    puts 'ID, Title, URL, Refresh'
+    $config[$SRC].each { |feed|
+     puts "%2d, #{feed['title']}, #{feed['url']}, #{feed['refresh']}" % (i += 1)
+    }
+  else 
+    puts 'ID, Title'
+    $config[$SRC].each { |feed|
+     puts "%2d, #{feed['title']}" % (i += 1)
+    }
+  end
 end
 
 def add_feed(opts)
@@ -1367,7 +1378,7 @@ def add_feed(opts)
     'url'       => opts['url'],
     'site'      => '',
     'desc'      => '',
-    'refresh'   => opts['refresh'].to_i,
+    'refresh'   => opts['refresh'],
     'updated'   => 1,
     'items'     => [ ],
   }
@@ -1375,6 +1386,12 @@ end
 
 def delete_feed(id)
   die "Unknown feed id #{id}." unless $config[$SRC].delete_at(id)
+end
+
+def edit_feed(id, opts)
+  %w{title url refresh}.each { |key|
+    $config[$SRC][id][key] = opts[key] if opts.has_key? key
+  }
 end
 
 def create_cache_lock
@@ -1455,12 +1472,17 @@ $config['raggle_mode'] = opts['mode']
 case opts['mode']
 when 'list'
   list_feeds
+  exit 0
 when 'add'
   add_feed opts
   save_feed_list
   exit 0
 when 'delete'
   delete_feed opts['id'].to_i
+  save_feed_list
+  exit 0
+when 'edit'
+  edit_feed opts['id'].to_i, opts
   save_feed_list
   exit 0
 end
@@ -1544,7 +1566,7 @@ begin
   Ncurses::keypad Ncurses::stdscr, 1
   Ncurses::noecho if $config['use_noecho']
   Ncurses::start_color
-  Ncurses::mousemask(Ncurses::ALL_MOUSE_EVENTS, [])
+  # Ncurses::mousemask(Ncurses::ALL_MOUSE_EVENTS, [])
 
   # exit -1 unless Ncurses::has_colors?
 

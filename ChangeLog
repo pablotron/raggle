@@ -296,3 +296,7 @@
 
 * Fri Jun 20 05:00:32 2003, pabs <pabs@pablotron.org>
   * TODO: updates, schmupdates
+
+* Fri Jun 20 21:24:25 EDT 2003, richlowe <richlowe@richlowe.net>
+  * raggle.1: Add mdoc manpage (needs changing to ms, preferably).
+

@@ -2,14 +2,14 @@
 # default config #
 ##################
 $config = {
-  'config_dir'            => Path::find_home + '/.raggle',
+  'config_dir'            => Raggle::Path::find_home + '/.raggle',
   'config_path'           => '${config_dir}/config.rb',
   'feed_list_path'        => '${config_dir}/feeds.yaml',
   'feed_cache_path'       => '${config_dir}/feed_cache.store',
   'theme_path'            => '${config_dir}/theme.yaml',
   'grab_log_path'         => '${config_dir}/grab.log',
   'cache_lock_path'       => '${config_dir}/lock',
-  'web_ui_root_path'      => Path::find_web_ui_root,
+  'web_ui_root_path'      => Raggle::Path::find_web_ui_root,
   'web_ui_log_path'       => '${config_dir}/webrick.log',
 
   # feed list handling
@@ -25,6 +25,9 @@ $config = {
   # your feed cache grow very large, very fast.  It's probably better
   # to use the per-feed --save-items command-line option.
   'save_feed_items'       => false,
+
+  # confirm feed deletion?
+  'confirm_delete'        => true,
 
   # theme handling
   'load_theme'            => true,
@@ -51,7 +54,7 @@ $config = {
   'use_ascii_only?'       => false,
 
   # maximum number of threads (don't set to less than 5!)
-  'max_threads'           => 7,
+  'max_threads'           => 10,
 
   # thread priorities (best to leave these alone)
   'thread_priority_main'  => 10,
@@ -59,6 +62,8 @@ $config = {
   'thread_priority_grab'  => 0, # child grabbing threads
   'thread_priority_gc'    => 1,
   'thread_priority_http'  => 1,
+  'thread_priority_find'  => 1,
+  'thread_priority_save'  => 0,
 
   # grab thread reap timeout (wait up to N seconds)
   'thread_reap_timeout'   => 120,
@@ -82,10 +87,10 @@ $config = {
 
   # URL handlers
   'url_handlers'          => {
-    'http'      => proc { |url, last_mod| Feed::get_http_url(url, last_mod) },
-    'https'     => proc { |url, last_mod| Feed::get_http_url(url, last_mod) },
-    'file'      => proc { |url, last_mod| Feed::get_file_url(url, last_mod) },
-    'exec'      => proc { |url, last_mod| Feed::get_exec_url(url, last_mod) },
+    'http'      => proc { |url, last_mod| Raggle::Engine::get_http_url(url, last_mod) },
+    'https'     => proc { |url, last_mod| Raggle::Engine::get_http_url(url, last_mod) },
+    'file'      => proc { |url, last_mod| Raggle::Engine::get_file_url(url, last_mod) },
+    'exec'      => proc { |url, last_mod| Raggle::Engine::get_exec_url(url, last_mod) },
   },
 
   # Raise an exception (which generally means crash) if the URL type is
@@ -106,7 +111,7 @@ $config = {
     # yes Richard, there is a reason the following line looks so
     # ugly. -- Paul
     'Accept-Charset'      =>'ISO-8859-1,UTF-8;q=0.7,*;q=0.7',
-    'User-Agent'          => "Raggle/#$VERSION (#{PLATFORM}; Ruby/#{VERSION})",
+    'User-Agent'          => "Raggle/#$VERSION (#{RUBY_PLATFORM}; Ruby/#{RUBY_VERSION})",
   },
 
   # Number of list items per "page" (wrt page up/down)
@@ -153,10 +158,30 @@ $config = {
   'msg_load_theme'        => 'Raggle: Loading theme...',
   'msg_save_theme'        => 'Raggle: Saving theme...',
   'msg_thanks'            => 'Thanks for using Raggle!',
+  'msg_default_input'     => 'Input:',
+  'msg_new_value'         => 'New value:',
   'msg_term_resize'       => 'Terminal Resize: ',
   'msg_links'             => 'Links:',
   'msg_add_feed'          => 'Enter URL:',
+  'msg_feed_added'        => 'Feed added',
+  'msg_confirm_delete'    => 'Delete current feed? (y/n)',
   'msg_find_entry'        => 'Find:',
+  'msg_cat_title'         => 'Display Category',
+  'msg_find_feed'         => 'Find Feeds:',
+  'msg_searching'         => ' Searching...',
+  'msg_find_title'        => 'Search Results for "%s" - %s matching feeds',
+  'msg_find_nomatches'    => 'No results found',
+  'msg_keys_title'        => 'Current Key Bindings',
+  'msg_added_existing'    => 'Warning: Added existing feed',
+  'msg_edit_title'        => 'Edit Feed Options',
+  'msg_bad_option'        => 'Warning: Bad option for %s',
+  'msg_edit_success'      => 'New option saved',
+  'msg_save_done'         => 'Configuration saved',
+  'msg_opml_input'        => 'OPML file or URI:',
+  'msg_opml_exported'     => 'OPML exported',
+  'msg_opml_imported'     => 'OPML imported',
+  'msg_bad_uri'           => 'Error: bad or empty URI',
+  'msg_exec_url'          => 'WARNING: exec url found!',
 
   # menu bar color
   'menu_bar_cols'         => 24,
@@ -175,8 +200,14 @@ $config = {
   # thread sleep intervals (in seconds)
   'feed_sleep_interval'   => 60,
 
+  # save thread sleep interval (in seconds)
+  'save_sleep_interval'   => 300,
+
   # gc thread sleep interval (in seconds)
   'gc_sleep_interval'     => 600,
+
+  # max results to return from syndic8
+  'syndic8_max_results'   => 100,
 
   # grab log mode (a == append, w == write)
   'grab_log_mode'         => 'w',
@@ -211,6 +242,7 @@ $config = {
   # default feed name and refresh rate
   'default_feed_title'    => 'Untitled Feed',
   'default_feed_refresh'  => 120,
+  'default_feed_priority' => 0,
 
   # open new screen window for browser?
   'use_screen'            => true,
@@ -219,13 +251,13 @@ $config = {
   'screen_cmd'            => ['screen', '-t', '%s'],
   
   # browser options
-  'browser'               => Path::find_browser,
+  'browser'               => Raggle::Path::find_browser,
   'browser_cmd'           => ['${browser}', '%s'],
 
   # Force raggle to accept shell metacharacters in urls.
   'force_url_meta'        => false,
   # Regular expression matching shell metacharacters to not allow in URLs
-  'shell_meta_regex'       => /([\`\$]|\#\{)/, # the #{ is to stop ruby
+  # 'shell_meta_regex'       => /([\`\$]|\#\{)/, # the #{ is to stop ruby
                                               # expansion.
                                               # Is that necessary?
 
@@ -259,65 +291,95 @@ $config = {
 
   # key bindings
   'keys'            => ($HAVE_LIB['ncurses'] ? {
-    Ncurses::KEY_RIGHT  => proc { |win, key| Key::next_window },
-    ?\t                 => proc { |win, key| Key::next_window },
+    Ncurses::KEY_RIGHT  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::next_window} ),
+    ?\t                 => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::next_window} ),
 
-    Ncurses::KEY_LEFT   => proc { |win, key| Key::prev_window },
-    ?\\                 => proc { |win, key| Key::view_source },
+    Ncurses::KEY_LEFT   => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::prev_window} ),
+    ?\\                 => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::view_source} ),
 
-    Ncurses::KEY_F12    => proc { |win, key| Key::quit },
-    ?q                  => proc { |win, key| Key::quit },
+    Ncurses::KEY_F12    => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::quit} ),
+    ?q                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::quit} ),
 
-    Ncurses::KEY_UP     => proc { |win, key| Key::scroll_up },
-    Ncurses::KEY_DOWN   => proc { |win, key| Key::scroll_down },
-    Ncurses::KEY_HOME   => proc { |win, key| Key::scroll_top },
-    ?0                  => proc { |win, key| Key::scroll_top },
-    Ncurses::KEY_END    => proc { |win, key| Key::scroll_bottom },
-    ?$                  => proc { |win, key| Key::scroll_bottom },
-    Ncurses::KEY_PPAGE  => proc { |win, key| Key::scroll_up_page },
-    Ncurses::KEY_NPAGE  => proc { |win, key| Key::scroll_down_page },
+    Ncurses::KEY_UP     => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_up} ),
+    Ncurses::KEY_DOWN   => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_down} ),
+    Ncurses::KEY_HOME   => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_top} ),
+    ?0                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_top} ),
+    Ncurses::KEY_END    => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_bottom} ),
+    ?$                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_bottom} ),
+    Ncurses::KEY_PPAGE  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_up_page} ),
+    Ncurses::KEY_NPAGE  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_down_page} ),
 
     # vi keybindings
-    ?h                  => proc { |win, key| Key::prev_window },
-    ?j                  => proc { |win, key| Key::scroll_down },
-    ?k                  => proc { |win, key| Key::scroll_up },
-    ?l                  => proc { |win, key| Key::next_window },
+    ?h                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::prev_window} ),
+    ?j                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_down} ),
+    ?k                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_up} ),
+    ?l                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::next_window} ),
+    ?g                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_top} ),
+    ?G                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_bottom} ),
 
-    ?\n                 => proc { |win, key| Key::select_item },
-    ?\                  => proc { |win, key| Key::select_item },
+    ?\n                 => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::select_item} ),
+    ?\                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::select_item} ),
 
-    ?u                  => proc { |win, key| Key::move_item_up },
-    ?d                  => proc { |win, key| Key::move_item_down },
+    ?u                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::move_feed_up} ),
+    ?d                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::move_feed_down} ),
 
-    ?I                  => proc { |win, key| Key::invalidate_feed },
+    ?I                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::invalidate_feed} ),
+    ?e                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::edit_feed} ),
 
-    ?/                  => proc { |win, key| Key::find_entry(win) },
+    ?/                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::find_entry(win)} ),
 
-    Ncurses::KEY_DC     => proc { |win, key| Key::delete },
+    Ncurses::KEY_DC     => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::delete} ),
+    ?y                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::undelete_all} ),
     ##
     # XXX: Meta can be dropped after spawned browser exits
     # So A, B, C or D should *not* be bound until this is fixed
     # -- richlowe 2003-06-22 (actually --pabs 2003-06-21)
-    # ?D                  => proc { |win, key| Key::delete },
+    # ?D                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::delete} ),
 
 
     # Literal control L is horrid -- richlowe 2003-06-26
-    ?\                => proc { |win, key| resize_term },
-    Ncurses::KEY_RESIZE => proc { |win, key| resize_term },
+    ?\                => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::resize_term} ),
+    Ncurses::KEY_RESIZE => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::resize_term} ),
 
-    ?s                  => proc { |win, key| Key::sort_feeds },
+    ?s                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::sort_feeds} ),
 
-    ?o                  => proc { |win, key| Key::open_link },
+    ?o                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::open_link} ),
 
-    ?m                  => proc { |win, key| mark_items_as_read },
+    ?m                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::mark_items_as_read} ),
+    ?M                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::mark_items_as_unread} ),
+    ?N                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::mark_current_as_unread} ),
 
-    ?!                  => proc { |win, key| drop_to_shell },
+    ?!                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::drop_to_shell} ),
 
-    ?p                  => proc { |win, key| select_prev_unread },
-    ?n                  => proc { |win, key| select_next_unread },
+    ?p                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::select_prev_unread} ),
+    ?n                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::select_next_unread} ),
 
-    ?U                  => proc { |win, key| Key::manual_update },
-    ?a                  => proc { |win, key| Key::gui_add_feed },
+    ?r                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::lower_feed_priority} ),
+    ?R                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::raise_feed_priority} ),
+
+    ?U                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::manual_update} ),
+    ?S                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::manual_save} ),
+    ?a                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::add_feed} ),
+    ?O                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::opml} ),
+
+    # i know this is using 'c'.. we'll see if this fucks us (see note
+    # about 'C' above)
+    # -- pabs (Sat Mar 20 21:10:55 2004)
+    ?c                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::gui_cat_list} ),
+    ?f                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::gui_find_feed} ),
+    ?C                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::close_window} ),
+
+    ??                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::show_key_bindings} ),
+
+    ?1                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::open_link(1)} ),
+    ?2                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::open_link(2)} ),
+    ?3                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::open_link(3)} ),
+    ?4                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::open_link(4)} ),
+    ?5                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::open_link(5)} ),
+    ?6                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::open_link(6)} ),
+    ?7                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::open_link(7)} ),
+    ?8                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::open_link(8)} ),
+    ?9                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::open_link(9)} ),
   } : {}),
 
   # color palette (referenced by themes)
@@ -446,14 +508,14 @@ $config = {
   },
 
   # live feeds
-  'feeds'    => FeedList.new,
+  'feeds'    => Raggle::Feed::List.new,
 
   # debugging / internal options (don't touch)
   'use_raw_mode'  => true,
   'use_noecho'    => true,
 
   'default_feeds' => [
-    { 'title'     => '  Raggle Help', # add a space so sorting puts it at top
+    { 'title'     => 'Raggle Help',
       'url'       => "http://www.raggle.org/rss/help/",
       'site'      => 'http://www.raggle.org/',
       'refresh'   => 240,
@@ -461,6 +523,7 @@ $config = {
       'desc'      => '',
       'category'  => 'Raggle',
       'items'     => [ ],
+      'priority'  => 2,
     },
     { 'title'     => 'Alternet',
       'url'       => 'http://www.alternet.org/rss/rss.xml',
@@ -468,7 +531,7 @@ $config = {
       'desc'      => 'Alternative News and Information.',
       'refresh'   => 120,
       'updated'   => 0,
-      'category'  => 'Politics,News',
+      'category'  => 'Politics News',
       'items'     => [ ],
     },
     { 'title'     => 'Daily Daemon News',
@@ -481,7 +544,7 @@ $config = {
       'items'     => [ ],
     },
     { 'title'     => 'FreshMeat',
-      'url'       => 'http://themes.freshmeat.net/backend/fm-newsletter.rdf',
+      'url'       => 'http://download.freshmeat.net/backend/fm-newsletter.rdf',
       'site'      => 'http://www.freshmeat.net/',
       'desc'      => 'FreshMeat.',
       'refresh'   => 120,
@@ -516,10 +579,10 @@ $config = {
       'category'  => 'Tech',
       'items'     => [ ],
     },
-    { 'title'     => 'Linuxbrit.co.uk',
-      'url'       => 'http://www.linuxbrit.co.uk/rss.php',
+    { 'title'     => 'Linuxbrit',
+      'url'       => 'http://www.linuxbrit.co.uk/feed/rss/',
       'site'      => 'http://www.linuxbrit.co.uk/',
-      'desc'      => 'Linuxbrit.co.uk',
+      'desc'      => 'Tom Gilbert\'s personal site.',
       'refresh'   => 120,
       'updated'   => 0,
       'category'  => 'Blogs',
@@ -549,7 +612,7 @@ $config = {
       'desc'      => 'Pigdog Journal',
       'refresh'   => 120,
       'updated'   => 0,
-      'category'  => 'Politics,News',
+      'category'  => 'Politics News',
       'items'     => [ ],
     },
     { 'title'     => 'Raggle: News',
@@ -558,8 +621,9 @@ $config = {
       'desc'      => 'Raggle News',
       'refresh'   => 120,
       'updated'   => 0,
-      'category'  => 'Tech,Raggle',
+      'category'  => 'Tech Raggle',
       'items'     => [ ],
+      'priority'  => 1,
     },
     { 'title'     => 'Richlowe.net',
       'url'       => 'http://richlowe.net/diary/index.rss',
@@ -576,7 +640,7 @@ $config = {
       'desc'      => 'Slashdot',
       'refresh'   => 120,
       'updated'   => 0,
-      'category'  => 'Tech,News',
+      'category'  => 'Tech News',
       'items'     => [ ],
     },
     { 'title'     => 'This Modern World',
@@ -585,7 +649,7 @@ $config = {
       'desc'      => 'This Modern World',
       'refresh'   => 120,
       'updated'   => 0,
-      'category'  => 'Blogs,Politics',
+      'category'  => 'Blogs Politics',
       'items'     => [ ],
     },
     { 'title'     => 'Tynian.net',
@@ -612,7 +676,7 @@ $config = {
       'desc'      => 'yahoo tech',
       'refresh'   => 120,
       'updated'   => 0,
-      'category'  => 'Tech,News',
+      'category'  => 'Tech News',
       'items'     => [ ],
     },
     { 'title'     => 'Yahoo! News - Top Stories',
@@ -630,7 +694,7 @@ $config = {
       'desc'      => 'yahoo world',
       'refresh'   => 120,
       'updated'   => 0,
-      'category'  => 'Politics,News',
+      'category'  => 'Politics News',
       'items'     => [ ],
     },
   ],

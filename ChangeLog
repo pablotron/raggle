@@ -2302,3 +2302,5 @@
 * Wed Jan 05 10:48:00 2005, redshift <redshift@halffull.org>
   * raggle: added feed delete confirmation
   * TODO: removed feed delete confirmation
+  * doc/default_config.rb: updated default config from raggle for new
+    options

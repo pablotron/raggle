@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# -*- Mode: Ruby -*-
 
 # Raggle version
 $VERSION = '0.1.0'
@@ -893,6 +894,34 @@ class Window
   end
 
   #
+  # Activate an item
+  #
+  def activate(item)
+    if @items.size > 0
+      if item >= @items.size or item < 0
+        throw "Window#activate item out of range (#{item}/#{@items.size})"
+      end
+      @active_item = item
+      adjust_to item
+    end
+  end
+  
+  def scroll_up_page
+    step = $config['page_step']
+    step = dimensions[1] - 2 - step if step < 0
+    activate scroll_bound((@active_item - step) % @items.size)
+  end
+
+  #
+  # Scroll one page down.
+  #
+  def scroll_down_page
+    step = $config['page_step']
+    step = dimensions[1] - 2 - step if step < 0
+    activate scroll_bound((@active_item + step) % @items.size)
+  end
+       
+  #
   # Bound scrolling based on $config['scroll_wrapping']
   #
   def scroll_bound(point)
@@ -905,14 +934,6 @@ class Window
     end
   end
 
-  #
-  # Activate an item
-  #
-  def activate(item)
-    @active_item = item
-    adjust_to item
-  end
-  
   #
   # Scroll the window up one item
   #
@@ -941,24 +962,6 @@ class Window
     activate 0
   end
 
-  #
-  # Scroll one page up.
-  #
-  def scroll_up_page
-    step = $config['page_step']
-    step = dimensions[1] - 2 - step if step < 0
-    activate scroll_bound((@active_item - step) % @items.size)
-  end
-
-  #
-  # Scroll one page down.
-  #
-  def scroll_down_page
-    step = $config['page_step']
-    step = dimensions[1] - 2 - step if step < 0
-    activate scroll_bound((@active_item + step) % @items.size)
-  end
-       
   #
   # handle keyboard input
   #

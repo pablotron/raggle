@@ -2150,3 +2150,10 @@
     no side effects (like adding/deleting feeds, etc.)
   * raggle: don't display find results if zero - fixes some window issues
   * raggle: minor code cleanup
+
+* Fri Dec 17 11:59:00 2004, redshift <redshift@halffull.org>
+  * raggle: changed things like "exit 0" to "exit(0)" to avoid ruby warnings
+  * raggle: initialized globals to avoid more ruby warnings
+  * raggle: added reset param to window close method, allows certain
+    operations (like selecting a category) to close without error (default
+    is not to reset active window)

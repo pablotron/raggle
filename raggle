@@ -50,13 +50,13 @@ if __FILE__ == $0
     else
       puts 'Interrupted';
     end
-    exit -1
+    exit(-1)
   }
 
   # win32 doesn't support these signals
   if RUBY_PLATFORM !~ /win32/i
-    trap('QUIT') { puts 'Quit'; exit -1 }
-    # trap('TERM') { puts 'Term'; exit -1 } # don't trap -TERM
+    trap('QUIT') { puts 'Quit'; exit(-1) }
+    # trap('TERM') { puts 'Term'; exit(-1) } # don't trap -TERM
 
     # HUP invalidates all feeds and forces a refresh immediately
     trap('HUP') { Engine::invalidate_feed(-1); $feed_thread.run }
@@ -100,7 +100,7 @@ You're missing the #{title} module.  For installation
 instructions, Please see the file README or visit the following URL:
   http://www.raggle.org/docs/install/
 ENDERR
-      exit -1
+      exit(-1)
     else
       $HAVE_LIB[key] = false
     end
@@ -115,7 +115,7 @@ one or the other in order to run Raggle.  For installation instructions,
 Please see the file README or visit the following URL:
   http://www.raggle.org/docs/install/
 ENDERR
-  exit -1
+  exit(-1)
 end
 
 # load win32/registry as well in windows
@@ -133,7 +133,7 @@ def die(*args)
   errstr << ": #$!" if $!
   errstr.escape_format! if errstr =~ /%/
   at_exit { $stderr.puts errstr }
-  exit -1
+  exit(-1)
 end
 
 # 
@@ -145,9 +145,9 @@ end
 
 #
 # The following bit of magic allows us to Marshal Procs, or get
-# their code from proc.source; use either the proc method or Proc.new
-# with %{} rather than {} for the block.  (This passes a string literal,
-# stored in the Proc.  Be careful creating these in hashes - spaces kill)
+# their code from proc.source; use the proc method with %{} rather
+# than {} for the block.  (This passes a string literal, stored in
+# the Proc.  Be careful creating these in hashes - spaces kill)
 # (this is used to create the help window)
 #
 class Proc
@@ -163,10 +163,6 @@ class Proc
 
   def _dump(depth)
     @source or raise "Proc needs source to dump"
-  end
-
-  def Proc.new(string=nil, &block)
-    Kernel.proc(string, &block)
   end
 
   # strips off proc{}
@@ -1295,7 +1291,7 @@ this, use the '--force' option to bypass this warning.
 ENDWARNING
 # '
           $stderr.puts err.reflow
-          exit -1
+          exit(-1)
         end
       end
       private :refresh_interval_check
@@ -1545,7 +1541,7 @@ ENDUSAGE
             when '--refresh': ret['refresh'] = arg.to_i
             when '--version'
               puts "Raggle v#$VERSION"
-              exit 0
+              exit(0)
             when '--purge':   ret['mode'] = 'purge'
             when '--sort', '--sort-feeds'
               ret['mode'] = 'sort'
@@ -1587,7 +1583,7 @@ ENDUSAGE
           end
         end
       rescue GetoptLong::InvalidOption 
-        exit -1
+        exit(-1)
       end
     
            
@@ -1596,7 +1592,7 @@ ENDUSAGE
         ['url'].each { |val| # removed 'title' and 'refresh' for now
           unless ret[val]
             die "Missing '--#{val}'."
-            exit -1
+            exit(-1)
           end
         }
       elsif ret['mode'] == 'edit'
@@ -1649,41 +1645,41 @@ ENDUSAGE
       case opts['mode']
       when 'list'
         CLI::list_feeds
-        exit 0
+        exit(0)
       when 'add'
         added = Engine::add_feed opts
         Engine::save_feed_list if added
-        exit 0
+        exit(0)
       when 'delete'
         Engine::delete_feed opts['id']
         Engine::save_feed_list
-        exit 0
+        exit(0)
       when 'invalidate'
         Engine::invalidate_feed opts['id']
         Engine::save_feed_list
-        exit 0
+        exit(0)
       when 'edit'
         Engine::edit_feed opts['id'], opts
         Engine::save_feed_list
-        exit 0
+        exit(0)
       when 'sort'
         Engine::sort_feeds
         Engine::save_feed_list
-        exit 0
+        exit(0)
       when 'purge'
         Engine::purge_feed_cache
-        exit 0
+        exit(0)
       when 'import_opml'
         OPML::import opts['opml_file'], opts['refresh'], opts['lock_title?'], opts['save_items'],
           opts['force']
         Engine::save_feed_list
-        exit 0
+        exit(0)
       when 'export_opml'
         OPML::export opts['opml_file']
-        exit 0
+        exit(0)
       when 'find_feeds'
         CLI::find_feeds(opts['find_str'])
-        exit 0
+        exit(0)
       end
       
       # enable ascii mode if requested
@@ -1744,9 +1740,9 @@ ENDUSAGE
         #
         def Key::close_window
           case $a_win
-          when NcursesInterface::get_win_id('find'): $wins[$a_win].close('find')
-          when NcursesInterface::get_win_id('cat'): $wins[$a_win].close('cat')
-          when NcursesInterface::get_win_id('keys'): $wins[$a_win].close('keys')
+          when NcursesInterface::get_win_id('find'): $wins[$a_win].close('find', true)
+          when NcursesInterface::get_win_id('cat'): $wins[$a_win].close('cat', true)
+          when NcursesInterface::get_win_id('keys'): $wins[$a_win].close('keys', true)
           end
         end
 
@@ -1948,6 +1944,7 @@ ENDUSAGE
           coords[3] = $config['h'] - coords[1] if coords[3] == -1
 
           @active_item = 0
+          @active = false
           @offset = 0
           @items = []
 
@@ -2056,11 +2053,11 @@ ENDUSAGE
         #
         # Close and delete an Ncurses window
         #
-        def close(win_name)
+        def close(win_name, reset=false)
           old_wins = $wins.dup
           @win.del if $a_win == NcursesInterface::get_win_id(win_name)
           $wins.delete_if { |i| i.key == win_name }
-          NcursesInterface::set_active_win($prev_win) unless old_wins == $wins
+          NcursesInterface::set_active_win($prev_win) if reset unless old_wins == $wins
           $wins.each { |i| i.refresh }
         end
 
@@ -2520,7 +2517,7 @@ ENDUSAGE
           $wins[$a_win].refresh
         end
 
-        $prev_win = $a_win
+        $prev_win = $a_win || NcursesInterface::get_win_id('feed')
         $a_win = a_win
 
         $wins[$a_win].active = true
@@ -2744,8 +2741,7 @@ ENDUSAGE
         $wins[w_id].activate 0
         
         # delete category window
-        id = NcursesInterface::get_win_id('cat')
-        $wins.delete_at(id)
+        $wins[NcursesInterface::get_win_id('cat')].close('cat')
       end
       
       #
@@ -3125,10 +3121,10 @@ ENDUSAGE
         Ncurses::start_color
         # Ncurses::mousemask(Ncurses::ALL_MOUSE_EVENTS, [])
         
-        # exit -1 unless Ncurses::has_colors?
+        # exit(-1) unless Ncurses::has_colors?
         
         # initialize color pairs
-        $config['color_palette'].each { |ary| Ncurses::init_pair *ary }
+        $config['color_palette'].each { |ary| Ncurses::init_pair(*ary) }
         
         # get screen coordinates
         h = []; w = []
@@ -3535,7 +3531,7 @@ ENDUSAGE
         end
 
         def quit
-          exit 0
+          exit(0)
         end
       end
 
@@ -4330,6 +4326,10 @@ def main
 
   $config['run_http_server'] = true unless $HAVE_LIB['ncurses'] ||
                                            $HAVE_LIB['drb']
+  # initialize default globals
+  $category = "all"
+  $view_source = false
+  $update_wins = false
 
   # Draw windows and such.
   # (unless we're running as a daemon)

@@ -62,3 +62,7 @@
   * raggle: added additional online documentation
   * raggle: reenabled save_feed_cache (oops)
   * raggle: added 'site' option
+
+* Sun Jun 08 22:11:35 2003, pabs <pabs@pablotron.org>
+  * README: added brief introduction, requirements, etc
+  * added AUTHORS

@@ -1,10 +1,34 @@
 Raggle 0.1.0 README
 ===================
 
-Raggle is an Ncurses-based RSS aggregator.
+This document was last updated on Sun Jun 08 22:05:02 2003.
+Please see the file COPYING for licensing and warranty information.  The
+latest version of this software is available at the following URL:
+http://www.pablotron.org/software/raggle/.
 
+Introduction
+============
+Raggle is a command-line RSS aggregator, written in Ruby
+(http://www.ruby-lang.org/).  
 
-Requirements: 
-  ncurses-ruby
-  REXML
-  (YAML?)
+System Requirements
+===================
+* REXML, version 2.4.0 (or newer):
+  http://www.germane-software.com/software/rexml/
+* NCurses-Ruby, version 0.7.1 (or newer):
+  http://ncurses-ruby.berlios.de/
+* YAML-Ruby, version 0.49.1 (or newer):
+  http://www.yaml.org/
+
+Installation
+============
+
+Related Links
+=============
+
+About the Author
+================
+Paul Duncan <pabs@pablotron.org>
+http://www.pablotron.org/
+
+See the file AUTHORS for additional contributions.

@@ -775,6 +775,10 @@
 * Fri Jun 27 18:56:47 2003, pabs <pabs@pablotron.org>
   * remove old/
 
+* Sat Jun 28 15:18:30 2003, pabs <pabs@pablotron.org>
+  * removed rss_grab.rb 
+  * added extras/rss_grab.rb
+  * added extras/feed_sizes.rb
 
 	
 

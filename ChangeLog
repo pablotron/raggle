@@ -2121,3 +2121,6 @@
   * raggle: added checking for duplicate feeds - no need to waste bandwidth
     (Engine::add_feed returns whether it was successful)         
   * raggle: fixed a few typos/miscellaneous cleanup
+
+* Thu Dec 09 17:53:45 2004, redshift <redshift@halffull.org>
+  * raggle: check for duplicate feeds on command line as well

@@ -471,8 +471,7 @@ module Raggle
         end
 
         attr_accessor :context
-        attr_reader :start_actions
-        attr_reader :end_actions
+        attr_reader :start_actions, :end_actions
 
         #
         # TODO: Raggle::HTML::TagSet::Tag#start_actions= placeholder
@@ -1620,8 +1619,8 @@ ENDUSAGE
         CLI::list_feeds
         exit 0
       when 'add'
-        Engine::add_feed opts
-        Engine::save_feed_list
+        added = Engine::add_feed opts
+        Engine::save_feed_list if added
         exit 0
       when 'delete'
         Engine::delete_feed opts['id']
@@ -3116,8 +3115,8 @@ ENDUSAGE
                 $feed_thread.run
               when 'add'
                 url = $1 if req.query_string =~ /url=(.*)$/
-                Engine::add_feed({ 'url' => url })
-                $feed_thread.run if $config['update_after_add']
+                added = Engine::add_feed({ 'url' => url })
+                $feed_thread.run if added and $config['update_after_add']
               when 'delete'
                 if req.query_string =~ /id=(\d+)/
                   id = $1.to_i
@@ -3373,7 +3372,7 @@ ENDUSAGE
         end
 
         def add_feed(opts)
-          main::add_feed(opts)
+          Engine::add_feed(opts)
         end
 
         def [](id)
@@ -3930,7 +3929,7 @@ ENDUSAGE
     end
 
     #
-    # grab individual feed Ccalled by feed grabbing thread)
+    # grab individual feed called by feed grabbing thread
     #
     def Engine::grab_feed(feed)
       t = Time.now

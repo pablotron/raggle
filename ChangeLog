@@ -768,6 +768,9 @@
 * Fri Jun 27 17:14:16 2003, pabs <pabs@pablotron.org>
   * raggle: fix bug in FeedList#edit so --save-items works again
   
+* Fri Jun 27 17:57:16 2003, pabs <pabs@pablotron.org>
+  * TODO: add new ideas to list
+  * raggle: change 'Q' to 'q' in inline keyboard documentation
 
 
 	

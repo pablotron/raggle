@@ -4,7 +4,7 @@ Raggle TODO
 [*] sanitize window modes (remove text reflow from draw())
 [ ] clean up code (move methods to modules, eliminate globals, etc)
 [ ] modularize code to make it suitable for reuse
-[ ] finish inline documentation
+[*] finish inline documentation
 [*] command-line options
 [*] feed grab save existing items
 [*] speed up feed cache loading
@@ -32,3 +32,11 @@ Raggle TODO
     would otherwise evade it (by not having spaces in it, say).
 [ ] When selecting a feed, automatically (and optionally) select the
     first item in the feed.
+[ ] OPML import/export support (http://www.opml.org/)
+[ ] RSS locator (see link from http://www.pablotron.org/?cid=1154)
+[ ] item delete, mark items as unread, stick (save, hilite?) items, etc
+[ ] proxy support (via ENV['HTTP_PROXY'], etc?)
+[ ] display / dump raw feed output
+[ ] conditional HTTP GET to reduce bandwidth use and increase speed
+[ ] "update this feed now!" option from within Raggle
+[ ] 'manual_update' option and keybinding for modem lusers

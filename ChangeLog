@@ -1003,3 +1003,9 @@
   * raggle: added 'select_first' focus type.  doesn't work yet, but 
     eventually it'll be the select first item on activate mode.
 
+* Sat Aug 16 12:16:23 2003, pabs <pabs@pablotron.org>
+  (in the last commit, but I forgot to mention it).
+  * raggle: wrap the external libraries with a slightly more intuitive
+    error message.  it points people at the README or the web-based
+    installation instructions if YAML, REXML, or Ncurses-Ruby are 
+    missing.

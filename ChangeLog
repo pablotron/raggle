@@ -853,6 +853,11 @@
 * Tue Jul  1 07:58:57 2003, richlowe <richlowe@richlowe.net>
   * raggle: Fix some typos (and spelling errors) in comments and documentation.
 
+* Wed Jul 02 21:58:48 2003, pabs <pabs@pablotron.org>
+  * raggle: fix the find_browser() bug reported and patched by Jon
+    Bernard (jbernard@roanoke.edu) and Claes Nasten (pekdon@pekdon.net)
+    (and someone else maybe?)
+  * raggle: make die() take multiple arguments. ala puts
 
 	
 

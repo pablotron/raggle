@@ -67,9 +67,9 @@ end
 #
 # I like die
 #
-def die(str)
-  errstr = "#$0: FATAL: #{str}"
-  errstr += ": #$!" if $!
+def die(args)
+  errstr = "#$0: FATAL: #{args.join("\n")}"
+  errstr << ": #$!" if $!
   $stderr.puts errstr
   exit -1
 end
@@ -87,14 +87,14 @@ module Path
   #
   def Path::find_browser
     ret = ENV['RAGGLE_BROWSER']
-    ret = ENV['BROWSER']
-    ret = 'links' if !ret && test(?e, find_app('links'))
-    ret = 'w3m' if !ret && test(?e, find_app('w3m'))
-    ret = 'lynx' if !ret && test(?e, find_app('lynx'))
-    
+    ret ||= ENV['BROWSER']
+    ret ||= %w{links elinks w3m lynx}.find { |app| find_app(app) }
+
     # die if we couldn't find a browser
-    die "Couldn't find suitable browser.  Is $BROWSER set?" unless ret
-    
+    die "Couldn't find suitable browser.",
+        "Please set $RAGGLE_BROWSER, $BROWSER, or install one of the following",
+        "console browsers: ELinks, Links, Lynx. or W3M." unless ret
+
     # return browser
     ret
   end

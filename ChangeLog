@@ -711,6 +711,11 @@
   * raggle: Actually set the status line when we encounter a malicious
             URL, it's "Being a Tool" day here at richlowe towers.
 
+* Thu Jun 26 02:29:52 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Beep when we get a bad URL, make it obvious something happened
+            and maybe pull attention to the status line.
+
+
 	
 
 

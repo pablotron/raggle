@@ -664,6 +664,7 @@ class Window
         end
 
         if cmd =~ $config['shell_meta_regex'] and !$config['force_url_meta']
+          Ncurses::beep
           set_status "Refusing to open link containing meta-characters"
         else
           # execute command

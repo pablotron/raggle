@@ -430,7 +430,7 @@ module Feed
 
     # check for port in URL
     if host =~ /:(\d+)$/
-      port = $1 
+      port = $1.to_i
       host.gsub!(/:(\d+)$/, '')
     end
 
@@ -452,13 +452,13 @@ module Feed
       else
         raise "HTTP Error: #$!"
       end
+    ensure
+      # close HTTP connection
+      # Note: if we don't specify this, then the connection is pooled
+      # for the HTTP/1.1 spec (do we prefer that kind of behavior?
+      # maybe I should make in an option)
+      http.finish 
     end
-
-    # close HTTP connection
-    # Note: if we don't specify this, then the connection is pooled for the
-    # HTTP/1.1 spec (do we prefer that kind of behavior?  maybe I should make in
-    # an option)
-    http.finish
 
     # return URL content
     ret
@@ -1289,7 +1289,7 @@ end
 def select_next_unread
   item_id = get_win_id 'item'
 
-  ($a_item + 1).upto($wins[item_id].items.size) { |i|
+  ($a_item + 1).upto($wins[item_id].items.size - 1) { |i|
     if $wins[item_id].items[i]['read?'] == false
       select_item i
       $wins[item_id].activate i

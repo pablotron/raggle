@@ -784,7 +784,13 @@
   * raggle: make --list-feeds handle feed titles and urls with %
     characters in them
 
+* Mon Jun 30 21:18:02 2003, pabs <pabs@pablotron.org>
+  * raggle: applied patch from Ville Aine: make sure HTTP connections
+    are closed, even when an exception is raised
 
+* Mon Jun 30 21:22:30 2003, pabs <pabs@pablotron.org>
+  * raggle: aplied patch from Ville Aine: select_next_unread shouldn't
+    crash if there's no unread items
 
 
 

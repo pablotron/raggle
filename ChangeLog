@@ -1710,3 +1710,8 @@
   * raggle: Change how the browser is launched, this seems to fix 
   the bug that prevented some urls from loading properly.
   * BUGS: mark the URL loading bug as fixed.
+
+* Thu Nov 20 08:31:58 2003, pabs <pabs@pablotron.org>
+  * raggle: remove REXML::Encoding::ENCODING_CLAIMS stuff; it's apparently
+    been either moved or removed from REXML.
+  * doc/pauls_feeds.opml.gz: updated

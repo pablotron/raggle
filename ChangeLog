@@ -646,6 +646,21 @@
   * raggle (Window#draw_text): Oops, I somehow reverted the "not drawing the
            last line" fix, put it back.
 
+* Tue Jun 24 22:53:34 2003, richlowe <richlowe@richlowe.net>
+  * raggle (Window#select_win_item):
+	*** SECURITY FIX ***
+	Previously to this change (including 0.1-release) Shell
+	metacharacters in URLs would be passed through unchanged, leading
+	to the possibility of a malicious feed being able to run arbitrary
+	commands as the user running raggle.  This commit introduces two
+	new config options 'force_url_meta' (defaulting to false) to force
+	the acceptance of URLs containing shell metacharacters, and
+	'shell_meta_regex' (defaulting to /([\`\$]|\#{)/, but in need of
+	refinement), URLs matching this regex are ignored, and an error is
+	displayed in the status line
+	*********************
+
+
 
 
 

@@ -662,9 +662,13 @@ class Window
           # build new command
           cmd = screen_cmd << ' ' << cmd
         end
-        
-        # execute command
-        system cmd
+
+        if cmd =~ $config['shell_meta_regex'] and !$config['force_url_meta']
+          status_line = "Refusing to open link containing meta-characters"
+        else
+          # execute command
+          system cmd
+        end
 
         # reset screen
         unless use_screen
@@ -1983,6 +1987,13 @@ $config = {
   # browser options
   'browser'               => Path::find_browser,
   'browser_cmd'           => '${browser} %s',
+
+  # Force raggle to accept shell metacharacters in urls.
+  'force_url_meta'        => false,
+  # Regular expression matching shell metacharacters to not allow in URLs
+  'shell_meta_regex'       => /([\`\$]|\#{)/, # the #{ is to stop ruby
+                                              # expansion.
+                                              # Is that necessary?
 
   # lock feed names (don't update feed title from feed)
   # (you can lock individual feed titles with the --lock-title command)

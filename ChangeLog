@@ -865,6 +865,9 @@
 * Thu Jul 03 16:06:09 2003, pabs <pabs@pablotron.org>
   * raggle: args => *args in die()
 
+* Thu Jul 03 16:08:05 2003, pabs <pabs@pablotron.org>
+  * raggle: i don't like "Eeeeeek"
+
 
 
 

@@ -2634,7 +2634,7 @@ rescue => err
     #puts err.backtrace.reverse.join(" -> ")
     err.backtrace.each { |frame| puts frame }
   else
-    die "Eeeek" # die tacks on $! for us, so we don't have to.
+    die '' # die tacks on $! for us, so we don't have to.
   end
 end
 

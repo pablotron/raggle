@@ -1255,7 +1255,6 @@ class Window
     start.upto(fini) do |line|
       Ncurses::mvwprintw @win, line, 1, ' ' * (w - 2)
     end
-    @win.refresh
   end
   
   #
@@ -2330,7 +2329,7 @@ http://www.paulduncan.org/ (RSS: http://www.paulduncan.org/rss/)
 
 Richard Lowe <richlowe@richlowe.net>
 http://www.richlowe.net/
-http://www.richlowe.net/ (RSS: http://www.richlowe.net/index.cgi/index.rss)
+http://www.richlowe.net/ (RSS: http://www.richlowe.net/diary/index.rss)
 
 Ville Aine <vaine@cs.helsinki.fi>
 ENDUSAGE
@@ -3594,7 +3593,7 @@ $config = {
       'items'     => [ ],
     },
     { 'title'     => 'Richlowe.net',
-      'url'       => 'http://richlowe.net/index.cgi/index.rss',
+      'url'       => 'http://richlowe.net/diary/index.rss',
       'site'      => 'http://www.richlowe.net/',
       'desc'      => 'Richlowe.net',
       'refresh'   => 120,

@@ -141,3 +141,20 @@
   * raggle: separated feed list from feed cache (to avoid losing the 
     former if the latter gets corrupted)
   * raggle: switched to PStore for feed cache (MUCH MUCH faster loading now)
+
+* Tue Jun 17 22:31:28 2003, pabs <pabs@pablotron.org>
+  * raggle: removed debug feeds (they didn't work any more anyway)
+  * raggle: added preliminary support for END (it doesn't appear to work,
+    but it's still there)
+
+* Tue Jun 17 23:57:20 2003, pabs <pabs@pablotron.org>
+  * raggle: added command-line option handling
+  * raggle: added command-line feed editor (add, list, remove)
+  * raggle: added lockfile support (so multiple instances of 
+            Raggle don't trash each others' changes)
+  * raggle: added command-line option help
+
+* Wed Jun 18 01:18:27 2003, pabs <pabs@pablotron.org>
+  * raggle: remove annoying cache lock error
+  * raggle: change cache locking and unlocking to non-blocking
+

@@ -74,6 +74,7 @@ $config = {
   'feed_cache_path'       => '${config_dir}/feed_cache.store',
   'theme_path'            => '${config_dir}/theme.yaml',
   'grab_log_path'         => '${config_dir}/grab.log',
+  'cache_lock_path'       => '${config_dir}/lock',
 
   # feed list handling
   'load_feed_list'        => true,
@@ -86,6 +87,9 @@ $config = {
   # theme handling
   'load_theme'            => true,
   'save_theme'            => true,
+
+  # feed list, feed cache, and theme lock handling
+  'use_cache_lock'        => true,
 
   # ui options
   'focus'                 => 'select', # ['none', 'select', 'auto']
@@ -112,7 +116,7 @@ $config = {
   'menu_bar_cols'         => 24,
 
   # input select timeout (in seconds)
-  'input_select_timeout'  => 5.0,
+  'input_select_timeout'  => 0.2,
 
   # feed sleep interval (in seconds)
   'feed_sleep_interval'   => 60,
@@ -588,111 +592,18 @@ ragglebug@pablotron.org.
   'use_noecho'    => true,
 
   # debugging feeds (these will be removed at some point)
-  'debug_feeds'   => [
-    { 'title'     => 'Raggle',
-      'url'       => 'http://www.pablotron.org/software/raggle/help.rss',
-      'refresh'   => -1,
-      'items'     => [
-        { 'title' => 'Introduction',
-          'url'   => 'http://www.pablotron.org/software/raggle/',
-          'date'  => 1055074823,
-          'desc'  => 'Welcome to Raggle!
-. .
-Raggle is a command-line RSS aggregator, written in Ruby
-(http://www.ruby-lang.org/).  Raggle is free software; please see the
-file COPYING or the License item in this feed for licensing and
-warranty information.', },
-        { 'title' => 'License',
-          'url'   => 'http://www.pablotron.org/software/raggle/',
-          'date'  => 1055074823,
-          'desc'  => 'Copyright (C) 2003
-Paul Duncan, and various contributors.
-. . 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to
-deal in the Software without restriction, including without limitation the
-rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
-sell copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-. .
-The above copyright notice and this permission notice shall be included in
-all copies of the Software, its documentation and marketing & publicity 
-materials, and acknowledgment shall be given in the documentation, materials
-and software packages that this Software was used.
-. .   
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER 
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-          ', },
-        { 'title' => 'Usage',
-          'url'   => 'http://www.pablotron.org/software/raggle/',
-          'date'  => 1055074823,
-          'desc'  => 'more fun with testing', },
-      ],
-    },
-    { 'title'     => 'Slashdot',
-      'url'       => 'http://slashdot.org/slashdot.rss',
-      'refresh'   => 30,
-      'items'     => [
-        { 'title' => 'test item 1',
-          'url'   => 'http://www.pablotron.org/test?item=1',
-          'date'  => 89743298,
-          'desc'  => 'this is a test item', },
-        { 'title' => 'test item 2',
-          'url'   => 'http://www.pablotron.org/test?item=2',
-          'date'  => 3243298,
-          'desc'  => 'this is another test item', },
-        { 'title' => 'test item 3',
-          'url'   => 'http://www.pablotron.org/test?item=3',
-          'date'  => 112239847,
-          'desc'  => 'more fun with testing', },
-      ],
-    },
-    { 'title'     => 'Alternet',
-      'url'       => 'http://www.alternet.org/alternet.rss',
-      'refresh'   => 30,
-      'items'     => [
-        { 'title' => 'asdfkjsaldkjfs1',
-          'url'   => 'http://www.pablotron.org/test?item=1',
-          'date'  => 32743298,
-          'desc'  => 'asdfklasjdfldsa', },
-        { 'title' => 'blarhg blargh blarh2',
-          'url'   => 'http://www.pablotron.org/test?item=1',
-          'date'  => 32897498,
-          'desc'  => 'asdfklasjdfldsa', },
-        { 'title' => 'cripes 3',
-          'url'   => 'http://www.pablotron.org/test?item=1',
-          'date'  => 32893298,
-          'desc'  => 'asdfklasjdfldsa', },
-        { 'title' => 'diddly doo 4',
-          'url'   => 'http://www.pablotron.org/test?item=1',
-          'date'  => 32893298,
-          'desc'  => 'this is a test item', },
-        { 'title' => 'Text Reflow Sample',
-          'url'   => 'http://www.pablotron.org/test?item=2',
-          'date'  => 3243298,
-          'desc'  => 'Some sample text:
-.
-The Saturn Game, by Poul Anderson
-.
-One of the writing problems peculiar to science fiction is that science has a
-wa y of catching up with your imagining. Just as you finish writing a book
-about th e poor folks who live on the perpetually dark side of Mercury, the
-damned Marine r flyby shows that there\'s no such thing as a dark side. Out the
-window with the manuscript (maybe followed by the typewriter and even the
-writer).
-', },
-        { 'title' => 'bleh de bleh bleh6',
-          'url'   => 'http://www.pablotron.org/test?item=3',
-          'date'  => 112239847,
-          'desc'  => 'more fun with testing', },
-      ],
-    },
-  ],
+  'debug_feeds'   => [ ],
 }
+
+class String
+  def escape
+    gsub(/(["\\])/, "\\$1")
+  end
+
+  def escape!
+    gsub!(/(["\\])/, "\\$1")
+  end
+end
 
 module Feed
   # Feed::Item struct definition
@@ -933,6 +844,23 @@ class Window
         set_status ' ' << @items[@active_item]['title']
         select_win_item if $config['focus'] == 'auto'
       end
+    when Ncurses::KEY_END
+      if @items.size > 0
+        @active_item = @items.size - 1
+        ai = @active_item
+
+        # scroll window (if necessary)
+        w, h = wh
+        if ai < @offset || ai >= @offset + (h - 3)
+          @offset = @active_item - (h - 3)
+          @offset = 0 if @offset < 0
+        end
+        # $new_status = "ai = #{ai}, offset = #@offset h = #{h}"
+
+        draw_items
+        set_status ' ' << @items[@active_item]['title']
+        select_win_item if $config['focus'] == 'auto'
+      end
     when Ncurses::KEY_PPAGE
       if @items.size > 0
         w, h = wh
@@ -976,7 +904,7 @@ class Window
         end
 
         # get browser command
-        cmd = $config['browser_cmd'] % @items[@active_item]['url']
+        cmd = $config['browser_cmd'] % @items[@active_item]['url'].escape
 
         # prepend screen command if we're using it
         if use_screen
@@ -1254,7 +1182,7 @@ end
 #
 def save_feed_list
   File::open($config['feed_list_path'], 'w') { |f|
-    $stdout.puts $config['msg_save_list']
+    $stdout.puts $config['msg_save_list'] if $config['raggle_mode'] == 'view'
     $stdout.flush
     $config[$SRC].each { |feed| feed['items'].clear }
     f.puts $config[$SRC].to_yaml
@@ -1272,6 +1200,230 @@ def save_theme
   }
 end
 
+#
+# handle mouse events
+#
+def handle_mouse(ev) 
+  puts 'mouse'
+end
+
+def print_usage
+  puts <<ENDUSAGE
+Raggle - Console RSS feed aggregator.
+Version #$VERSION, by Paul Duncan <pabs@pablotron.org>
+
+Usage:
+  #$0 [options]
+
+Options:
+  -a, --add, --add-feed         Add a new feed (requires '--title', '--url',
+                                and '--refresh').
+  -c, --config                  Specify an alternate config file.
+  -d, --delete, --delete-feed   Delete an existing feed.
+  -e, --edit, --edit-feed       Edit an existing feed.
+  -h, --help, --usage           Display this usage screen.
+  -l, --list:                   List existing feeds.
+  -v, --version                 Display version information.
+
+Examples:
+  # add a new feed, refresh every 30 minutes
+  #$0 -a -t 'test feed' -u http://www.example.com/feed.rss -r 30
+
+  # list feeds and their ids
+  #$0 --list
+
+  # delete an existing feed
+  #$0 --delete 12
+  
+About the Author:
+Paul Duncan <pabs@pablotron.org>
+http://www.pablotron.org/
+ENDUSAGE
+
+  exit 0
+end
+
+#
+# handle command-line options
+# 
+def handle_Command_line(opts)
+  ret = { 'mode' => 'view' }
+  grab_next = 0
+
+  0.upto(opts.size - 1) { |i|
+    if grab_next > 0
+      grab_next -= 1
+      next
+    end
+    
+    case opts[i]
+    when '-a'
+      ret['mode'] = 'add'
+    when '--add'
+      ret['mode'] = 'add'
+    when '--add-feed'
+      ret['mode'] = 'add'
+    when '-e'
+      ret['mode'] = 'edit'
+      grab_next = 1
+      ret['id'] = opts[i + 1]
+    when '--edit'
+      ret['mode'] = 'edit'
+      grab_next = 1
+      ret['id'] = opts[i + 1]
+    when '--edit-feed'
+      ret['mode'] = 'edit'
+      grab_next = 1
+      ret['id'] = opts[i + 1]
+    when '-d'
+      ret['mode'] = 'delete'
+      grab_next = 1
+      ret['id'] = opts[i + 1]
+    when '--delete'
+      ret['mode'] = 'delete'
+      grab_next = 1
+      ret['id'] = opts[i + 1]
+    when '--delete-feed'
+      ret['mode'] = 'delete'
+      grab_next = 1
+      ret['id'] = opts[i + 1]
+    when '-l'
+      ret['mode'] = 'list'
+    when '--list'
+      ret['mode'] = 'list'
+    when '-c'
+      grab_next = 1
+      $config['config_path'] = opts[i + 1]
+    when '--config'
+      grab_next = 1
+      $config['config_path'] = opts[i + 1]
+    when '--config-file'
+      grab_next = 1
+      $config['config_path'] = opts[i + 1]
+    when '-t'
+      grab_next = 1
+      ret['title'] = opts[i + 1]
+    when '--title'
+      grab_next = 1
+      ret['title'] = opts[i + 1]
+    when  '-u'
+      grab_next = 1
+      ret['url'] = opts[i + 1]
+    when '--url'
+      grab_next = 1
+      ret['url'] = opts[i + 1]
+    when '-r'
+      grab_next = 1
+      ret['refresh'] = opts[i + 1]
+    when '--refresh'
+      grab_next = 1
+      ret['refresh'] = opts[i + 1]
+    when '-v'
+      puts "Raggle v#$VERSION"
+      exit 0
+    when '--version'
+      puts "Raggle v#$VERSION"
+      exit 0
+    when '-h'
+      print_usage
+    when '--help'
+      print_usage
+    when '--usage'
+      print_usage
+    else
+      $stderr.puts 'Unknown option: ' << opts[i]
+      exit -1
+    end
+  }
+
+  # check options
+  if ret['mode'] == 'add'
+    ['title', 'url', 'refresh'].each { |val|
+      unless ret[val]
+        die "Missing '--#{val}'."
+        exit -1
+      end
+    }
+  elsif ret['mode'] == 'edit'
+    unless ret['title'] || ret['url'] || ret['refresh']
+      die "You need '--title', '--url', or '--refresh'."
+    end
+  end
+
+  # return options
+  ret
+end
+
+def list_feeds
+  i = -1
+  puts 'ID, Title'
+  $config[$SRC].each { |feed| puts "%2d, #{feed['title']}" % (i += 1) }
+  exit 0
+end
+
+def add_feed(opts)
+  $config[$SRC] << {
+    'title'     => opts['title'],
+    'url'       => opts['url'],
+    'site'      => '',
+    'desc'      => '',
+    'refresh'   => opts['refresh'].to_i,
+    'updated'   => 1,
+    'items'     => [ ],
+  }
+end
+
+def delete_feed(id)
+  die "Unknown feed id #{id}." unless $config[$SRC].delete_at(id)
+end
+
+def create_cache_lock
+  path = $config['cache_lock_path']
+  
+  # open cache lock for writing
+  unless $config['cache_lock'] = File::open(path, 'w')
+    die "Couldn't open \"#{path}\"."
+  end
+
+  # obtain cache lock
+  unless $config['cache_lock'].flock(File::LOCK_EX | File::LOCK_NB)
+    $stderr.puts "WARNING: Couldn't obtain cache lock: " << 
+                 "Another instance of Raggle is running.\n"
+    $stderr.puts "WARNING: Disabling feed caching for this instance."
+    $stderr.puts "WARNING: Press enter to continue."
+
+    # wait for user response
+    $stdin.gets
+
+    # disable feed caching and theme saving
+    $config['save_feed_list'] = false
+    $config['save_feed_cache'] = false
+    $config['save_theme'] = false
+  end
+end
+
+def destroy_cache_lock
+  path = $config['cache_lock_path']
+
+  # unlock cache lock
+  unless $config['cache_lock'].flock(File::LOCK_UN | File::LOCK_NB)
+    $stderr.puts "WARNING: Couldn't unlock \"#{path}\"."
+  end
+
+  # close cache lock
+  $config['cache_lock'].flush
+  $config['cache_lock'].close
+  $config['cache_lock'] = nil
+
+  # start garbage collection (flush out file descriptor)
+  GC.start
+
+  # unlink cache lock
+  unless File::unlink(path)
+    $stderr.puts "WARNING: Couldn't unlock \"#{path}\"."
+  end
+end
+
 #######################################################################
 # End Shenanigans, Begin Actual Code                                  #
 #######################################################################
@@ -1280,20 +1432,37 @@ end
 expand_config
 
 # parse command-line options
-# TODO
+opts = handle_Command_line ARGV
 
 # if $HOME/.raggle doesn't exist, then create it
 Dir::mkdir $config['config_dir'] unless test ?d , $config['config_dir']
 
 # load user config ($HOME/.raggle/config.rb)
-puts $config['msg_load_config']
+puts $config['msg_load_config'] if opts['mode'] == 'view'
 load $config['config_path'], false if test ?e, $config['config_path']
 expand_config
 
 # load feed list
-puts $config['msg_load_list']
+puts $config['msg_load_list'] if opts['mode'] == 'view'
 if $config['load_feed_list'] && test(?e, $config['feed_list_path'])
   $config[$SRC] = YAML::load(File::open($config['feed_list_path']))
+end
+
+# create cache lock
+create_cache_lock if $config['use_cache_lock']
+
+$config['raggle_mode'] = opts['mode']
+case opts['mode']
+when 'list'
+  list_feeds
+when 'add'
+  add_feed opts
+  save_feed_list
+  exit 0
+when 'delete'
+  delete_feed opts['id'].to_i
+  save_feed_list
+  exit 0
 end
 
 # load feed cache
@@ -1375,6 +1544,7 @@ begin
   Ncurses::keypad Ncurses::stdscr, 1
   Ncurses::noecho if $config['use_noecho']
   Ncurses::start_color
+  Ncurses::mousemask(Ncurses::ALL_MOUSE_EVENTS, [])
 
   # exit -1 unless Ncurses::has_colors?
 
@@ -1433,6 +1603,9 @@ begin
         set_active_win((($a_win - 1 < 0) ? $wins.size : $a_win) - 1)
       when Ncurses::KEY_F12
         done = true
+      when Ncurses::KEY_MOUSE
+        ev_a = []
+        handle_mouse(ev_a[0]) if Ncurses::getmouse(ev_a) == Ncurses::OK
       when ?q
         done = true
       else  
@@ -1464,6 +1637,9 @@ ensure
 
   # save theme
   save_theme if $config['save_theme']
+
+  # unlock everything
+  destroy_cache_lock if $config['use_cache_lock']
 
   $stdout.puts $config['msg_thanks']
 end

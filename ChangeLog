@@ -322,4 +322,7 @@
   * raggle: Add methods to move items in a window rather than doing it in
             the key handler
 
+* Sat Jun 21 01:46:36 EDT 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Add item deletion support
+
 

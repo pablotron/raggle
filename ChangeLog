@@ -726,6 +726,11 @@
   * raggle: Correctly correctly pad URLs, the title's were being indented,
             the text was drawn correctly.
 
+* Thu Jun 26 12:47:42 2003, pabs <pabs@pablotron.org>
+  * raggle: fix space prefix problem in String#reflow
+  * raggle: remove unnecessary String#dup calls from reflow_string
+    methods (String#reflow already returns a dupped string)
+
 
 
 

@@ -1418,7 +1418,7 @@ def handle_Command_line(opts)
     ['--save-items',                            GetoptLong::NO_ARGUMENT],
     ['--unsave-items',                          GetoptLong::NO_ARGUMENT],
     ['--verbose',                               GetoptLong::NO_ARGUMENT],
-    ['--diag',                                 GetoptLong::NO_ARGUMENT],
+    ['--diag',                                  GetoptLong::NO_ARGUMENT],
     ['-h', '--help', '--usage',                 GetoptLong::NO_ARGUMENT]
   )
 

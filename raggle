@@ -925,7 +925,11 @@ module Raggle
 
         file = (file_name == '-') ? $stdout : File::open(file_name, 'w')
         if file
-          doc.write(file, 0)
+          begin
+            doc.write(file, 0)
+          ensure
+            file.close unless file_name == '-'
+          end
         else
           raise "Couldn't open output file \"#{file_name}\"."
         end

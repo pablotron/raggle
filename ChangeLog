@@ -1486,3 +1486,9 @@
 * Mon Sep 15 17:08:55 2003, pabs <pabs@pablotron.org>
   * raggle: reset desc window offset when selecting new item
   * raggle: remove some older commented cruft
+
+* Mon Sep 15 19:02:56 2003, pabs <pabs@pablotron.org>
+  * raggle: added --max-items (max number of items to save per feed), 
+    can also be set on a global feed basis with $config['max_feed_items']
+  * raggle: added '-A' shortcut for --ascii
+  * raggle: fix a bit of evil tabbing again ;)

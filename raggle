@@ -1318,7 +1318,7 @@ ENDWARNING
       # Raggle::Feed::Channel constructor.
       #
       def initialize(url, last_modified = nil)
-        parse_rss_url(url)
+        parse_rss_url(url, last_modified)
       end
 
       # 
@@ -1819,7 +1819,7 @@ ENDUSAGE
           NcursesInterface::populate_item_win($a_feed)
           NcursesInterface::populate_feed_win
           $wins[item_win].draw_items
-          $wins[item_win].select_win_item
+          $wins[item_win].select_win_item if $a_win != NcursesInterface::get_win_id('feed')
         end
 
         def Key::invalidate_feed
@@ -4185,9 +4185,9 @@ ENDUSAGE
         # -- paul
         feed['last_modified'] = chan.last_modified
         
-        # hash the urls, save the read status
-        urls = {}
-        feed['items'].each { |item| urls[item['url']] = item['read?'] }
+        # hash the urls, save the read and visibility status
+        status = {}
+        feed['items'].each { |item| status[item['url']] = { :read => item['read?'], :visible => item['visible'] } }
     
         # clear the list if we're not saving feed items
         Thread::critical = $config['use_critical_regions']
@@ -4200,15 +4200,21 @@ ENDUSAGE
         chan.items.each { |item|
           unless (($config['save_feed_items'] ||
                    feed['save_items?']) &&
-                  urls.has_key?(item.link))
-            was_read = urls.has_key?(item.link) && urls[item.link]
+                  status.has_key?(item.link))
+            if status.has_key?(item.link)
+              was_read = status[item.link][:read]
+              is_visible = status[item.link][:visible]
+            else  # new item
+              was_read = false; is_visible = true
+            end
             new_items << {
-              'title' => item.title,
-              'date'  => item.date,
-              'url'   => item.link,
-              'desc'  => item.desc,
-              'read?' => was_read,
-              'added' => Time.now.to_i,
+              'title'   => item.title,
+              'date'    => item.date,
+              'url'     => item.link,
+              'desc'    => item.desc,
+              'read?'   => was_read,
+              'visible' => is_visible,
+              'added'   => Time.now.to_i,
             }
           end
         }
@@ -4228,7 +4234,7 @@ ENDUSAGE
           feed['items'] = new_items
         end
         Thread::critical = false
-      else 
+      else
         feed['updated'] = t.to_i
         $log.puts "Feed \"#{feed['title']}\" hasn't changed."
       end
@@ -4307,9 +4313,9 @@ ENDUSAGE
               log.puts "#{Time.now}: Done checking.  Sleeping for #{interval}s."
               sleep interval
             end
-          end
-        end
-      end
+          end  # loop do
+        end  # File.open
+      end  # Thread.new
 
       # return thread
       ret 

@@ -2198,3 +2198,9 @@
   * raggle: fixed scrolling in description window to skip blank lines
   * raggle: don't change window/item upon selecting category if the
     category didn't change
+
+* Thu Dec 23 08:33:00 2004, redshift <redshift@halffull.org>
+  * raggle: fixed saving of item visibility status upon feed updates
+  * raggle: fixed parse_rss_url actually using last modified time
+  * raggle: fixed undeleting of feeds causing incorrect item selection
+  * raggle: minor comment updates for clarity

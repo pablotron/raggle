@@ -4,10 +4,6 @@
 # Raggle version
 $VERSION = '0.1.0'
 
-# change to 'feeds' for live feeds
-$SRC = 'feeds'
-# $SRC = 'debug_feeds'
-
 # load required modules
 require 'pstore'
 require 'ncurses'
@@ -164,19 +160,19 @@ module Key
 
   def Key::move_item_up
     win = $wins[$a_win]
-    $config[$SRC].move_up(win.active_item)
+    $config['feeds'].move_up(win.active_item)
     win.move_item_up
   end
 
   def Key::move_item_down
     win = $wins[$a_win]
-    $config[$SRC].move_down(win.active_item)
+    $config['feeds'].move_down(win.active_item)
     win.move_item_down
   end
 
   def Key::delete
     win = $wins[$a_win]
-    $config[$SRC].delete(win.active_item)
+    $config['feeds'].delete(win.active_item)
     win.delete_item
   end
 end
@@ -238,11 +234,11 @@ class FeedList
     raise "FeedList#edit: Feed not found: #{id}" unless @feeds.size >= id
     refresh_interval_check opts['refresh'] if !opts['force'] &&
       opts.has_key?('refresh')
-    ourl = $config[$SRC].get(id)['url']
+    ourl = $config['feeds'].get(id)['url']
     %w{title url refresh lock_title?}.each { |key|
-      $config[$SRC].get(id)[key] = opts[key] if opts.has_key? key
+      $config['feeds'].get(id)[key] = opts[key] if opts.has_key? key
     }
-    $config[$SRC].invalidate(id) unless opts['url'] == ourl
+    $config['feeds'].invalidate(id) unless opts['url'] == ourl
   end
 
   def move_up(id)
@@ -696,6 +692,10 @@ class Window
     @items.delete_at(@active_item)
     draw_items
   end
+
+  def resize_width
+    # XXX
+  end
 end
 
 #
@@ -776,7 +776,7 @@ def select_feed(id)
   raise "id.class.to_s = #{id.class.to_s}" unless id.class == Fixnum
   
   # iterate through feed items
-  $config[$SRC].get(id)['items'].each_with_index { |item, i|
+  $config['feeds'].get(id)['items'].each_with_index { |item, i|
     # can't depend on the date being in a consistent format, or
     # being defined at all, for that matter :( :( :(
     # title = item['title'] + ' (' +
@@ -836,7 +836,7 @@ def populate_feed_win
 
   $wins[id].items.clear
 
-  $config[$SRC].each_with_index { |feed, i|
+  $config['feeds'].each_with_index { |feed, i|
     # count unread items
     unread_count = 0
     feed['items'].each { |item| unread_count += 1 unless item['read?'] }
@@ -866,15 +866,15 @@ def select_item(id)
 
   # mark item as read
   $wins[item_id].items[$a_item]['read?'] = true
-  $config[$SRC].get($a_feed)['items'][id]['read?'] = true
+  $config['feeds'].get($a_feed)['items'][id]['read?'] = true
 
   # load item
   $wins[desc_id].items << {
-    'title'       => $config[$SRC].get($a_feed)['items'][id]['desc'],
-    'real_title'  => $config[$SRC].get($a_feed)['items'][id]['title'],
-    'url'         => $config[$SRC].get($a_feed)['items'][id]['url'],
-    'date'        => $config[$SRC].get($a_feed)['items'][id]['date'],
-    'read?'       => $config[$SRC].get($a_feed)['items'][id]['read?'],
+    'title'       => $config['feeds'].get($a_feed)['items'][id]['desc'],
+    'real_title'  => $config['feeds'].get($a_feed)['items'][id]['title'],
+    'url'         => $config['feeds'].get($a_feed)['items'][id]['url'],
+    'date'        => $config['feeds'].get($a_feed)['items'][id]['date'],
+    'read?'       => $config['feeds'].get($a_feed)['items'][id]['read?'],
   }
 
   # redraw feed window
@@ -895,7 +895,7 @@ end
 def load_feed_cache
   store = PStore::new $config['feed_cache_path']
   store.transaction { |s|
-    $config[$SRC].each { |feed|
+    $config['feeds'].each { |feed|
       feed['items'] = s.root?(feed['url']) ? s[feed['url']] : []
     }
   }
@@ -907,7 +907,7 @@ end
 def save_feed_cache
   store = PStore::new $config['feed_cache_path']
   store.transaction { |s|
-    $config[$SRC].each { |feed| s[feed['url']] = feed['items'] }
+    $config['feeds'].each { |feed| s[feed['url']] = feed['items'] }
   }
 end
 
@@ -918,8 +918,8 @@ def save_feed_list
   File::open($config['feed_list_path'], 'w') { |f|
     $stdout.puts $config['msg_save_list'] if $config['raggle_mode'] == 'view'
     $stdout.flush
-    $config[$SRC].each { |feed| feed['items'].clear }
-    f.puts $config[$SRC].to_yaml
+    $config['feeds'].each { |feed| feed['items'].clear }
+    f.puts $config['feeds'].to_yaml
   }
 end
 
@@ -1152,12 +1152,12 @@ def list_feeds
   i = -1
   if $config['verbose']
     puts 'ID, Title, URL, Refresh'
-    $config[$SRC].each { |feed|
+    $config['feeds'].each { |feed|
      puts "%2d, #{feed['title']}, #{feed['url']}, #{feed['refresh']}" % (i += 1)
     }
   else 
     puts 'ID, Title'
-    $config[$SRC].each { |feed|
+    $config['feeds'].each { |feed|
      puts "%2d, #{feed['title']}" % (i += 1)
     }
   end
@@ -1167,7 +1167,7 @@ end
 # add a new feed
 #
 def add_feed(opts)
-    $config[$SRC].add(opts['title'], opts['url'], opts['refresh'])
+    $config['feeds'].add(opts['title'], opts['url'], opts['refresh'])
 end
 
 #
@@ -1175,7 +1175,7 @@ end
 #
 def purge_feed_cache
   urls = {}
-  $config[$SRC].each { |feed| urls[feed['url']] = true }
+  $config['feeds'].each { |feed| urls[feed['url']] = true }
   PStore::new($config['feed_cache_path']) { |cache|
     cache.roots.each { |root| 
       unless urls[root]
@@ -1190,21 +1190,21 @@ end
 # delete a feed by id
 #
 def delete_feed(id)
-  $config[$SRC].delete(id)
+  $config['feeds'].delete(id)
 end
 
 #
 # Invalidate a feed by id
 #
 def invalidate_feed(id)
-  $config[$SRC].invalidate(id)
+  $config['feeds'].invalidate(id)
 end
 
 #
 # edit an existing feed
 #
 def edit_feed(id, opts)
-  $config[$SRC].edit(id, opts)
+  $config['feeds'].edit(id, opts)
 end
 
 # 
@@ -1265,7 +1265,7 @@ end
 # Sort feeds by title (case-insensitive).
 #
 def sort_feeds
-  $config[$SRC] = $config[$SRC].sort { |a, b|
+  $config['feeds'] = $config['feeds'].sort { |a, b|
     a['title'].downcase <=> b['title'].downcase
   }
 end
@@ -1325,12 +1325,12 @@ def main
   # load feed list
   puts $config['msg_load_list'] if opts['mode'] == 'view'
   if $config['load_feed_list'] && test(?e, $config['feed_list_path'])
-    $config[$SRC] = YAML::load(File::open($config['feed_list_path']))
+    $config['feeds'] = YAML::load(File::open($config['feed_list_path']))
   end
 
-  if $config[$SRC].size == 0
+  if $config['feeds'].size == 0
     $config['default_feeds'].each {|feed|
-      $config[$SRC].add(feed['title'], feed['url'], feed['refresh'],
+      $config['feeds'].add(feed['title'], feed['url'], feed['refresh'],
                         feed['site'], feed['desc'], feed['items'])
     }
   end
@@ -1343,7 +1343,7 @@ def main
   case opts['mode']
   when 'list'
     list_feeds
-    exit 0
+p    exit 0
   when 'add'
     add_feed opts
     save_feed_list
@@ -1384,7 +1384,7 @@ def main
     File.open($config['grab_log_path'], $config['grab_log_mode']) { |log|
       log.puts "#{Time.now}: Starting grab log."
       loop {
-        $config[$SRC].each { |feed|
+        $config['feeds'].each { |feed|
           t = Time.now
           
           $new_status = " Checking feed \"#{feed['title']}\"..."
@@ -1492,7 +1492,7 @@ def main
     # draw status bar
     $new_status = ''
     set_status $config['msg_welcome']
-    
+p    
     # create windows
     $a_win = 0
     $wins = []
@@ -1542,7 +1542,7 @@ def main
     # stop feed grabbing thread
     feed_thread.exit
     
-    # save feed cache
+    # save feed cachepppp
     save_feed_cache if $config['save_feed_cache']
     
     # save feed list

@@ -246,6 +246,21 @@ class String
   end
 
   #
+  # return a copy of this string with HTML special characters
+  # escaped
+  #
+  # Example:
+  #   str = '<b>Rip &amp "Burn"</b>'.escape_html
+  #   str #=> "&lt;b&gt;Rip &amp;amp &quot;Burn&quot;&lt;/b&gt;"
+  #
+  def escape_html
+    [ [/&/, '&amp;'], [/</, '&lt;'], [/>/, '&gt;'], [/"/, '&quot;']
+    ].inject(self) do |ret, ary|
+      ret.gsub(*ary)
+    end
+  end
+
+  #
   # Return copy of string with all HTML tags stripped.
   #
   # Example:
@@ -808,6 +823,12 @@ module Raggle
         end
 
         if contents && contents.size > 0
+          # escape CDATA elements and merge them in to the text
+          # (ths fixes REXML's braindead CDATA behavior) 
+          contents = contents.gsub(/<!\[CDATA\[(.*?)\]\]>/m) do |m| 
+            $1.dup.escape_html
+          end
+
           doc = REXML::Document.new(contents)
           doc.root.elements.each('//outline') do |outline|
             title = outline.attributes['title']
@@ -1317,11 +1338,8 @@ ENDWARNING
       # 'ISO-8859-1' if unset).
       #
       def fix_character_encoding(element)
-        tmp = ''
-        encoding = $config['character_encoding'] || 'ISO-8859-1'
-        text = element.get_text
-        text.write(REXML::Output.new(tmp, encoding)) if text
-        tmp.unescape_html
+        enc = $config['character_encoding'] || 'ISO-8859-1'
+        (REXML::Output.new('', enc) << element.text).to_s.unescape_html
       end
     end
   end
@@ -1621,7 +1639,7 @@ ENDUSAGE
       when 'import_opml'
         OPML::import opts['opml_file'], opts['refresh'], opts['lock_title?'], opts['save_items'],
           opts['force']
-        save_feed_list
+        Engine::save_feed_list
         exit 0
       when 'export_opml'
         OPML::export opts['opml_file']
@@ -1702,7 +1720,7 @@ ENDUSAGE
 
         def Key::delete
           if $config['feeds'].size > 0
-            win = $wins[get_win_id('feed')]
+            win = $wins[NcursesInterface::get_win_id('feed')]
             $config['feeds'].delete(win.active_item)
             win.delete_item
             win.active_item = (win.active_item > 0) ? win.active_item - 1 : 0
@@ -1712,14 +1730,14 @@ ENDUSAGE
         end
 
         def Key::invalidate_feed
-          id = $wins[get_win_id('feed')].active_item
+          id = $wins[NcursesInterface::get_win_id('feed')].active_item
           name = $config['feeds'].get(id)['title']
           $config['feeds'].invalidate(id)
           NcursesInterface::set_status " Forcing update for \"#{name}\""
         end
 
         def Key::sort_feeds
-          win = $wins[get_win_id('feed')]
+          win = $wins[NcursesInterface::get_win_id('feed')]
 
           # get old active window
           a_win = $a_win
@@ -2222,10 +2240,6 @@ ENDUSAGE
               str = item['content'] || ''
               str = str.strip_tags if $config['strip_html_tags']
 
-              # strip CDATA from text (seems like this might cause some problems
-              # anyone have any thoughts?) -- pabs
-              str = str.gsub(/<!\[CDATA\[(.*?)\]\]>/m, '\1')
-
               # cache this stuff so the desc window renders faster
               item['fmt_content'] = str
               item['fmt_content_reflow'] = reflow_string(str)
@@ -2720,7 +2734,7 @@ ENDUSAGE
       
         # if it's not nil, then add it to our list
         if str && str.length > 0
-          add_feed({ 'url' => str })
+          Engine::add_feed({ 'url' => str })
           NcursesInterface::populate_feed_win
         end
           

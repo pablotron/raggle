@@ -2060,3 +2060,16 @@
     spaces anymore.
   * extras/test_html_renderer.rb: Modify tests to match
     the new behaviour.
+
+* Fri Nov 19 17:50:04 2004, pabs <pabs@pablotron.org>
+  * raggle: added String#escape_html
+  * raggle: escape CDATA elemnts instead of stripping them,
+    this fixes boingboing, and other feeds that use CDATA elements
+    everywhere
+  * raggle: rewrite fix_character_encoding(), I'm not sure if
+    this is better or worse yet, we'll have to wait and see
+  * raggle: save_feed_list => Engine::save_feed_list, importing
+    OPML works again
+  * raggle: get_win_id => NcursesInterface::get_win_id
+  * raggle: add_fed => Engine::add_feed, fixes adding feeds
+    from the GUI again

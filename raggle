@@ -1755,7 +1755,7 @@ ENDUSAGE
             # add the feed selected in find window
             win = $wins[NcursesInterface::get_win_id('find')]
             item = win.items[win.active_item]
-            NcursesInterface::add_feed({:url => item['find'], :title => item['title']})
+            NcursesInterface::add_feed({:url => item['find'], :title => item[:otitle]})
           else  # ask via ncurses and add given feed
             NcursesInterface::add_feed
           end
@@ -3104,7 +3104,8 @@ ENDUSAGE
       def NcursesInterface::add_feed(opts = nil)
         if not opts.nil? and opts[:url]
           url = opts[:url]
-          title = opts[:title] || $config['default_feed_title']
+          title = opts[:title]
+          title = $config['default_feed_title'] if not title or title == ''
         else
           url = NcursesInterface::get_input('add_feed')
         end
@@ -3112,8 +3113,8 @@ ENDUSAGE
         # if it's not nil, then add it to our list
         added = false
         if url && url.length > 0
-          if title: added = Engine::add_feed({ 'url' => url })
-          else added = Engine::add_feed({ 'url' => url, 'title' => title }); end
+          if title: added = Engine::add_feed({ 'url' => url, 'title' => title })
+          else added = Engine::add_feed({ 'url' => url }); end
           NcursesInterface::populate_feed_win
         else
           NcursesInterface::set_status('')  # no change
@@ -3172,7 +3173,7 @@ ENDUSAGE
                        feed['description'], 
                        feed['dataurl']
                       ].join ' - '
-              win.items << { 'title' => title, 'find' => feed['dataurl'] }
+              win.items << { 'title' => title, 'find' => feed['dataurl'], :otitle => feed['sitename'] }
             end
       
             # add window to window list and draw item list

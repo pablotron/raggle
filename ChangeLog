@@ -2252,3 +2252,7 @@
     duplicated code for retrieving input on status line
   * raggle: fixed some usages of set_status, added new informative messages
   * raggle: gui_add_feed -> add_feed
+
+* Thu Dec 30 10:39:00 2004, redshift <redshift@halffull.org>
+  * raggle: when adding feeds from search results, the feed window will
+    now show the found feed title unless empty

@@ -133,3 +133,6 @@
     options)
   * raggle: updated inline documentation
   * raggle: screen window (optionally) displays feed item title
+
+* Mon Jun 16 13:07:41 2003, pabs <pabs@pablotron.org>
+  * raggle: don't save window sizes to theme 

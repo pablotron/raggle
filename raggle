@@ -799,7 +799,7 @@ class Window
   # window constructor
   #
   def initialize(opts)
-    coords = opts['coords']
+    coords = opts['coords'].dup
     coords[2] = $config['w'] - coords[0] if coords[2] == -1
     coords[3] = $config['h'] - coords[1] if coords[3] == -1
 

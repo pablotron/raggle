@@ -602,3 +602,7 @@
 * Tue Jun 24 08:36:58 2003, richlowe <richlowe@richlowe.net>
   * README: Mention that we work with both YAML-Ruby, and syck
             (YAML-Ruby's successor)
+
+* Tue Jun 24 08:44:56 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Parenthesize args to get_win_id in Key::open_link, as per
+            warning from ruby1.8

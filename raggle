@@ -248,7 +248,7 @@ module Key
   end
   
   def Key::open_link
-    win = $wins[get_win_id 'desc']
+    win = $wins[get_win_id('desc')]
     win.select_win_item
   end
 end

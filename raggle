@@ -38,7 +38,7 @@
 #######################################################################
 
 # Raggle version
-$VERSION = '0.2.0'
+$VERSION = '0.3.0'
 
 # As early as possible, ^C and ^\ are common, and dumping a trace is ugly
 # On the other hand, dumping trace is very useful when running tests, therefore

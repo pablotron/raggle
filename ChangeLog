@@ -1101,3 +1101,7 @@
 
 * Sun Aug 17 12:24:40 2003, pabs <pabs@pablotron.org>
   * raggle: releasing version 0.2.0
+
+* Sun Aug 17 12:34:35 2003, pabs <pabs@pablotron.org>
+  * raggle: incrementing versoin number to 0.3.0
+  * README: ditto

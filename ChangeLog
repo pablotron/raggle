@@ -625,4 +625,8 @@
   * raggle: Make TextWindow#draw use clearrange and *massively* speed up
             scrolling 
 
+* Tue Jun 24 11:08:25 2003, richlowe <richlowe@richlowe.net>
+  * raggle (Window#draw_text): Only draw the parts of the text we'll be
+                               able to see (speed win)
+
 

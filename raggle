@@ -560,12 +560,13 @@ class Window
   end
 
   def draw_text(text, x, y, reflow, offset)
-    w,i = dimensions[0], 0
+    w,h = dimensions
+    i = 0
     
     text = reflow_string text if reflow
     text.each_line do |line|
       i += 1
-      if i >= offset
+      if i >= offset and y < (h - 1)
         Ncurses::mvwprintw @win, y, x, line.gsub(/%/, '%%').slice(0, w - x - 1)
         y += 1
       end

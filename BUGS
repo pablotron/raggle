@@ -84,3 +84,5 @@ Bugs
 [*] left pane isn't cleared when deleting last feed (reported by
     Manpreet Singh <junkblocker@yahoo.com)
 [*] deleted items not always saved between updates
+[ ] new items still raen't sorted correctly in some cases
+[ ] libraries using Ruby 1.8 Net::HTTP behavior break horribly

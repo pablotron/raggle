@@ -79,21 +79,25 @@ require 'getoptlong'
 require 'net/http'
 require 'pstore'
 require 'thread'
+require 'time'
 
 #########################
 # load external modules #
 #########################
 { # key => [path, title, required]
-  'ncurses'   => ['ncurses',        'Ncurses-Ruby', false],
-  'rexml'     => ['rexml/document', 'REXML',        true ],
-  'yaml'      => ['yaml',           'YAML',         true ],
-  'ssl'       => ['net/https',      'OpenSSL-Ruby', false],
-  'webrick'   => ['webrick',        'WEBrick',      false],
-  'drb'       => ['drb',            'DRb',          false],
-  'xmlrpc'    => ['xmlrpc/client',  'xmlrpc4r',     false],
-  'iconv'     => ['iconv',          'Iconv',        false],
-  'gettext'   => ['gettext',        'GetText',      false],
-  'fileutils' => ['fileutils',      'FileUtils',    false],
+  'ncurses'     => ['ncurses',        'Ncurses-Ruby', false],
+  'rexml'       => ['rexml/document', 'REXML',        true ],
+  'yaml'        => ['yaml',           'YAML',         true ],
+  'ssl'         => ['net/https',      'OpenSSL-Ruby', false],
+  'webrick'     => ['webrick',        'WEBrick',      false],
+  'drb'         => ['drb',            'DRb',          false],
+  'xmlrpc'      => ['xmlrpc/client',  'xmlrpc4r',     false],
+  'iconv'       => ['iconv',          'Iconv',        false],
+  'gettext'     => ['gettext',        'GetText',      false],
+  'fileutils'   => ['fileutils',      'FileUtils',    false],
+  'rubilicious' => ['rubilicious',    'Rubilicious',  false],
+  'sqlite'      => ['sqlite',         'SQLite' ,      false],
+  'mysql'       => ['mysql',          'MySQL',        false],
 }.each { |key, info|
   path, title, required = info[0, 3]
   $HAVE_LIB ||= {}
@@ -2327,6 +2331,14 @@ ENDUSAGE
             end
           end
         end
+
+
+        # 
+        # basic key binding to save bookmark for current item 
+        #
+        def Key::save_bookmark
+          NcursesInterface::save_bookmark
+        end
       end
 
       #
@@ -3538,6 +3550,157 @@ ENDUSAGE
       end
 
       #
+      # save bookmark for current item
+      #
+      def NcursesInterface::save_bookmark
+
+        # grab bookmark settings
+        bm = $config['bookmark']
+        return unless bm && bm.kind_of?(Array)
+        
+        # was the bookmark saved?
+        was_saved = true
+
+        desc_win = $wins[NcursesInterface::get_win_id('desc')]
+        item = desc_win.items[desc_win.active_item]
+
+        # get item information
+        return unless item && item['title'] && (item['url'] || item['site'])
+        title = item['title']
+        time = Time.now.xmlschema
+        url = item['site'] || item['url']
+
+        NcursesInterface::set_status($config['msg_bm_saving'] % [title])
+
+        # check to see if we need to get extended information
+        get_ext = bm.any? { |bmb| !bmb[:no_desc] }
+        get_tag = bm.any? { |bmb| !bmb[:no_tag] }
+
+        ext, tags = '', ''        
+        ext = NcursesInterface::get_input('bm_desc') if get_ext
+        tags = NcursesInterface::get_input('bm_tag') if get_tag
+
+        # iterate over bookmark backends and save bookmark to each one
+        bm.each do |bmb|
+          case bmb[:type]
+          when :csv_file
+            # expand bookmark file path
+            path = Engine::expand_str(bmb[:path])
+            
+            # save title and bookmark to file
+            begin
+              # create CSV line from title, time, and URL
+              csv_line = [title, url, time, ext].map { |str| 
+                '"' << str.gsub(/"/, '""') << '"' 
+              }.join(',')
+              
+              # if the CSV doesn't exist, then prepend the columns
+              unless File::exists?(path)
+                csv_line = "title,url,time,description,tags\n" << csv_line
+              end
+
+              # append to CSV file
+              File::open(path, 'a') { |file| file.puts(csv_line) }
+            rescue Exception => err
+              # couldn't write to bookmark file, set status
+              was_saved = false
+              status = $config['msg_bm_file_err'] % [path, err.to_s]
+              NcursesInterface::set_status(status)
+            end
+          when :delicious
+            if $HAVE_LIB['rubilicious']
+              tags += ' raggle_bookmarks' unless bmb[:no_raggle_tag]
+
+              status = $config['msg_bm_del_saving']
+              NcursesInterface::set_status(status)
+
+              # connect to del, add URL to del
+              begin
+                # connect to delicious
+                r = Rubilicious.new(bmb[:user], bmb[:pass])
+
+                r.add(url, title, ext, tags)
+              rescue Exception => err
+                # ignore rubilicious error
+                was_saved = false
+                status = $config['msg_bm_del_err'] % [err.to_s]
+                NcursesInterface::set_status(status)
+                $log.puts "#{Time.now}: #{status}"
+              end
+            else
+              # no rubilicious, ignore delicious 
+              was_saved = false
+              status = $config['msg_bm_del_missing']
+              NcursesInterface::set_status(status)
+            end
+          when :db
+            # build query
+            cols, args = [], []
+            { :title_field  => title,
+              :url_field    => url,
+              :tag_field    => tags,
+              :desc_field   => ext,
+            }.each_pair do |col_key, val|
+              if bmb[col_key]
+                cols << bmb[col_key]
+                args << val
+              end
+            end
+
+            begin 
+              db, quote_meth = nil, nil
+
+              # database-specific connection stuff
+              case :dbtype
+              when :mysql
+                unless $HAVE_LIB['mysql']
+                  raise $config['msg_bm_db_missing'] % 'Mysql'
+                end
+
+                # connect to database, set quote method
+                db = Mysql::connect(bmb[:host], bmb[:user], bmb[:pass])
+                db.select_db(bmb[:db_name])
+                quote_meth = Mysql::method(:escape_string)
+              when :sqlite
+                unless $HAVE_LIB['sqlite']
+                  raise $config['msg_bm_db_missing'] % 'SQLite'
+                end
+
+                # connect to database, set quote method
+                db = SQLite::Database.new(bmb[:path])
+                quote_meth = SQLite::Database.method(:quote)
+              else
+                # unknown database type
+                raise $config['msg_bm_bad_db_type']
+              end
+
+              # build query
+              query = "INSERT INTO #{bmb[:table]}(#{cols.join(',')}) 
+                       VALUES " << '(' << args.map { |arg| 
+                "'" << quote_meth.call(arg) << "'"
+              }.join(',') << ')'
+
+              # execute query
+              db.query(query)
+            rescue Exception => err
+              was_saved = false
+              status = $config['msg_bm_db_err'] % [err.to_s]
+              NcursesInterface::set_status(status)
+            end
+          else
+            # bad bookmark type
+            was_saved = false
+            status = $config['msg_bm_bad_type'] % [bmb[:type].to_s]
+            NcursesInterface::set_status(status)
+          end
+
+          # set status indicating success
+          status = $config['msg_bm_saved'] % [title]
+          NcursesInterface::set_status(status) if was_saved
+        end
+      end
+
+      #
       # Formats info about key bindings into a hash
       #
       def NcursesInterface::get_key_bindings
@@ -4165,6 +4328,17 @@ ENDUSAGE
   # parsing, and storing feeds.
   #
   module Engine
+    #
+    # expand individual string in config
+    #
+    def Engine::expand_str(str)
+      if str && str =~ /\$\{(.+?)\}/
+        str.gsub(/\$\{(.+?)\}/) { $config[$1] }
+      else
+        str
+      end
+    end
+
     # 
     # expand path macros in $config
     #
@@ -5223,6 +5397,19 @@ $config = {
   'msg_bad_uri'           => _('Error: bad or empty URI'),
   'msg_exec_url'          => _('WARNING: exec url found!'),
 
+  # bookmark messages
+  'msg_bm_saving'         => _('Saving bookmark for "%s"'),
+  'msg_bm_saved'          => _('Bookmark saved for "%s".'),
+  'msg_bm_desc'           => _('Bookmark Description:'),
+  'msg_bm_tag'            => _('Bookmark Tags (space-separated):'),
+  'msg_bm_bad_type'       => _('Bad bookmark type: %s'),
+  'msg_bm_bad_db_type'    => _('Unknown database type: %s'),
+  'msg_bm_db_err'         => _('Database Error: %s'),
+  'msg_bm_del_err'        => _('Delicious Error: %s'),
+  'msg_bm_del_saving'     => _('Saving Bookmark to Delicious...'),
+  'msg_bm_del_missing'    => _('Error: Rubilicious not installed.'),
+  'msg_bm_file_err'       => _('Error saving to \"%s\": %s'),
+
   # menu bar color
   'menu_bar_cols'         => 24,
 
@@ -5454,6 +5641,7 @@ $config = {
     ?                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::close_window} ),
 
     ??                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::show_key_bindings} ),
+    ?B                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::save_bookmark} ),
 
     ?1                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::open_link(1)} ),
     ?2                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::open_link(2)} ),
@@ -5590,6 +5778,39 @@ $config = {
       },
     },
   },
+
+  # bookmark settings
+  # how bookmarks are saved when you press 'B' in the
+  # Ncurses interface
+  'bookmark' => [
+# 
+#     # save bookmarks to delicious
+#     # note: requires rubilicious library, and account on
+#     # delicious (see http:/del.icio.us/)
+#     { :type => :delicious,
+#        
+#       # required settings
+#       :user => 'USERNAME', # delicious username
+#       :pass => 'PASSWORD', # delicious password
+#       
+#       # optional settings
+#       # don't prompt for tag (default: false)
+#       # :no_tag         => false,
+#       # don't prompt for description (default: false)
+#       # :no_desc        => false,
+#       # don't add 'raggle_bookmark' to tags (default: false)
+#       # :no_raggle_tag  => false,
+#     },
+# 
+  
+    # basic CSV bookmark file
+    { :type => :csv_file,
+      :path => '${config_dir}/bookmarks.csv', 
+
+      # don't prompt for descriptions (default: false)
+      :no_desc => true,
+    },
+  ],
 
   # live feeds
   'feeds'    => Raggle::Feed::List.new,

@@ -63,14 +63,18 @@ it can:
   OpenSSL-Ruby      https support.
   WEBrick           Required for Web interface.
   xmlrpc4r          Syndic8 integration (Searching for feeds).
+  Rubilicious [*]   Saving bookmarks to Delicious.
+  Mysql-Ruby [*]    Saving bookmarks to MySQL table.
+  SQLite-Ruby [*]   Saving bookmarks to SQLite database.
 
-* Ncurses-Ruby is _not_ included with the Ruby standard library;
-  you'll need to download it from the URL below.
+* These libraries are _not_ included with the Ruby standard library;
+  you'll need to download them separately.
 
-All of the libraries above except Ncurses-Ruby are included with the
+Except as marked, all of the libraries above are included with the
 Ruby standard library.  Again, some platforms (eg Debian Linux) may
-split these libraries into separate packages.  Ncurses-Ruby is available
-at the following URL:
+split these libraries into separate packages.  Ncurses-Ruby -- which
+you'll need to run the console interface -- is available at the
+following URL:
 
   http://ncurses-ruby.berlios.de/
 

@@ -118,3 +118,4 @@ Raggle TODO
 [*] save feed list periodically (suggested by Manpreet Singh
     <junkblocker@yahoo.com>)
 [*] implement feed adding directly from find window
+[ ] update Net::HTTP calls to 1.2 (ruby 1.8-style)

@@ -2452,3 +2452,15 @@ _Cvs
 
 * Sat Mar 19 13:28:32 2005, pabs <pabs@pablotron.org>
   * raggle: piece of shit.  I ALREADY FIXED THIS
+
+* Sun Mar 20 22:58:24 2005, pabs <pabs@pablotron.org>
+  * raggle: add preliminary bookmark support (bound to B). supports
+    saving to CSV and delicious, although the CSV backend does not work
+    at the moment (friggin Net::HTTP stuff needs to be updatd to 1.2
+    first)
+  * README: add note about Rubilicious.
+  * TODO: addd note about Net::HTTP
+  * BUGS: added note from Michael Ablassmeier (see raggle-dev) about
+    sorting bug
+  * raggle: add support for sqlite and mysql bookmark db backends
+  * README: add note about sqlite and mysql bookmark db backends

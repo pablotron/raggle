@@ -244,15 +244,17 @@ rather than a FeedList for no apparent reason.
 This man page is hopelessly incomplete.
 
 =item B<*>
-And probably many, many more, please report any you find to <I<i_hate_raggle@pablotron.org>>
+And probably many, many more, please report any you find to <I<raggle-dev@raggle.org>>
 
 =back
 
 =head1 HISTORY
 
 B<raggle> 0.1 was released on 23 Jun, 2003
+B<raggle> 0.2 was released on 17 Aug, 2003 
 
 =head1 AUTHORS
 
 Paul Duncan <I<pabs@pablotron.org>>,
 Richard Lowe <I<richlowe@richlowe.net>>
+Ville Aine <I<vaine@cs.helsinki.fi>>

@@ -1084,3 +1084,17 @@
 * Sun Aug 17 10:56:30 2003, pabs <pabs@pablotron.org>
   * doc/default_config.rb: update from raggle app
 
+* Sun Aug 17 11:39:14 2003, pabs <pabs@pablotron.org>
+  * raggle.1: added Ville Aine to authors list
+  * raggle.1: changed raggle contact to raggle-dev@raggle.org
+  * raggle.pod: added Ville Aine to authors list
+  * raggle.pod: changed raggle contact to raggle-dev@raggle.org
+  * doc/pauls_feeds.yaml: updated KernelTrap URL
+  * doc/pauls_feeds.yaml: removed Google News links
+  * raggle: added 'I' key to force a feed update (invalidate)
+  * raggle: handle host-relative HTTP redirects properly
+  * raggle: fix date string bug
+  * raggle: update Pablotron RSS URL
+  * extras/rss_dir_list.rb: add version to rss element
+  * doc/pauls_feeds.yaml: removed broken links, sorted, etc
+  * added doc/pauls_feeds.opml.gz

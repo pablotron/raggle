@@ -26,7 +26,7 @@ time_str = Time.now.to_s.html_escape
 puts <<-ENDHEADER
 <?xml version='1.0' encoding='iso-8859-1'?>
 
-<rss>
+<rss version='0.91'>
   <channel>
     <title>Dir List: '#{File::basename(PATH)}'</title>
     <link>http://www.raggle.org/</link>

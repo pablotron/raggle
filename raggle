@@ -307,6 +307,13 @@ module Key
     end
   end
 
+  def Key::invalidate_feed
+    id = $wins[get_win_id('feed')].active_item
+    name = $config['feeds'].get(id)['title']
+    $config['feeds'].invalidate(id)
+    set_status " Forcing update for \"#{name}\""
+  end
+
   def Key::sort_feeds
     win = $wins[get_win_id('feed')]
 
@@ -939,7 +946,14 @@ module Feed
 
       # handle redirects
       if resp.code =~ /3\d{2}/
-        ret = get_http_url(resp['location'], last_modified)
+        # handle host-relative redirects
+        location = resp['location']
+        if location =~ /^\//
+          location = host << ':' << port.to_s << location
+          location = 'http' << (http.use_ssl ? 's' : '') << '://' << location
+        end
+
+        ret = get_http_url(location, last_modified)
       else
         raise "HTTP Error: #$!"
       end
@@ -1444,7 +1458,7 @@ class TextWindow < Window
       draw("Date: ", 1, y)
       
       # handle date string shenanigans
-      if ((i_val = item['date'].to_i) > 0)
+      if ((i_val = item['date'].to_i) > 0 && i_val.is_a?(Fixnum))
         d_str = Time.at(i_val).strftime($config['desc_date_format'])
       else
         d_str = item['date']
@@ -2506,7 +2520,7 @@ def main
             $new_status = " Updating feed \"#{feed['title']}\"..."
             log.puts "#{t}: Updating feed \"#{feed['title']}\" from " +
                      "\"#{feed['url']}\""
-            # set_status "Updating \"#{feed['title']}\"..."
+            log.flush
             
             # get channel
             begin
@@ -2515,6 +2529,7 @@ def main
             rescue
               # set_status "Error updating \"#{feed['title']}\"."
               log.puts "#{t}: Error: #$!"
+              log.flush
               feed['error'] = "#$!"
               next
             end
@@ -2845,6 +2860,8 @@ $config = {
     ?u                  => proc { |win, key| Key::move_item_up },
     ?d                  => proc { |win, key| Key::move_item_down },
 
+    ?I                  => proc { |win, key| Key::invalidate_feed },
+
     Ncurses::KEY_DC     => proc { |win, key| Key::delete },
     ##
     # XXX: Meta can be dropped after spawned browser exits
@@ -3061,7 +3078,7 @@ $config = {
       'items'     => [ ],
     },
     { 'title'     => 'Pablotron',
-      'url'       => 'http://www.pablotron.org/?theme=rss&amp;max=15',
+      'url'       => 'http://www.pablotron.org/rss/',
       'site'      => 'http://www.pablotron.org/',
       'desc'      => 'Paul Duncan\'s personal site.',
       'refresh'   => 120,

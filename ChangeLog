@@ -2271,3 +2271,15 @@
     regex word boundary will work, including the old commas.  space default)
   * raggle: OPML import now uses Engine::add_feed.  more modular and skips
     adding duplicate feeds
+
+* Fri Dec 31 16:40:00 2004, redshift <redshift@halffull.org>
+  * raggle: added Ncurses-mode OPML import/export via the 'O' key.  If the
+    given string is an existing file or URI, import; otherwise, export to
+    a new file with the given name.
+  * raggle: added uri? method to check if a string is a URI
+  * raggle: cleaned up OPML import/export code
+  * raggle: don't auto-bail on OPML errors if in Ncurses mode
+  * raggle: fixed opening of URIs with user/pass
+  * raggle: miscellaneous cleanup/typos
+  * raggle.pod: added 'O' documentation, cleaned up OPML stuff
+  * raggle.1: regenerated from raggle.pod

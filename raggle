@@ -145,6 +145,14 @@ def in_screen?
 end
 
 #
+# Is the passed string a URI?
+#
+def uri?(str)
+  uri_chars = "a-zA-Z0-9;\/?:@&=+$,_.!~*'()%-"  # see RFC 2396
+  str =~ /^[a-zA-Z0-9]+:\/\/[#{uri_chars}]+/ or str =~ /^([#{uri_chars}]+?\.)*[#{uri_chars}]+?\.(com|org|net|us|au|uk)/ or str =~ /(\d{1,3}\.){3}\d{1,3}/
+end
+
+#
 # The following bit of magic allows us to Marshal Procs, or get
 # their code from proc.source; use the proc method with %{} rather
 # than {} for the block.  (This passes a string literal, stored in
@@ -857,14 +865,19 @@ module Raggle
     #
     def OPML::import(file_name, refresh=nil, lock_title=nil, save_items=nil, force=false)
       begin
-        contents = if file_name =~ /:\/\//
-          Raggle::Engine::get_url(file_name)[0]
+        contents = if uri?(file_name)
+          begin
+            Raggle::Engine::get_url(file_name)[0]
+          rescue
+            raise "Couldn't get URI \"#{file_name}\"."
+          end
         else
           begin
             ret = ''
             file = (file_name == '-') ? $stdin : File::open(file_name)
-            raise "Couldn't open input file \"#{file_name}\"." unless file
             ret = file.read
+          rescue
+            raise "Couldn't open input file \"#{file_name}\"."
           ensure
             file.close
             ret
@@ -878,6 +891,7 @@ module Raggle
             $1.dup.escape_html
           end
 
+          dup_added = false
           doc = REXML::Document.new(contents)
           doc.root.elements.each('//outline') do |outline|
             title = outline.attributes['title'] || $config['default_feed_title']
@@ -899,7 +913,15 @@ module Raggle
               $stderr.puts "Warning: skipping incomplete OPML entry: #{outline}"
               next
             end
-            raise "WARNING!!! EXEC URL IN OPML IMPORT" if (url =~ /^exec:/)
+
+            if (url =~ /^exec:/)
+              if $wins  # in ncurses mode
+                Interfaces::NcursesInterface::set_status($config['msg_exec_url'])
+                return 1
+              else
+                raise "WARNING!!! EXEC URL IN OPML IMPORT" 
+              end
+            end
 
             # build and add feed
             feed = {'title' => title, 'url' => url, 'refresh' => frefresh,
@@ -907,15 +929,21 @@ module Raggle
                     'site' => site, 'desc' => desc, 'items' => [],
                     'image' => image, 'category' => cat, 'force' => force,
                     'priority' => priority, 'max_items' => max_items }
-            Engine::add_feed(feed)
+            dup_added = true unless Engine::add_feed(feed)
+          end
+          if $wins  # skip unless using ncurses
+            Interfaces::NcursesInterface::populate_feed_win
+            Interfaces::NcursesInterface::set_status($config['msg_opml_imported']) unless dup_added
           end
         else
           raise "Empty input file \"#{file_name}\"."
         end
       rescue REXML::ParseException => parse_err
-        die "Parsing #{file_name} failed: #{parse_err.message}"
+        raise if $wins
+        die "Parsing #{file_name} failed: #{parse_err.message}" unless $wins
       rescue => err
-        die err.message
+        if $wins: Interfaces::NcursesInterface::set_status($config['msg_bad_uri'])
+        else die err.message; end
       end
     end
 
@@ -943,6 +971,7 @@ module Raggle
         if file
           begin
             doc.write(file, 0)
+            Interfaces::NcursesInterface::set_status($config['msg_opml_exported']) if $wins
           ensure
             file.close unless file_name == '-'
           end
@@ -950,7 +979,8 @@ module Raggle
           raise "Couldn't open output file \"#{file_name}\"."
         end
       rescue => err
-        die err.message
+        if $wins: Interfaces::NcursesInterface::set_status($config['msg_bad_uri'])
+        else die err.message; end
       end
     end
 
@@ -1786,6 +1816,23 @@ ENDUSAGE
             NcursesInterface::add_feed({:url => item['find'], :title => item[:otitle]})
           else  # ask via ncurses and add given feed
             NcursesInterface::add_feed
+          end
+        end
+
+        #
+        # import (if file exists) or export (to file) OPML
+        #
+        def Key::opml
+          file = NcursesInterface::get_input('opml_input')
+
+          if file && file.length > 0
+            if uri?(file)  # don't test URIs for existence (yet)
+              OPML::import file
+            elsif test(?f, file) and test(?r, file)  # is a readable file
+              OPML::import file
+            else  # not an existing file or URI
+              OPML::export file
+            end
           end
         end
 
@@ -2713,15 +2760,14 @@ ENDUSAGE
 
         error = false
         if str and str.length > 0
-          url_chars = "a-zA-Z0-9;\/?:@&=+$,_.!~*'()%-"  # see RFC 2396
           error = true if (feedopt == 'priority' or feedopt == 'refresh') and
                           str !~ /^-?\d+$/
-          error = true if feedopt == 'max_items' and not
-                          (str =~ /^\d+$/ or str =~ /none|nil/i)
+          error = true if feedopt == 'max_items' and
+                          not (str =~ /^\d+$/ or str =~ /none|nil/i)
           error = true if (feedopt == 'url' or feedopt == 'site') and
-                          str !~ /^[#{url_chars}]+$/
-          error = true if feedopt == 'save_items?' and not
-                          (str == 'true' or str == 'false')
+                          not uri?(str)
+          error = true if feedopt == 'save_items?' and
+                          not (str == 'true' or str == 'false')
           error = true if feedopt == 'refresh' and
                           str.to_i < $config['feed_refresh_warn']
           if error  # bail if user entered nonsense via basic checks
@@ -2819,6 +2865,7 @@ ENDUSAGE
       # 
       def NcursesInterface::populate_feed_win 
         win = $wins[NcursesInterface::get_win_id('feed')]
+        return if win == -1  # no windows open - why populate?
       
         win.items.clear
         
@@ -4144,7 +4191,7 @@ ENDUSAGE
       # get user and pass from URL
       if url =~ /^([^:]*):([^@]*)@/
         user, pass = $1, $2
-        url.gsub(/^.+?@/, '')
+        url.gsub!(/^.+?@/, '')
       end
 
       # get host and path portions of url
@@ -4211,9 +4258,9 @@ ENDUSAGE
           resp, content = http.get(('/' << path), headers)
 
           if resp.code !~ /2\d{2}/
-            # if we got anythign other than success, raise an exception
-            # (this might be a little overzealous, anyone?
-            raise "HTTP Error: #{resp.code} #{resp.message}" \
+            # if we got anything other than success, raise an exception
+            # (this might be a little overzealous)
+            raise "HTTP Error: #{resp.code} #{resp.message}"
           end
 
           # build return array
@@ -4247,7 +4294,7 @@ ENDUSAGE
         # close HTTP connection
         # Note: if we don't specify this, then the connection is pooled
         # for the HTTP/1.1 spec (do we prefer that kind of behavior?
-        # maybe I should make in an option)
+        # maybe I should make it an option)
         http.finish if http.active?
       end
 
@@ -4831,6 +4878,11 @@ $config = {
   'msg_bad_option'        => 'Warning: Bad option for %s',
   'msg_edit_success'      => 'New option saved',
   'msg_save_done'         => 'Configuration saved',
+  'msg_opml_input'        => 'OPML file or URI:',
+  'msg_opml_exported'     => 'OPML exported',
+  'msg_opml_imported'     => 'OPML imported',
+  'msg_bad_uri'           => 'Error: bad or empty URI',
+  'msg_exec_url'          => 'WARNING: exec url found!',
 
   # menu bar color
   'menu_bar_cols'         => 24,
@@ -5009,6 +5061,7 @@ $config = {
     ?U                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::manual_update} ),
     ?S                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::manual_save} ),
     ?a                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::add_feed} ),
+    ?O                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::opml} ),
 
     # i know this is using 'c'.. we'll see if this fucks us (see note
     # about 'C' above)

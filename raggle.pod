@@ -31,7 +31,7 @@ B<raggle>
 [B<--export-opml> I<file>]
 [B<-f> I<string>]
 [B<--find-feeds> I<string>]
-[B<--import-opml> I<file>]
+[B<--import-opml> I<file>/I<uri>]
 [B<-i> I<feed>]
 [B<--invalidate> I<feed>]
 [B<--max> I<num>]
@@ -95,9 +95,9 @@ that are generally unwise.
 
 Show usage information.
 
-=item B<--import-opml> I<file>
+=item B<--import-opml> I<file>/I<uri>
 
-Import feeds from an OPML format I<file>.
+Import feeds from an OPML format I<file> or I<uri>.
 
 =item B<-i> I<feed>  B<--invalidate> I<feed>
 
@@ -242,6 +242,12 @@ Move item down.
 
 Add a feed.  Will add the currently selected feed after a search
 via I<f>, otherwise you will be prompted for the address.
+
+=item I<O>
+
+Import or export an OPML copy of your feed list.  If the given name is
+an existing file or a URI, it will be imported; otherwise, a new OPML
+file will be created with the given name.
 
 =item I<e>
 

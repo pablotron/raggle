@@ -70,7 +70,7 @@ Thomas Kirchner <redshift@halffull.org>
 * feed priorities
 * item deletion and undeletion
 * ncurses-mode feed editing
-* better OPML import/export
+* better OPML import/export, in-program usage
 * rewrote man page for clarity/new features
 * many continuity fixes for window switching
 * lots of miscellaneous cleanup

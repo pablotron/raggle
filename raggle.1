@@ -129,7 +129,7 @@
 .\" ========================================================================
 .\"
 .IX Title "RAGGLE 1"
-.TH RAGGLE 1 "2004-12-29" "0.4" "User Commands Manual"
+.TH RAGGLE 1 "2004-12-31" "0.4" "User Commands Manual"
 .SH "NAME"
 raggle \- text mode RSS aggregator
 .SH "SYNOPSIS"
@@ -161,7 +161,7 @@ raggle \- text mode RSS aggregator
 [\fB\-\-export\-opml\fR \fIfile\fR]
 [\fB\-f\fR \fIstring\fR]
 [\fB\-\-find\-feeds\fR \fIstring\fR]
-[\fB\-\-import\-opml\fR \fIfile\fR]
+[\fB\-\-import\-opml\fR \fIfile\fR/\fIuri\fR]
 [\fB\-i\fR \fIfeed\fR]
 [\fB\-\-invalidate\fR \fIfeed\fR]
 [\fB\-\-max\fR \fInum\fR]
@@ -211,9 +211,9 @@ that are generally unwise.
 .IP "\fB\-h\fR  \fB\-\-help\fR  \fB\-\-usage\fR" 5
 .IX Item "-h  --help  --usage"
 Show usage information.
-.IP "\fB\-\-import\-opml\fR \fIfile\fR" 5
-.IX Item "--import-opml file"
-Import feeds from an \s-1OPML\s0 format \fIfile\fR.
+.IP "\fB\-\-import\-opml\fR \fIfile\fR/\fIuri\fR" 5
+.IX Item "--import-opml file/uri"
+Import feeds from an \s-1OPML\s0 format \fIfile\fR or \fIuri\fR.
 .IP "\fB\-i\fR \fIfeed\fR  \fB\-\-invalidate\fR \fIfeed\fR" 5
 .IX Item "-i feed  --invalidate feed"
 Invalidate \fIfeed\fR (force it to be refreshed). If \-1 is given as
@@ -323,6 +323,11 @@ Move item down.
 .IX Item "a"
 Add a feed.  Will add the currently selected feed after a search
 via \fIf\fR, otherwise you will be prompted for the address.
+.IP "\fIO\fR" 5
+.IX Item "O"
+Import or export an \s-1OPML\s0 copy of your feed list.  If the given name is
+an existing file or a \s-1URI\s0, it will be imported; otherwise, a new \s-1OPML\s0
+file will be created with the given name.
 .IP "\fIe\fR" 5
 .IX Item "e"
 Edit the current feed's options to your liking.

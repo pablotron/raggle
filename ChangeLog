@@ -694,3 +694,6 @@
 * Mon Jun 23 22:02:37 2003, richlowe <richlowe@richlowe.net>
   * raggle: Up version to 0.2.0
 
+* Mon Jun 23 22:06:24 2003, richlowe <richlowe@richlowe.net>
+  * raggle.1: Add HISTORY section mentioning first release.
+

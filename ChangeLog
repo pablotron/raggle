@@ -2475,3 +2475,9 @@ _Cvs
   * raggle: comment out sqlite and mysql stuff for now (but leave them
     as examples)
   * raggle: comment out rubygems requirement (for now)
+
+* Mon Mar 21 00:32:04 2005, pabs <pabs@pablotron.org>
+  * raggle: add tags to CSV bookmarks
+  * raggle: bookmarks auto-inherit tags from parent feed (configurable)
+  * raggle: :no_tag => :no_tags
+  * TODO: updated with ideas for bookmarks

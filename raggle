@@ -3562,6 +3562,11 @@ ENDUSAGE
         # was the bookmark saved?
         was_saved = true
 
+        # get feed categories
+        item = $config['feeds'].get($a_feed)
+        feed_cats = ' ' << (item['category'] || '')
+
+        # get actual item
         desc_win = $wins[NcursesInterface::get_win_id('desc')]
         item = desc_win.items[desc_win.active_item]
 
@@ -3575,14 +3580,20 @@ ENDUSAGE
 
         # check to see if we need to get extended information
         get_ext = bm.any? { |bmb| !bmb[:no_desc] }
-        get_tag = bm.any? { |bmb| !bmb[:no_tag] }
+        get_tag = bm.any? { |bmb| !bmb[:no_tags] }
 
-        ext, tags = '', ''        
+        ext, user_tags = '', ''        
         ext = NcursesInterface::get_input('bm_desc') if get_ext
-        tags = NcursesInterface::get_input('bm_tag') if get_tag
+        user_tags = NcursesInterface::get_input('bm_tag') if get_tag
 
         # iterate over bookmark backends and save bookmark to each one
         bm.each do |bmb|
+          # get tags, add feed categories (unless disabled)
+          tags = user_tags
+          unless bmb.key?(:inherit_tags) && bmb.[:inherit_tags] == false
+            tags += feed_cats 
+          end
+
           case bmb[:type]
           when :csv_file
             # expand bookmark file path
@@ -3591,7 +3602,7 @@ ENDUSAGE
             # save title and bookmark to file
             begin
               # create CSV line from title, time, and URL
-              csv_line = [title, url, time, ext].map { |str| 
+              csv_line = [title, url, time, ext, tags].map { |str| 
                 '"' << str.gsub(/"/, '""') << '"' 
               }.join(',')
               
@@ -3610,10 +3621,10 @@ ENDUSAGE
             end
           when :delicious
             if $HAVE_LIB['rubilicious']
-              tags += ' raggle_bookmarks' unless bmb[:no_raggle_tag]
-
               status = $config['msg_bm_del_saving']
               NcursesInterface::set_status(status)
+
+              tags += ' raggle_bookmarks' unless bmb[:no_raggle_tag]
 
               # connect to del, add URL to del
               begin
@@ -5790,8 +5801,13 @@ $config = {
     { :type => :csv_file,
       :path => '${config_dir}/bookmarks.csv', 
 
-      # don't prompt for descriptions (default: false)
+      # optional settings
+      # don't prompt for item description (default: false)
       :no_desc => true,
+      # don't prompt for tags (default: false)
+      # :no_tags => false,
+      # inherit tags from parent feed? (default: true)
+      # :inherit_tags => true,
     },
 
     # save bookmarks to delicious
@@ -5806,11 +5822,13 @@ $config = {
 #       
 #       # optional settings
 #       # don't prompt for tag (default: false)
-#       # :no_tag         => false,
+#       # :no_tags         => false,
 #       # don't prompt for description (default: false)
 #       # :no_desc        => false,
 #       # don't add 'raggle_bookmark' to tags (default: false)
 #       # :no_raggle_tag  => false,
+#       # inherit tags from parent feed? (default: true)
+#       # :inherit_tags => true,
 #     },
 # 
   
@@ -5841,7 +5859,9 @@ $config = {
 #       # don't prompt for descriptions (default: false)
 #       # :no_desc => false,
 #       # don't prompt for tags (default: false)
-#       # :no_tag => false,
+#       # :no_tags => false,
+#       # inherit tags from parent feed? (default: true)
+#       # :inherit_tags => true,
 #     },
 # 
 
@@ -5874,7 +5894,9 @@ $config = {
 #       # don't prompt for descriptions (default: false)
 #       # :no_desc => false,
 #       # don't prompt for tags (default: false)
-#       # :no_tag => false,
+#       # :no_tags => false,
+#       # inherit tags from parent feed? (default: true)
+#       # :inherit_tags => true,
 #     },
 # 
   ],

@@ -8,3 +8,6 @@
 * Sat Jun 07 23:50:58 2003, pabs <pabs@pablotron.org>
   * raggle: added window type (for scrolling and selection behavior)
   * raggle: removed some old comments
+
+* Sat Jun 07 23:52:03 2003, pabs <pabs@pablotron.org>
+  * added COPYING

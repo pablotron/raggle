@@ -31,6 +31,10 @@ p {
   padding: 0px;
 }
 
+form {
+  margin: 0px;
+}
+
 #feed-list-title {
   font-family: arial, helvetica, sans-serif;
   font-weight: bold;

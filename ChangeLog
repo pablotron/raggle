@@ -1438,3 +1438,14 @@
   * extras/web_ui/inc/item_list.html: move feed desc to bottom of info
   * added extras/web_ui/inc/feed_image.html
 
+* Sun Sep 14 13:37:18 2003, pabs <pabs@pablotron.org>
+  * raggle: slightly better relative URL munging
+  * raggle: disable gc thread (it doesn't do jack)
+  * raggle: SIGHUP invalidates all feeds and starts update
+  * raggle: SIGALRM checks feeds immediately
+  * raggle: Key::manual_update works in non-manual update mode now
+    (same as passing SIGALRM to process)
+  * extras/web_ui/inc/feed_list.html: force width of feed list
+  * raggle: allow multiple categories for a feed
+  * raggle: add several new default feeds (yahoo! news, tom, brian)
+  * raggle: add categories for all default feeds

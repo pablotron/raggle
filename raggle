@@ -12,6 +12,7 @@ $config = {
   # ui options
   'item_focus'            => false,
   'item_date_format'      => '%c',
+  'desc_date_format'      => '%c',
 
   # messages
   'msg_welcome'           => " Welcome to Raggle #{$VERSION}.",
@@ -94,6 +95,8 @@ $config = {
       'box'       => 6,
       'a_title'   => 21,
       'a_box'     => 6,
+      'url'       => 6,
+      'date'      => 6,
     },
   },
 
@@ -144,7 +147,9 @@ $config = {
           'url'   => 'http://www.pablotron.org/test?item=2',
           'date'  => 3243298,
           'desc'  => 'Some sample text:
+.
 The Saturn Game, by Poul Anderson
+.
 One of the writing problems peculiar to science fiction is that science has a
 wa y of catching up with your imagining. Just as you finish writing a book
 about th e poor folks who live on the perpetually dark side of Mercury, the
@@ -210,12 +215,34 @@ class Window
   #
   # draw text in window
   #
-  def draw(text, x = 1, y = 1, hilited = false, refresh_win = true)
+  def draw(orig_text, x = 1, y = 1, hilited = false, refresh_win = true)
     ha = []; wa = []
     Ncurses::getmaxyx win, ha, wa
     w, h = wa[0], ha[0]
 
-    @win.color_set @colors['h_text'],nil if @win_type == 'list' && hilited
+    # reflow text if it's a text window
+    # DOES THIS BELOGN HERE?
+    if @win_type == 'text'
+      text = ''
+      curr_line = ''
+      orig_text.split(/\s+/).each { |word|
+        if word == '.'
+          text << curr_line << "\n" 
+          curr_line = ''
+        elsif curr_line.length + word.length > w - 2
+          text << curr_line << "\n"
+          curr_line = "#{word} "
+        else
+          curr_line += "#{word} "
+        end
+      }
+      text << curr_line << "\n"
+    else
+      text = orig_text
+    end
+
+    # draw text in window
+    @win.color_set @colors['h_text'], nil if hilited
     text.each_line { |line|
       Ncurses::mvwprintw @win, y, x, line.slice(0, w - x - 1)
       y += 1
@@ -257,7 +284,23 @@ class Window
 
   def draw_items
     y = 0
-    @items.each { |item| draw(item['title'], 1, y += 1, y - 1== @active_item) }
+    if @win_type == 'text'
+      @items.each { |item|
+        y += 1
+        draw("Link: ", 1, y, false)
+        @win.color_set @colors['url'], nil
+        draw(item['url'], 7, y, false)
+
+        y += 1
+        d_str = Time.at(item['date'].to_i).strftime($config['desc_date_format'])
+        draw("Date: ", 1, y, false)
+        @win.color_set @colors['date'], nil
+        draw(d_str, 7, y, false)
+        draw(item['title'], 1, y += 2, false)
+      }
+    else
+      @items.each { |i| draw(i['title'], 1, y += 1, y - 1 == @active_item) }
+    end
     refresh(true)
   end
 end
@@ -320,6 +363,7 @@ def select_item(id)
   $wins[desc_id].items << {
     'title' => $config['debug_feeds'][$a_feed]['items'][id]['desc'],
     'url'   => $config['debug_feeds'][$a_feed]['items'][id]['url'],
+    'date'  => $config['debug_feeds'][$a_feed]['items'][id]['date'],
   }
   $wins[desc_id].win.clear
   $wins[desc_id].draw_items

@@ -11,3 +11,8 @@
 
 * Sat Jun 07 23:52:03 2003, pabs <pabs@pablotron.org>
   * added COPYING
+
+* Sun Jun 08 00:28:48 2003, pabs <pabs@pablotron.org>
+  * raggle: added text reflow in Window#draw()
+  * raggle: using start of "The Saturn Game" to demonstrate text reflow
+  * raggle: added Link and Date fields to Description window

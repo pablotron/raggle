@@ -41,6 +41,11 @@
 # Raggle version
 $VERSION = '0.1.0'
 
+# As early as possible, ^C and ^\ are common, and dumping a trace is ugly
+trap('INT') { puts "Interrupted"; exit -1 }
+trap('QUIT') { puts "Quit"; exit -1 }
+
+
 # load required modules
 require 'getoptlong'
 require 'ncurses'
@@ -59,6 +64,7 @@ end
 ###################
 # utility methods #
 ###################
+
 
 #
 # I like die
@@ -1501,7 +1507,7 @@ def main
       }
     }
   }
-  
+
   begin
     # initialize screen & keyboard
     Ncurses::initscr

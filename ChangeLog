@@ -376,6 +376,9 @@
   * raggle: Fix FeedList#invalidate (calling a method when I should 
 	    have been setting a hash item).
 
+* Sun Jun 22 00:38:37 EDT 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Trap SIGINT and SIGQUIT early, and handle them gracefully
+
 
 
 

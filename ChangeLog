@@ -1413,3 +1413,7 @@
 
 * Sat Sep 13 13:35:12 2003, pabs <pabs@pablotron.org>
   * raggle: don't force version 1.8 (silly me)
+
+* Sat Sep 13 14:03:50 2003, pabs <pabs@pablotron.org>
+  * doc/pauls_feeds.opml.gz: updated
+  * removed doc/pauls_feeds.yaml (only use OPML files now)

@@ -642,6 +642,11 @@
     (vaine@cs.helsinki.fi).
   * AUTHORS: add Ville Aine to AUTHORS
 
+* Tue Jun 24 18:09:34 2003, richlowe <richlowe@richlowe.net>
+  * raggle (Window#draw_text): Oops, I somehow reverted the "not drawing the
+           last line" fix, put it back.
+
+
 
 
 

@@ -574,7 +574,7 @@ class Window
     text = reflow_string text if reflow
     text.each_line do |line|
       i += 1
-      if i >= offset && y < (h - 2)
+      if i >= offset && y < (h - 1)
         Ncurses::mvwprintw @win, y, x, line.gsub(/%/, '%%').slice(0, w - x - 1)
         y += 1
       end

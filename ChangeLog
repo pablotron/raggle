@@ -162,3 +162,7 @@
   * raggle: added edit_feed (command-line edit feature)
   * raggle: commented out mouse support (needs patched ncurses-ruby to
     work at the moment)
+
+* Wed Jun 18 02:29:57 2003, pabs <pabs@pablotron.org>
+  * raggle: added documentation for --edit
+  * raggle: multi-instance cache disable now works correctly

@@ -1222,7 +1222,14 @@ Options:
   -d, --delete, --delete-feed   Delete an existing feed.
   -e, --edit, --edit-feed       Edit an existing feed.
   -h, --help, --usage           Display this usage screen.
-  -l, --list                    List existing feeds.
+  -l, --list                    List existing feeds (use '--verbose' to 
+                                show URLs as well).
+  -r, --refresh                 Refresh attribute of feed (for '--add' and
+                                '--edit').
+  -t, --title                   Title attribute of feed (for '--add' and
+                                '--edit').
+  -u, --url                     URL attribute of feed (for '--add' and
+                                '--edit').
   --verbose                     Turn on verbose output.
   -v, --version                 Display version information.
 
@@ -1235,6 +1242,9 @@ Examples:
 
   # delete an existing feed
   #$0 --delete 12
+
+  # set the title and refresh of an existing feed
+  #$0 --edit 10 --title 'hi there!' -r 20
   
 About the Author:
 Paul Duncan <pabs@pablotron.org>
@@ -1413,6 +1423,7 @@ def create_cache_lock
     $stdin.gets
 
     # disable feed caching and theme saving
+    $config['use_cache_lock'] = false
     $config['save_feed_list'] = false
     $config['save_feed_cache'] = false
     $config['save_theme'] = false
@@ -1661,7 +1672,7 @@ ensure
   save_theme if $config['save_theme']
 
   # unlock everything
-  destroy_cache_lock if $config['use_cache_lock']
+  destroy_cache_lock if $config['use_cache_lock'] && $config['cache_lock']
 
   $stdout.puts $config['msg_thanks']
 end

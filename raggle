@@ -39,6 +39,11 @@
 # Raggle version
 $VERSION = '0.4.0-test'
 
+# installed data directory
+# (note: don't touch this line, it's automatically converted by 
+# the Makefile on install)
+$DATADIR = "."
+
 # As early as possible, ^C and ^\ are common, and dumping a trace is
 # ugly On the other hand, dumping trace is very useful when running
 # tests, therefore disable these unless this file is executed.
@@ -78,14 +83,15 @@ require 'thread'
 # load external modules #
 #########################
 { # key => [path, title, required]
-  'ncurses' => ['ncurses',        'Ncurses-Ruby', false],
-  'rexml'   => ['rexml/document', 'REXML',        true ],
-  'yaml'    => ['yaml',           'YAML',         true ],
-  'ssl'     => ['net/https',      'OpenSSL-Ruby', false],
-  'webrick' => ['webrick',        'WEBrick',      false],
-  'drb'     => ['drb',            'DRb',          false],
-  'xmlrpc'  => ['xmlrpc/client',  'xmlrpc4r',     false],
-  'iconv'   => ['iconv',          'Iconv',        false],
+  'ncurses'   => ['ncurses',        'Ncurses-Ruby', false],
+  'rexml'     => ['rexml/document', 'REXML',        true ],
+  'yaml'      => ['yaml',           'YAML',         true ],
+  'ssl'       => ['net/https',      'OpenSSL-Ruby', false],
+  'webrick'   => ['webrick',        'WEBrick',      false],
+  'drb'       => ['drb',            'DRb',          false],
+  'xmlrpc'    => ['xmlrpc/client',  'xmlrpc4r',     false],
+  'iconv'     => ['iconv',          'Iconv',        false],
+  'fileutils' => ['fileutils',      'FileUtils',    false],
 }.each { |key, info|
   path, title, required = info[0, 3]
   $HAVE_LIB ||= {}
@@ -3700,6 +3706,11 @@ ENDUSAGE
         #
         def initialize(opts)
           @opts = opts
+
+          # grab web UI root
+          root = $config['web_ui_root_path'],
+          # if it doesn't exist, then eset it to the data directory
+          
           s = WEBrick::HTTPServer::new(
             :BindAddress  => @opts['bind_address'],
             :Port         => @opts['port'],
@@ -3989,8 +4000,28 @@ ENDUSAGE
       def HTTPServerInterface::init
         # check to make sure web ui dir exists
         path = $config['web_ui_root_path']
-        die "Missing Web UI Root directory \"#{path}\"." \
-          unless test ?e, path
+        unless test ?e, path
+          if $HAVE_LIB['fileutils']
+            # if the web_ui directory doesn't exist, but the data
+            # directory does, and we have fileutils installed, then go
+            # ahead and copy it to our web_ui directory
+            data_path = File::join($DATADIR, 'extras', 'web_ui')
+
+            # check to see if the data dir exists, if it doesnt, then
+            # bail out
+            die "Missing Web UI Root directory (checked \"#{$config['web_ui_root_path']}\" and \"#{path}\")." unless test ?e, data_path
+
+            $stderr.puts "Warning: Web UI Root (\"#{path}\") doesn't exist; copying it from \"#{data_path}\"..."
+            # attempt to copy data directry to given root
+            begin
+              FileUtils::cp_r(data_path, path)
+            rescue 
+              die "Couldn't copy from data directory (\"#{data_path}\") to Web UI Root (\"#{path}\"): #$!"
+            end
+          else
+            die "Missing Web UI Root directory \"#{path}\"."
+          end
+        end
 
         # start HTTP server thread
         Thread.new do

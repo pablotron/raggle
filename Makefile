@@ -13,7 +13,6 @@ install :
 	if [ ! -d "${BINDIR}" ]; then \
 		${mkdir} -p ${BINDIR}; \
 	fi && \
-	cp raggle ${BINDIR} && \
 	if [ ! -d "${DOCDIR}" ]; then \
 		${mkdir} ${DOCDIR}; \
 	fi && \
@@ -23,12 +22,13 @@ install :
 	if [ ! -d "${MANDIR}" ]; then \
 		${mkdir} ${MANDIR}; \
 	fi && \
+	ruby -pe 'gsub(/^(.)DATADIR = ".*"/, "\\1DATADIR = \"${DATADIR}\"")' < ./raggle > ${BINDIR}/raggle && chmod 755 ${BINDIR}/raggle && \
 	cp raggle.1 ${MANDIR} && \
 	cp -r ${DOCS} ${DOCDIR} && \
 	cp -r ${DATA} ${DATADIR}
 
 apidoc:
-	rdoc --op doc/api raggle
+	rdoc -o doc/api --title "Raggle API Documentation" --webcvs http://cvs.pablotron.org/cgi-bin/viewcvs.cgi/raggle/ raggle README COPYING AUTHORS ChangeLog
 
 man :
 	pod2man --release 0.2 --center "User Commands Manual" \

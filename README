@@ -1,7 +1,7 @@
 Raggle 0.4.0 README
 ===================
 
-This document was last updated on Tue Mar 15 17:52:06 2005.
+This document was last updated on Wed Mar 16 19:03:01 2005.
 Please see the file COPYING for licensing and warranty information.  The
 latest version of this software is available at the following URL:
 http://www.raggle.org/.
@@ -57,6 +57,7 @@ it can:
   ----              --------
   DRb               DRb interface (alpha status).
   FileUtils         Initial web interface setup.
+  GetText-Ruby      Internationalization (i18n) support.
   Iconv             Character encoding conversions (RECOMMENDED).
   Ncurses-Ruby [*]  Required for Console interface. 
   OpenSSL-Ruby      https support.

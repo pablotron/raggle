@@ -1,7 +1,7 @@
 # Raggle US English language file.
 # Copyright (C) 2005 Paul Duncan <pabs@pablotron.org>
 # This file is distributed under the same license as the Raggle package.
-# Paul Duncan <pabs@pablotron.org, 2005.
+# Paul Duncan <pabs@pablotron.org>, 2005.
 #
 #, fuzzy
 msgid ""

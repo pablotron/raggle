@@ -2321,3 +2321,8 @@
 * Fri Mar 11 17:00:04 2005, pabs <pabs@pablotron.org>
   * raggle: added halffull.org to list of default feeds, updated
     LWN URL
+
+* Sat Mar 12 02:16:38 2005, pabs <pabs@pablotron.org>
+  * raggle: feeds.yaml only saves the feed list, not the friggin object
+  * raggle: strip out --- !ruby/object nonsense when loading feed list
+    (this makes us backwards-compatible with pre-0.4.0 feed lists)

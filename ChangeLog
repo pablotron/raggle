@@ -2085,3 +2085,19 @@
 * Fri Nov 19 18:31:51 2004, pabs <pabs@pablotron.org>
   * raggle: check for ENV['RAGGLE_WEB_DATA'] in find_web_ui_root
     (suggested by Hans Hagen <pragma@wxs.nl>)
+
+* Wed Dec 01 00:35:38 2004, pabs <pabs@pablotron.org>
+  * raggle: applied patch from Thomas Kirchner <redshift@halffull.org>,
+    which does the following:
+    * corrected feed deletion to update window
+    * made select_win_item update the status bar when needed, this has the
+        nice effect of updating status when switching windows
+    * fixed typo that caused find_feeds to be totally broken (that one
+        character took me about an hour.  It was sad.)
+    * minorly refactored find_feeds and fixed the usage of an existing window
+    * put # of matches for find_feeds results in title, rather than as a
+        pseudo-item
+    * fixed feed_entry message display
+    * consolidated Engine module listings
+    * added vim modeline for convenience :)
+  * AUTHORS: updated Thomas Kirchner's entry

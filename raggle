@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-# -*- Mode: Ruby -*-
+# -*- Mode: Ruby -*- vim: sts=2 sw=2 expandtab
 
 #######################################################################
 # Raggle - Console RSS aggregator                                     #
@@ -1727,6 +1727,7 @@ ENDUSAGE
             win.delete_item
             win.active_item = (win.active_item > 0) ? win.active_item - 1 : 0
             win.draw_items
+            win.select_win_item
             win.clearrange(win.items.size + 1, win.dimensions[1] - 2)
           end
         end
@@ -1974,6 +1975,7 @@ ENDUSAGE
         #      Appropriate -- richlowe 2003-06-23
         def select_win_item
           if @items && @items.size > 0 && @items[@active_item]
+            NcursesInterface::set_status @items[@active_item]['title'].split(/\s+/).join(' ') if @items[@active_item].has_key? 'title'
             if @items[@active_item].has_key? 'feed'
               NcursesInterface::select_feed @items[@active_item]['feed']
             elsif @items[@active_item].has_key? 'item'
@@ -2776,26 +2778,31 @@ ENDUSAGE
             results = Engine::find_feeds(str)
             id = NcursesInterface::get_win_id('find')
       
-            if id == -1
-              # determine window height
-              w = $config['w'] - 10
-              h = $config['h'] - 5 
-              h = results.size + 3 if h > results.size + 3
+            # determine window height
+            w = $config['w'] - 10
+            h = $config['h'] - 5 
+            h = results.size + 2 if h > results.size + 2
       
+            if id == -1
               # create window and add it to window list
               $wins << win = NcursesInterface::ListWindow::new({
-                'title'   => $config['msg_find_title'] % [str],
+                'title'   => $config['msg_find_title'] % [ str, results.size ],
                 'key'     => 'find',
                 'coords'  => [5, 3, w, h],
-                'colors'  => $wins[NcursesInteface::get_win_id('item')].colors,
+                'colors'  => $wins[NcursesInterface::get_win_id('item')].colors,
               })
             else
-              win = $wins[id]
+              # use existing window
+              $wins[id] = win = NcursesInterface::ListWindow::new({
+                'title'   => $config['msg_find_title'] % [ str, results.size ],
+                'key'     => 'find',
+                'coords'  => [5, 3, w, h],
+                'colors'  => $wins[NcursesInterface::get_win_id('item')].colors,
+              })
             end
       
             # build item list
             win.items.clear
-            win.items << { 'title' => "Found #{results.size} feeds matching \"#{str}\"." }
             results.each do |feed| 
               title = [feed['sitename'],
                        feed['description'], 
@@ -2803,7 +2810,6 @@ ENDUSAGE
                       ].join ' - '
               win.items << { 'title' => title, 'find' => feed['dataurl'] }
             end
-            win.activate(2)
       
             # add window to window list and draw item list
             win.draw_items
@@ -2828,7 +2834,7 @@ ENDUSAGE
       # 
       def NcursesInterface::find_entry(win, direction = 1)
         if win && win.items && win.items.size > 0
-          w, e_msg = $config['w'], $config['msg_find_feed']
+          w, e_msg = $config['w'], $config['msg_find_entry']
       
           # print entry message
           msg = e_msg + (' ' * (w - e_msg.length - 1))
@@ -3467,9 +3473,7 @@ ENDUSAGE
         tmp.each_with_index { |t, i| $config['feeds'][i]['items'] = t }
       end
     end
-  end
 
-  module Engine
     #
     # add a new feed
     #
@@ -3916,7 +3920,7 @@ ENDUSAGE
         chan = Raggle::Feed::Channel.new(feed['url'], feed['last_modified'])
         feed.delete 'error'
       rescue
-        # set_status "Error updating \"#{feed['title']}\"."
+        NcursesInterface::set_status "Error updating \"#{feed['title']}\"."
         $log.puts "#{t}: Error: #$!"
         feed['error'] = "#$!"
         return
@@ -4353,7 +4357,7 @@ $config = {
   'msg_find_entry'        => 'Find:',
   'msg_cat_title'         => 'Display Category',
   'msg_find_feed'         => 'Find Feeds:',
-  'msg_find_title'        => 'Search Results for "%s"',
+  'msg_find_title'        => 'Search Results for "%s" - %s matching feeds',
 
   # menu bar color
   'menu_bar_cols'         => 24,

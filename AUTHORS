@@ -59,3 +59,7 @@ Ralf Horstmann <ralf.horstmann@webwasher.com
 Thomas Kirchner <tjkirch@rochester.rr.com>
 * get_win_id() fix 
 * refresh window on delete (Ncurses interface)
+* corrected feed deletion
+* find feeds fixes
+* vim modeline
+* misc status updates to 0.4 CVS

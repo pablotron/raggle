@@ -11,7 +11,7 @@ Richard Lowe <richlowe@richlowe.net>
 * feed invalidation
 * man page
 * syck documentation
-* item deletion
+* feed deletion
 * description window scrolling
 * getoptlong option handling
 * graceful SIG{INT,QUIT} handling
@@ -63,5 +63,9 @@ Thomas Kirchner <redshift@halffull.org>
 * feed sorting fixes
 * periodic and manual feeds/config saving
 * duplicate feed checking
+* ability to mark items as unread
 * help window
-* miscellaneous cleanup
+* feed priorities
+* item deletion and undeletion
+* many continuity fixes for window switching
+* lots of miscellaneous cleanup

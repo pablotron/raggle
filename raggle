@@ -1807,7 +1807,7 @@ ENDUSAGE
           win.active_item = (win.active_item > 0) ? win.active_item - 1 : 0
           win.draw_items
           win.select_win_item
-          win.clearrange(win.items.size + 1, win.dimensions[1] - 2)
+          win.activate(win.active_item)  # scroll to item if it's offscreen
         end
 
         #
@@ -2217,7 +2217,7 @@ ENDUSAGE
             draw(text, 1, y += 1, color, true, false) if ic >= @offset
             ic += 1
           }
-          clearrange(@items.size + 1, h - 2)
+          clearrange(@items.size + 1 - @offset, h - 2)
           refresh(true)
         end
         

@@ -2195,7 +2195,6 @@
   * raggle: updated Freshmeat rss address
 
 * Wed Dec 22 12:16:00 2004, redshift <redshift@halffull.org>
-  * raggle: fixed scrolling in description window to skip blank lines
   * raggle: don't change window/item upon selecting category if the
     category didn't change
 
@@ -2204,3 +2203,7 @@
   * raggle: fixed parse_rss_url actually using last modified time
   * raggle: fixed undeleting of feeds causing incorrect item selection
   * raggle: minor comment updates for clarity
+
+* Thu Dec 23 09:55:00 2004, redshift <redshift@halffull.org>
+  * raggle: fixed bug where deletion wouldn't clear window bottom
+  * AUTHORS: added some recent contributions

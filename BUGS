@@ -81,6 +81,6 @@ Bugs
 [*] feed dates showed as timestamps
 [*] nil feed title empty borks sort (reported by Manpreet Singh
     <junkblocker@yahoo.com)
-[ ] left pane isn't cleared when deleting last feed (reported by
+[*] left pane isn't cleared when deleting last feed (reported by
     Manpreet Singh <junkblocker@yahoo.com)
 [*] deleted items not always saved between updates

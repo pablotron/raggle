@@ -1,10 +1,24 @@
 Raggle 0.4.0 README
 ===================
 
-This document was last updated on Fri Feb 20 04:51:20 2004.
+This document was last updated on Sat Apr 17 12:04:33 2004.
 Please see the file COPYING for licensing and warranty information.  The
 latest version of this software is available at the following URL:
 http://www.raggle.org/.
+
+Table of Contents
+=================
+* Introduction
+* System Requirements
+  o Console Interface
+  o Web Interface
+* Installation
+* Getting Started
+* Configuration Files
+* Frequently Asked Questions
+* Related Links
+* About the Authors
+
 
 Introduction
 ============
@@ -179,6 +193,41 @@ file looks like:
 
 Note: In Windows, these files are all stored in %USERPROFILE%\.raggle\,
 except for web_ui, which is located in "C:\Program Files\Raggle\web_ui\".
+
+
+Frequently Asked Questions
+==========================
+Q.  Raggle shows up in black and white?  Where's the color?
+A.  You're probably running Raggle in a vt100 terminal.  Try setting the
+    terminal to 'xterm'.  In Bourne-derived shells (sh, bash, zsh, etc),
+    do this:
+
+      # set the terminal type to xterm
+      TERM='xterm'
+      export TERM
+      raggle
+
+    and in csh-derived shells, do the following:
+
+      setenv TERM 'xterm'
+      raggle
+
+    Note for OSX users: The latest versions of OSX use bash as the
+    console, _not_ tcsh.
+
+Q.  I get funny characters instead of lines for my window borders.  How
+    do I fix this?
+A.  Your terminal font doesn't contain the ANSI characters Ncurses uses to 
+    draw lines.  Either switch fonts or run Raggle with the --ascii (-A)
+    command-line flag.
+
+Q.  When I resize the terminal window, Raggle doesn't change size
+    immediately.  How do I fix this?
+A.  You can't, at least not at the moment.  We know about this problem,
+    but we can't fix it until we have a proper way to handle Ncurses
+    events without blocking the entire application (and stopping the
+    feed grabbing threads).
+
 
 Related Links
 =============

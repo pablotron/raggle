@@ -1845,3 +1845,9 @@
 
 * Thu Apr 15 05:49:15 2004, pabs <pabs@pablotron.org>
   * TODO: added note about terminal documentation
+
+* Sat Apr 17 12:04:58 2004, pabs <pabs@pablotron.org>
+  * README: added table of contents
+  * README: added FAQ section
+  * README: misc formatting cleanups
+  * TODO: mark off terminald doc idea (in FAQ now)

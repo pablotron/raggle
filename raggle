@@ -126,7 +126,7 @@ require 'win32/registry' if RUBY_PLATFORM =~ /win32/i
 ###################
 
 #
-# I like die
+# Print out error and exit unconditionally.
 #
 def die(*args)
   errstr = "#$0: FATAL: #{args.join("\n")}"
@@ -147,30 +147,70 @@ end
 # String utility methods #
 ##########################
 class String
+  # 
+  # Get the number of lines in this string.
+  #
+  # Example:
+  #  "a\nb".lines #=> 2
+  #
   def lines
     self.split(/\n/).size
   end
   
+  #
+  # Return a copy of this string with quotes and backslashes escaped.
+  #
+  # Example:
+  #   'a\b'.escape #=> 'a\\b'
+  #
   def escape
     gsub(/(["\\])/, "\\$1")
     self
   end
 
+  #
+  # Escape the quotes and backslashes in this string.  Returns self.
+  #
+  # Example:
+  #   'a\b'.escape! #=> 'a\\b'
+  #
   def escape!
     gsub!(/(["\\])/, "\\$1")
     self
   end
 
+  #
+  # Return a copy of this string with '%' characters escaped.
+  #
+  # Example:
+  #   'a%b'.escape_format #=> 'a%%b'
+  #
   def escape_format
     gsub(/%/, '%%')
   end
 
+  #
+  # Escape '%' characters in this string.  Returns nil.
+  #
+  # Example:
+  #   a = 'a%b'.escape_format!
+  #   a.escape_format!
+  #   a #=> 'a%%b'
+  #
   def escape_format!
     gsub!(/%/, '%%')
   end
 
-  # this bit of love is from the pickaxe
-  # (augmented by me, of course)
+  #
+  # Return copy of string with HTML entities converted into ASCII
+  # characters.
+  # 
+  # Note: this bit of love is originally from the pickaxe (augmented by
+  # me, of course).
+  #
+  # Example:
+  #   '&amp;&lt;br /&gt;'.unescape_html #=> '&<br />'
+  #
   def unescape_html
     str = self.dup
     str.gsub!(/&(.*?);/n) {
@@ -205,10 +245,24 @@ class String
     str
   end
 
+  #
+  # Return copy of string with all HTML tags stripped.
+  #
+  # Example:
+  #   "<a href='sadf'>blargh</a>".strip_tags #=> 'blargh'
+  #
   def strip_tags
     gsub(/<[^>]+?>/, '')
   end
 
+  #
+  # Return copy of string with lines reflowed for the given terminal
+  # width.
+  #
+  # Example: 
+  #   str = "this is a really long string it won't fit"
+  #   str.reflow(22) #=> "this is a really long\nstring it won't fit"
+  #
   def reflow(width = 72, force = false, line_delim_regex = %r!^(<br[^/]*>|\.)$!)
     text = ''
     curr_line = ''
@@ -237,7 +291,11 @@ end
 module Raggle
   module Path
     #
-    # find an application in your $PATH
+    # Find an application in your $PATH.  Returns nil if the app
+    # couldn't be found.
+    # 
+    # Example:
+    #   Path::find_app('ls') #=> '/bin/ls'
     #
     def Path::find_app(app)
       re = (RUBY_PLATFORM =~ /win32/i) ? ';' : ':'
@@ -245,7 +303,13 @@ module Raggle
     end
     
     #
-    # Find home directory (different env vars on unix and win32)
+    # Find home directory (different env vars on unix and win32).
+    #
+    # Note: checks for ENV['HOME'], ENV['USERPROFILE'], then
+    # ENV['HOMEPATH'], and returns nil if none were found.
+    #
+    # Example:
+    #   Path::find_home #=> '/home/pabs'
     #
     def Path::find_home
       ENV['HOME'] || ENV['USERPROFILE'] || ENV['HOMEPATH']
@@ -253,6 +317,9 @@ module Raggle
     
     #
     # Find web root (in win32 it's located in the program dir by default) 
+    #
+    # Example:
+    #   Path::find_web_ui_root #=> '/home/pabs/.raggle/web_ui'
     # 
     def Path::find_web_ui_root
       if RUBY_PLATFORM =~ /win32/i
@@ -263,7 +330,14 @@ module Raggle
     end
     
     #
-    # Find browser
+    # Find browser, or exit if a browser cannot be found.
+    #
+    # Checks for ENV['RAGGLE_BROWSER'], ENV['BROWSER'], then looks for
+    # "links", "elinks", "w3m", "lynx", then finally "explorer.exe".  If 
+    # all those fail, then dies with an error message.
+    #
+    # Example:
+    #   Path::find_browser #=> '/usr/bin/links'
     #
     def Path::find_browser
       ret = ENV['RAGGLE_BROWSER']
@@ -282,7 +356,10 @@ module Raggle
 
   module Proxy
     #
-    # find a proxy in windows by checking the registry
+    # Find a proxy in Windows by checking the registry.
+    #
+    # Example:
+    #   Proxy::find_win32_proxy #=> {"host"=>"proxy", "port"=>3128}
     #
     def Proxy::find_win32_proxy
       ret = nil
@@ -314,8 +391,13 @@ module Raggle
     end
 
     #
-    # get the proxy host and port from $config['proxy'], or
-    # ENV['http_proxy'] / ENV['no_proxy'] if $config['proxy'] isn't set
+    # Get host, port, and no_proxy proxy information for a given host.
+    #
+    # Checks $config['proxy'], then ENV['http_proxy'] / ENV['no_proxy'].
+    # Also calls Proxy::find_win32_proxy if we're in Windows.
+    #
+    # Example:
+    #   Proxy::find_proxy #=> {"host"=>"proxy", "port"=>3128}
     #
     def Proxy::find_proxy(host)
       ret = nil
@@ -341,20 +423,24 @@ module Raggle
     end
   end
 
+  #
+  # Basic command-line HTML renderer.
+  #
   module HTML
-    # Tag set defines all tags that the renderer
-    # can handle
     #
-    # Each tag can modify the context by
-    # defining +:context+ key (see pre).
+    # Tag set defines all tags that the renderer can handle.
     #
-    # Tag's can also have actions which
-    # will be executed sequentially when
-    # the tag occurs in the token stream.
-    # Actions must be defined to occurences
-    # of start tags and end tags separately.
+    # Each tag can modify the context by defining +:context+ key (see pre).
+    #
+    # Tag's can also have actions which will be executed sequentially
+    # when the tag occurs in the token stream.  Actions must be defined
+    # to occurences of start tags and end tags separately.
+    #
     class TagSet
       class Tag
+        #
+        # Raggle::HTML::TagSet::Tag constructor.
+        #
         def initialize
           @context = nil
           @start_actions = []
@@ -365,20 +451,31 @@ module Raggle
         attr_reader :start_actions
         attr_reader :end_actions
 
+        #
+        # TODO: Raggle::HTML::TagSet::Tag#start_actions= placeholder
+        #
         def start_actions=(*actions)
           @start_actions = actions.flatten
         end
 
+        #
+        # TODO: Raggle::HTML::TagSet::Tag#end_actions= placeholder
+        #
         def end_actions=(*actions)
           @end_actions = actions.flatten
         end
       end
       
+      #
+      # TagSet constructor.
+      #
       def initialize
         @tags = Hash.new
         yield self
       end
 
+      #
+      # TODO: Raggle::HTML::TagSet::define_tag placeholder
       def define_tag(*names)
         yield tag_spec = Tag.new
         names.each do |name|
@@ -386,10 +483,19 @@ module Raggle
         end
       end
 
+      #
+      # Is the given tag defined?
+      #
+      # Example:
+      # tag_set.defined?('p') #=> true
+      #
       def defined?(name)
         @tags.has_key?(name)
       end
       
+      #
+      # Get a tag by name.
+      #
       def [](name)
         @tags[name]
       end
@@ -417,12 +523,24 @@ module Raggle
       end
     end
 
+    #
+    # Render HTML for a given terminal width.
+    #
+    # Example:
+    #   HTML::render_html('<br/><br/>test') #=> "\n\ntest"
+    #
     def self.render_html(source, width=72)
       r = Renderer.new(source, width)
       r.rendered_text
     end
     
+    #
+    # Text-mode HTML renderer.
+    #
     class Renderer
+      #
+      # Raggle::HTML::Renderer constructor. 
+      #
       def initialize(source, width)
         @source, @width = source, width
         @links = []
@@ -431,13 +549,14 @@ module Raggle
 
       attr_reader :rendered_text
       
-      # Execute actions defined for +tag+ in this
-      # +phase+.
+      #
+      # Execute actions defined for +tag+ in this +phase+.
       #
       # actions:: actions set
       # tag::     tag from tag set
       # phase::   either +:start+ or +:end+
       # params::  params passed to the actions
+      #
       def call_actions(tag, phase, *params)
         actions = phase == :start ? tag.start_actions : tag.end_actions
         actions.each do |action|
@@ -445,32 +564,38 @@ module Raggle
         end
       end
       
+      #
       # Enter to context defined by tag (if any)
       #
       # context:: current context stack
       # tag::     tag from tag set
+      #
       def context_enter(context, tag)
         if tag.context
           context << tag.context
         end
       end
       
+      #
       # Exit from context defined by tag (if any)
       #
       # context:: current context stack
       # tag::     tag from tag set
+      #
       def context_exit(context, tag)
         if tag.context
           context.pop
         end
       end
       
+      #
       # Reflow +text+, and append the result to
       # +lines+
       #
       # lines:: line array representing lines on screen
       # text::  text to be reflown
       # width:: maximum width of each line on screen
+      #
       def reflow_text(text)
         cur_line = @lines.pop || ''
         text.split(/\s+/).each do |word|
@@ -483,14 +608,14 @@ module Raggle
         end
         @lines << cur_line
       end
-      
-      
-      # Renders HTML in +src+ to a screen
-      # with maximum width +width+. Returns
-      # +String+ containing rendered text.
+
+      #
+      # Renders HTML in +src+ to a screen with maximum width +width+.
+      # Returns +String+ containing rendered text.
       #
       # src::   HTML source
       # width:: Screen width
+      #
       def render
         @lines = []
         @context = []
@@ -540,31 +665,39 @@ module Raggle
 
       # Actions used in the tag set
 
+      #
       # Append paragraph break
+      #
       def action_new_paragraph
         @lines.push(*['', ''])
       end
 
-      # Append paragraph break, unless there
-      # is one already.
+      #
+      # Append paragraph break, unless there is one already.
+      #
       def action_maybe_new_paragraph
         unless @lines[-1] == '' || @lines.empty?
           @lines.push(*['', ''])
         end
       end
 
+      #
       # Force line break.
+      #
       def action_force_line_break
         @lines << ''
       end
 
+      #
       # Save href of the current tag (if it exists)
+      #
       def action_save_href
         @links << @current_attributes['href']
       end
 
-      # insert reference to the latest link into the
-      # rendered text
+      #
+      # Insert reference to the latest link into the rendered text.
+      #
       def action_insert_link_ref
         if @lines[-1]
           @lines[-1] << '[%d]' % @links.size
@@ -572,13 +705,17 @@ module Raggle
       end
     end
 
+    #
+    # Basic HTML parser.
+    #
     module Parser
       NO_ATTRIBUTES = {}.freeze
       ATTRIBUTE_LIST_RE = /\s*([^>=\s]+)\s*(?:=\s*(?:(?:['"]([^'">]*)['"])|([^'"\s>]+)))?/ #'
       PARSER_RE = %r!<(/?\w+[^>]*?/?)>|([^<]*)!m
       
-      # Parses tag's attributes and returns them
-      # in a hash.
+      #
+      # Parses tag's attributes and returns them in a hash.
+      #
       def self.parse_attributes(source)
         #puts "SOURCE: ", source
         attributes = {}
@@ -588,8 +725,9 @@ module Raggle
         attributes
       end
       
-      # Parses HTML in +source+ and invokes
-      # block with each token as a paramater.
+      #
+      # Parses HTML in +source+ and invokes block with each token as a
+      # paramater.
       #
       # Parameters to the block:
       #  token id   | data        | attributes
@@ -598,6 +736,7 @@ module Raggle
       #  :END_TAG   | tag's name  | NO_ATTRIBUTES
       #
       # source:: HTML source
+      #
       def self.each_token(source)
         if source 
           source.scan(PARSER_RE) do |tag, text|
@@ -622,7 +761,7 @@ module Raggle
   end
 
   #
-  # Very simple OPML importer/exporter
+  # Very simple OPML importer/exporter.
   #
   module OPML
     #
@@ -642,7 +781,7 @@ module Raggle
 
       begin
         contents = if file_name =~ /:\/\//
-          Feed::get_url(file_name)[0]
+          Engine::get_url(file_name)[0]
         else
           file = (file_name == '-') ? $stdin : File::open(file_name)
           raise "Couldn't open input file \"#{file_name}\"." unless file
@@ -676,7 +815,7 @@ module Raggle
     end
 
     #
-    # Export all feeds to OPML format
+    # Export all feeds to OPML format.
     #
     def OPML::export(file_name)
       begin
@@ -709,7 +848,7 @@ module Raggle
     end
 
     #
-    # Generate OPML header
+    # Generate OPML header.
     #
     def OPML::opml_head
       head = REXML::Element.new('head')
@@ -720,7 +859,7 @@ module Raggle
     end
 
     #
-    # Convert feed hash to outline-element
+    # Convert feed hash to outline-element.
     #
     def OPML::feed_to_outline(feed)
       outline = REXML::Element.new('outline')
@@ -734,25 +873,35 @@ module Raggle
     end
   end
 
-  # borrowed from syndic8-ruby; 
-  # (see http://www.pablotron.org/software/syndic8-ruby/)
+  #
+  # Syndic8 XML-RPC interface (used to search for new feeds).
+  #
+  # This code was shamelessly stolen from syndic8-ruby (see
+  # http://www.pablotron.org/software/syndic8-ruby/).
+  #
   class Syndic8
     attr_accessor :keys, :max_results
     VERSION = '0.1.0'
 
+    #
+    # Connect to Syndic8
+    #
     def initialize
       @keys = %w{sitename siteurl dataurl description}
       @max_results = -1
       @rpc = XMLRPC::Client.new('www.syndic8.com', '/xmlrpc.php', 80)
     end
 
+    #
+    # Call syndic8 method
+    #
     def call(meth, *args)
       @rpc.call("syndic8.#{meth}", *args)
     end
     private :call
 
     #
-    # find feeds matching a given search string
+    # Find feeds matching a given search string.
     #
     def find(str)
       begin
@@ -764,129 +913,222 @@ module Raggle
     end
 
     #
-    # get a list of fields returned by Syndic8
+    # Get a list of fields returned by Syndic8.
     #
     def fields
       call 'GetFeedFields'
     end
   end
 
+  #
+  # Basic feed handling classes.
+  #
+  module Feed
+    #
+    # Feed::Item struct definition
+    #
+    Item = Struct.new :title, :link, :desc, :date
 
-  class FeedList
-    attr_accessor :feeds
-    def initialize
-      @feeds = []
-    end
+    #
+    # Raggle::Feed::List object.  The list which contains all of
+    # the feeds and feed items for Raggle.
+    #
+    class List
+      attr_accessor :feeds
 
-    def size
-      @feeds.size
-    end
-    
-    def add(title, url, refresh, lock_title=false, save_items=false, site='',
-            desc='', items=[], image = nil, category = nil, force=true)
-      refresh_interval_check(refresh) unless force || url =~ /^(file|exec):/
-      lock_title = false if !lock_title
-      save_items = false if !save_items
-      @feeds << {
-        'title'       => title,
-        'url'         => url,
-        'refresh'     => refresh,
-        'site'        => site,
-        'desc'        => desc,
-        'updated'     => 0,
-        'image'       => image,
-        'items'       => items,
-        'category'    => category, 
-        'lock_title?' => lock_title,
-        'save_items?' => save_items,
-      }
-    end
+      #
+      # Raggle::Feed::List constructor.
+      #
+      # Example:
+      #   feeds = Feed::list.new 
+      #
+      def initialize
+        @feeds = []
+      end
 
-    def <<(feed)
-      @feeds << feed
-    end
+      #
+      # Return the number of feeds in this Raggle::Feed::List object.
+      #
+      # Example:
+      #   feeds.size #=> 100
+      #
+      def size
+        @feeds.size
+      end
+      
+      #
+      # Add a new feed to this feed list.
+      #
+      # Note: the parameters of this method _will_ change in the near
+      # future.
+      #
+      # Example:
+      #   feeds.add('pablotron', 'http://www.pablotron.org/rss/', 120)
+      #
+      def add(title, url, refresh, lock_title=false, save_items=false, site='',
+              desc='', items=[], image = nil, category = nil, force=true)
+        refresh_interval_check(refresh) unless force || url =~ /^(file|exec):/
+        lock_title = false if !lock_title
+        save_items = false if !save_items
+        @feeds << {
+          'title'       => title,
+          'url'         => url,
+          'refresh'     => refresh,
+          'site'        => site,
+          'desc'        => desc,
+          'updated'     => 0,
+          'image'       => image,
+          'items'       => items,
+          'category'    => category, 
+          'lock_title?' => lock_title,
+          'save_items?' => save_items,
+        }
+      end
 
-    def categories
-      category = Struct::new(:title, :count)
-      cats = {}
-      @feeds.each { |feed|
-        if feed['category']
-          feed['category'].split(/\s*,\s*/).each { |cat|
-            if cats.has_key? cat.downcase
-              cats[cat.downcase].count += 1
-            else
-              cats[cat.downcase] = category.new(cat, 1)
-            end
-          }
+      #
+      # Append a feed to this feed list.
+      #
+      # Example:
+      #   feeds << feed
+      #
+      def <<(feed)
+        @feeds << feed
+      end
+
+      #
+      # Get a list of available categories, sorted alphabetically.
+      # 
+      # Note: categories are case-insensitive.
+      #
+      # Example:
+      #   feeds.categories #=> ["News", "Blog"]
+      #
+      def categories
+        category = Struct::new(:title, :count)
+        cats = {}
+        @feeds.each { |feed|
+          if feed['category']
+            feed['category'].split(/\s*,\s*/).each { |cat|
+              if cats.has_key? cat.downcase
+                cats[cat.downcase].count += 1
+              else
+                cats[cat.downcase] = category.new(cat, 1)
+              end
+            }
+          end
+        }
+        cats.values.sort { |a, b| a.title <=> b.title }
+      end
+
+      #
+      # Return a list of feeds in the given category.
+      #
+      def category(cat = 'all')
+        if cat !~ /\ball\b/i
+          re = /\b#{cat}\b/i
+          @feeds.map { |feed| feed['category'] =~ re ? feed : nil }.compact
+        else
+          @feeds
         end
-      }
-      cats.values.sort { |a, b| a.title <=> b.title }
-    end
-
-    def category(cat = 'all')
-      if cat !~ /\ball\b/i
-        re = /\b#{cat}\b/i
-        @feeds.map { |feed| feed['category'] =~ re ? feed : nil }.compact
-      else
-        @feeds
       end
-    end
 
-    def [](*n)
-      @feeds[*n]
-    end
-    
-    def get(id)
-      raise "Invalid feed id: #{id}" unless id < @feeds.size
-      @feeds[id]
-    end
-    
-    def delete(id)
-      raise "Invalid feed id: #{id}" unless id < @feeds.size
-      @feeds.delete_at(id)
-    end
-
-    def invalidate(id)
-      if id == -1
-        @feeds.each { |feed| feed['updated'] = 0 }
-      else
+      #
+      # Get a feed by id.
+      #
+      def [](*n)
+        @feeds[*n]
+      end
+      
+      #
+      # Get a feed by id (index).
+      # 
+      # Raises an exception if the ID is invalid.
+      #
+      def get(id)
         raise "Invalid feed id: #{id}" unless id < @feeds.size
-        @feeds[id]['updated'] = 0
+        @feeds[id]
       end
-    end
+      
+      
+      #
+      # Delete a feed by id (index).
+      # 
+      # Raises an exception if the ID is invalid.
+      #
+      def delete(id)
+        raise "Invalid feed id: #{id}" unless id < @feeds.size
+        @feeds.delete_at(id)
+      end
 
-    def each_with_index
-      @feeds.each_with_index { |feed, i| yield feed, i }
-    end
+      #
+      # Mark a feed for updating.
+      #
+      # Raises an exception if the ID is invalid.
+      #
+      def invalidate(id)
+        if id == -1
+          @feeds.each { |feed| feed['updated'] = 0 }
+        else
+          raise "Invalid feed id: #{id}" unless id < @feeds.size
+          @feeds[id]['updated'] = 0
+        end
+      end
 
-    def each
-      @feeds.each { |feed| yield feed }
-    end
+      #
+      # Iterate over every feed with its index.
+      #
+      def each_with_index
+        @feeds.each_with_index { |feed, i| yield feed, i }
+      end
 
-    def each_index
-      @feeds.each_index { |i| yield i }
-    end
+      #
+      # Iterate over every feed.
+      #
+      def each
+        @feeds.each { |feed| yield feed }
+      end
 
-    #
-    # Sort feeds by title (case-insensitive).
-    #
-    def sort
-      @feeds.sort! { |a, b|
-        re = /^\s*(a|the)\s+/i
-        
-        a_c, b_c = a['title'].gsub(re, '').downcase, 
-                   b['title'].gsub(re, '').downcase
+      #
+      # Iterate over every feed index.
+      #
+      def each_index
+        @feeds.each_index { |i| yield i }
+      end
 
-        a_c <=> b_c
-      }
-    end
+      #
+      # Sort feeds by title (case-insensitive).
+      #
+      def sort
+        @feeds.sort! { |a, b|
+          re = /^\s*(a|the)\s+/i
+          
+          a_c, b_c = a['title'].gsub(re, '').downcase, 
+                     b['title'].gsub(re, '').downcase
 
-    def edit(id, opts)
-      die "Invalid feed id: #{id}" unless id < @feeds.size
-      refresh_interval_check opts['refresh'] if !opts['force'] &&
-                                                opts.has_key?('refresh')
-      if id == -1
-        0.upto($config['feeds'].size - 1) do |id|
+          a_c <=> b_c
+        }
+      end
+
+      #
+      # Edit a feed by ID.  
+      #
+      # Raises an exception if the ID is invalid.
+      #
+      def edit(id, opts)
+        die "Invalid feed id: #{id}" unless id < @feeds.size
+        refresh_interval_check opts['refresh'] if !opts['force'] &&
+                                                  opts.has_key?('refresh')
+        if id == -1
+          0.upto($config['feeds'].size - 1) do |id|
+            ourl = $config['feeds'].get(id)['url']
+            %w{title url refresh lock_title? save_items? max_items}.each { |key|
+              $config['feeds'].get(id)[key] = opts[key] if opts.has_key? key
+            }
+            if opts.has_key?('url') and opts['url'] != ourl
+              $config['feeds'].invalidate(id)
+            end
+          end
+        else 
           ourl = $config['feeds'].get(id)['url']
           %w{title url refresh lock_title? save_items? max_items}.each { |key|
             $config['feeds'].get(id)[key] = opts[key] if opts.has_key? key
@@ -895,322 +1137,100 @@ module Raggle
             $config['feeds'].invalidate(id)
           end
         end
-      else 
-        ourl = $config['feeds'].get(id)['url']
-        %w{title url refresh lock_title? save_items? max_items}.each { |key|
-          $config['feeds'].get(id)[key] = opts[key] if opts.has_key? key
-        }
-        if opts.has_key?('url') and opts['url'] != ourl
-          $config['feeds'].invalidate(id)
+      end
+
+      #
+      # Move a feed up in the feed list.  Wraps to bottom at top of
+      # list.
+      #
+      def move_up(id)
+        if id > 0
+          pitem = @feeds[id - 1]
+          @feeds[id - 1] = @feeds[id]
+          @feeds[id] = pitem
+          id - 1
+        else
+          id
         end
       end
-    end
 
-    def move_up(id)
-      if id > 0
-        pitem = @feeds[id - 1]
-        @feeds[id - 1] = @feeds[id]
-        @feeds[id] = pitem
-        id - 1
-      else
-        id
+      #
+      # Move a feed down in the feed list.  Wraps to top at bottom of
+      # list.
+      #
+      def move_down(id)
+        if id < @feeds.size - 1
+          nitem = @feeds[id + 1]
+          @feeds[id + 1] = @feeds[id]
+          @feeds[id] = nitem
+          id + 1
+        else
+          id
+        end
       end
-    end
 
-    def move_down(id)
-      if id < @feeds.size - 1
-        nitem = @feeds[id + 1]
-        @feeds[id + 1] = @feeds[id]
-        @feeds[id] = nitem
-        id + 1
-      else
-        id
+      #
+      # Print out description of feed in description window (Ncurses
+      # interface).
+      #
+      def describe(id)
+        # clear desc window
+        win = $wins[Raggle::Interfaces::NcursesInterface::get_win_id('desc')]
+        win.clear
+        
+        win.items.clear # This should only ever have one entry
+        win.items << {
+          # 'real_title' => $config['feeds'][id]['title'],
+          'title'      => $config['feeds'][id]['title'],
+          'content'    => $config['feeds'][id]['desc'],
+          'date'       => $config['feeds'][id]['date'],
+          'url'        => $config['feeds'][id]['url'],
+          'date'       => Time.at($config['feeds'][id]['updated']).strftime('%c'),
+          'read?'      => false
+        }
+
+        win.draw_items
       end
-    end
-
-    def describe(id)
-      # clear desc window
-      win = $wins[Raggle::Interfaces::NcursesInterface::get_win_id('desc')]
-      win.clear
-      
-      win.items.clear # This should only ever have one entry
-      win.items << {
-        # 'real_title' => $config['feeds'][id]['title'],
-        'title'      => $config['feeds'][id]['title'],
-        'content'    => $config['feeds'][id]['desc'],
-        'date'       => $config['feeds'][id]['date'],
-        'url'        => $config['feeds'][id]['url'],
-        'date'       => Time.at($config['feeds'][id]['updated']).strftime('%c'),
-        'read?'      => false
-      }
-
-      win.draw_items
-    end
-      
-    def refresh_interval_check(interval)
-      if interval > 0 && interval < $config['feed_refresh_warn']
-          err = <<ENDWARNING
-  Using a refresh interval of less than #{$config['feed_refresh_warn']} minutes
-  _really_ irritates some system administrators.  If you're sure you want to do
-  this, use the '--force' option to bypass this warning.
+        
+      #
+      # Sanity check on refresh interval of feed.
+      #
+      def refresh_interval_check(interval)
+        if interval > 0 && interval < $config['feed_refresh_warn']
+            err = <<ENDWARNING
+Using a refresh interval of less than #{$config['feed_refresh_warn']} minutes
+_really_ irritates some system administrators.  If you're sure you want to do
+this, use the '--force' option to bypass this warning.
 ENDWARNING
 # '
-        $stderr.puts err.reflow
-        exit -1
-      end
-    end
-    private :refresh_interval_check
-  end
-
-  module Feed
-    # Feed::Item struct definition
-    Item = Struct.new :title, :link, :desc, :date
-
-    #
-    # Return the contents of a URL
-    #
-    def Feed::get_url(url, last_modified = nil)
-      ret = [nil, nil]
-
-      if url =~ /^(\w+?):/
-        key = $1.downcase
-        if $config['url_handlers'][key]
-          ret = $config['url_handlers'][key].call(url, last_modified)
-        else
-          if $config['strict_url_handling']
-            raise "Missing handler for URL \"#{url}\"."
-          else
-            key = $config['default_url_handler']
-            ret = $config['url_handlers'][key].call(url, last_modified)
-          end
-        end
-      else
-        if $config['strict_url_handling']
-          raise "Malformed URL: #{url}"
-        else
-          key = $config['default_url_handler']
-          ret = $config['url_handlers'][key].call(url, last_modified)
+          $stderr.puts err.reflow
+          exit -1
         end
       end
-
-      ret
+      private :refresh_interval_check
     end
 
     #
-    # Return the contents of a HTTP URL
+    # Basic RSS Channel object.  Used by RSS parser.
     #
-    def Feed::get_http_url(url, last_modified = nil)
-      port = 80
-      use_ssl = false
-      user, pass = nil, nil
-
-      # work with a copy of the url
-      url = url.dup
-
-      # check for ssl
-      if url =~ /^https:/
-        raise 'HTTPS support requires OpenSSL-Ruby' unless $HAVE_LIB['ssl']
-        use_ssl = true
-      end
-
-      # strip 'http://' prefix from URL
-      url.gsub!(/^\w+?:\/\//, '') if url =~ /^\w+?:\/\//
-
-      # get user and pass from URL
-      if url =~ /^([^:]*):([^@]*)@/
-        user, pass = $1, $2
-        url.gsub(/^.+?@/, '')
-      end
-
-      # get host and path portions of url
-      raise "Couldn't parse URL: \"#{url}\"" unless url =~ /^(.+?)\/(.*)$/
-      host, path = $1, $2
-
-
-      # check for port in URL
-      if host =~ /:(\d+)$/
-        port = $1.to_i
-        host.gsub!(/:(\d+)$/, '')
-      end
-
-      # start up proxy support
-      proxy = find_proxy(host) || { }
-      
-      # initialize http connection
-      http = Net::HTTP::new(host, port, proxy['host'], proxy['port'])
-      if $HAVE_LIB['ssl'] && use_ssl
-        http.use_ssl = use_ssl
-      end
-      http.open_timeout = $config['http_open_timeout'] || 30
-      # http.read_timeout = $config['http_read_timeout'] || 120
-      http.start
-      raise "Couldn't connect to host \"#{host}:#{port}\"" unless http
-
-      begin 
-        # check last-modified header first
-        if last_modified
-          # build headers
-          headers = $config['use_http_headers'] ? $config['http_headers'] : {}
-          headers['If-Modified-Since'] = last_modified
-          
-          # handle basic http authentication
-          if user
-            pass ||= ''
-            headers['Authorization'] = 'Basic ' <<
-                                       ["#{user}:#{pass}"].pack('m').strip
-          end
-
-          # get response
-          resp = http.head('/' << path, headers)
-
-          # check header
-          if last_modified == resp['last-modified']
-            # it's the same as the old content
-            ret = [nil, last_modified]
-          else
-            # it's changed, get it again
-            ret = get_http_url(url, nil)
-          end
-        else
-          # no cache, just get the result
-          headers = $config['use_http_headers'] ? $config['http_headers'] : {}
-
-          # handle basic http authentication
-          if user
-            pass ||= ''
-            headers['Authorization'] = 'Basic ' <<
-                                       ["#{user}:#{pass}"].pack('m').strip
-          end
-
-          # get the result
-          resp, content = http.get(('/' << path), headers)
-
-          if resp.code.to_i != 200
-            # if we got anythign other than success, raise an exception
-            # (this might be a little overzealous, anyone?
-            raise "HTTP Error: #{resp.code} #{resp.message}" \
-          end
-
-          # build return array
-          ret = [content, resp['last-modified']]
-        end
-      rescue 
-        resp = $!.response
-
-        # handle unchanged content and redirects
-        if resp.code.to_i == 304      # hasn't changed
-          ret = [nil, last_modified]
-        elsif resp.code =~ /3\d{2}/   # redirect
-          location = resp['location']
-          if location =~ /^\//
-            # handle relative host, absolute path redirects
-            location = host << ':' << port.to_s << location
-            location = 'http' << (http.use_ssl ? 's' : '') << '://' << location
-          elsif location !~ /^http/
-            # handle relative host, relative path redirects
-            path.gsub!(/[^\/]+$/, '') if path =~ /[^\/]+$/
-            location = 'http' << (http.use_ssl ? 's' : '') << '://' << 
-                       host << ':' << port.to_s << '/' << path << '/' <<
-                       location
-          end
-
-          ret = get_http_url(location, last_modified)
-        else
-          raise "HTTP Error: #$!"
-        end
-      ensure
-        # close HTTP connection
-        # Note: if we don't specify this, then the connection is pooled
-        # for the HTTP/1.1 spec (do we prefer that kind of behavior?
-        # maybe I should make in an option)
-        http.finish if http.active?
-      end
-
-
-      # return URL content and last-modified header
-      ret
-    end
-
-    #
-    # Return the contents of a file URL
-    #
-    def Feed::get_file_url(url, last_modified = nil)
-      ret = [nil, nil]
-
-      # work with a copy of the url
-      path = url.dup
-
-      # strip 'file:' prefix from URL
-      path.gsub!(/^\w+?:/, '') if path =~ /^\w+?:/
-
-      if stat = File::stat(path)
-        stat_mtime = stat.mtime.to_s
-        
-        if last_modified
-          # check last-modified header first
-          if last_modified == stat_mtime
-            # it's the same as the old content
-            ret = [nil, last_modified]
-          else
-            # it's changed, get it again
-            ret = get_file_url(url, nil)
-          end
-        else
-          # no cache, just get the result
-          if file = File::open(path)
-            ret = [file.read, stat_mtime]
-            file.close
-          else
-            raise "Couldn't open file URL: #$!"
-          end
-        end
-      else
-        raise "File URL Error: #$!"
-      end
-
-      # return URL content and last-modified header
-      ret
-    end
-
-    #
-    # Return the contents of an exec URL
-    #
-    def Feed::get_exec_url(url, last_modified = nil)
-      ret = [nil, nil]
-
-      # work with a copy of the url
-      cmd = url.dup
-
-      # strip 'exec:' prefix from URL
-      cmd.gsub!(/^[^:]+?:/, '') if cmd =~ /^[^:]+?:/
-
-      # no cache, just get the result
-      begin 
-        pipe = IO::popen(cmd, 'r')
-        ret = [pipe.read, nil]
-        pipe.close
-      rescue
-        raise "Couldn't read exec URL: #$!"
-      end
-
-      # return URL content and last-modified header
-      ret
-    end
-
     class Channel
       attr_accessor :title, :link, :desc, :lang, :image, :items, :last_modified
 
+      #
+      # Raggle::Feed::Channel constructor.
+      #
       def initialize(url, last_modified = nil)
-        parse_rss_url url
+        parse_rss_url(url)
       end
 
       # 
-      # Parse an RSS URL and return a FeedChannel object (which contains,
-      # among other things, an array of feed_item structs).  If the last
+      # Parse an RSS URL and populate this Raggle::Feed::Channel object.
+      # The actual feed items are stored as Raggle::Feed::Item objects
+      # in @items.
       #
       def parse_rss_url(url, last_modified = nil)
         begin
-          content, modified = Feed::get_url(url, last_modified)
+          content, modified = Engine::get_url(url, last_modified)
           $log.puts "content: #{content[0,80]}",
                     "modified: #{modified}"
         rescue
@@ -1258,6 +1278,10 @@ ENDWARNING
         end
       end
 
+      #
+      # Find element in content by using XPath specified in
+      # $config['item_element_xpaths'][name].
+      #
       def find_element(elem, name)
         if $config['item_element_xpaths'][name]
           $config['item_element_xpaths'][name].each { |xpath|
@@ -1268,6 +1292,11 @@ ENDWARNING
         ''
       end
 
+      #
+      # Use REXML to decode the specified element based the character
+      # encoding in $config['character_encoding'] (defaults to 
+      # 'ISO-8859-1' if unset).
+      #
       def fix_character_encoding(element)
         tmp = ''
         encoding = $config['character_encoding'] || 'ISO-8859-1'
@@ -1278,7 +1307,13 @@ ENDWARNING
     end
   end
 
+  #
+  # Command-line methods (CLI argument handling, etc).
+  #
   module CLI
+    #
+    # Print version, usage summary, and command-line flags, then exit.
+    #
     def CLI::print_usage
       puts <<ENDUSAGE
 Raggle - A Console RSS feed aggregator, written in Ruby.
@@ -1364,7 +1399,7 @@ ENDUSAGE
     end
 
     #
-    # parse command-line options
+    # Parse command-line options.  Returns a hash of options.
     # 
     def CLI::parse_cli_options(opts)
       ret = { 'mode' => 'view' }
@@ -1502,7 +1537,7 @@ ENDUSAGE
     end
 
     #
-    # print a list of feeds to stdout
+    # Print a list of feeds to standard output.
     #
     def CLI::list_feeds
       i = -1
@@ -1522,6 +1557,10 @@ ENDUSAGE
       end
     end
 
+    #
+    # Find feeds with Syndic8, print the title and URL of each result to
+    # standard output.
+    #
     def CLI::find_feeds(str)
       results = find_feeds(str)
       results.each_with_index do |feed, i|
@@ -1529,6 +1568,9 @@ ENDUSAGE
       end
     end
 
+    #
+    # Handle mode returned by CLI::parse_options.
+    #
     def CLI::handle_mode(opts)
       case opts['mode']
       when 'list'
@@ -1575,6 +1617,9 @@ ENDUSAGE
     end
   end
 
+  #
+  # Interface-specific components of Raggle.
+  #
   module Interfaces
     module NcursesInterface
       module Key
@@ -2578,10 +2623,8 @@ ENDUSAGE
       DIRECTION_FORWARD = 1
       
       #
-      # Select next unread item in
-      # direction +direction+. Direction
-      # can be either +DIRECTION_FORWARD+
-      # or +DIRECTION_BACKWARD+
+      # Select next unread item in direction +direction+. Direction
+      # can be either +DIRECTION_FORWARD+ or +DIRECTION_BACKWARD+
       #
       def NcursesInterface::select_unread_item(direction)
         win = $wins[get_win_id('item')]
@@ -2612,7 +2655,7 @@ ENDUSAGE
       #
       # select previous unread item
       #
-      def select_prev_unread
+      def NcursesInterface::select_prev_unread
         select_unread_item NcursesInterface::DIRECTION_BACKWARD
       end
 
@@ -3365,7 +3408,7 @@ ENDUSAGE
                            opts['lock_title?'], opts['save_items?'],
                            '', '', [], nil, nil, opts['force'])
     
-      # can't keep adding params to FeedList#add forever :/
+      # can't keep adding params to Feed::List#add forever :/
       if opts['max_items']
         $config['feeds'][-1]['max_items'] = opts['max_items']
       end
@@ -3467,6 +3510,237 @@ ENDUSAGE
       unless File::unlink(path)
         $stderr.puts "WARNING: Couldn't unlock \"#{path}\"."
       end
+    end
+
+    #
+    # Return the contents of a URL
+    #
+    def Engine::get_url(url, last_modified = nil)
+      ret = [nil, nil]
+
+      if url =~ /^(\w+?):/
+        key = $1.downcase
+        if $config['url_handlers'][key]
+          ret = $config['url_handlers'][key].call(url, last_modified)
+        else
+          if $config['strict_url_handling']
+            raise "Missing handler for URL \"#{url}\"."
+          else
+            key = $config['default_url_handler']
+            ret = $config['url_handlers'][key].call(url, last_modified)
+          end
+        end
+      else
+        if $config['strict_url_handling']
+          raise "Malformed URL: #{url}"
+        else
+          key = $config['default_url_handler']
+          ret = $config['url_handlers'][key].call(url, last_modified)
+        end
+      end
+
+      ret
+    end
+
+    #
+    # Return the contents of a HTTP URL
+    #
+    def Engine::get_http_url(url, last_modified = nil)
+      port = 80
+      use_ssl = false
+      user, pass = nil, nil
+
+      # work with a copy of the url
+      url = url.dup
+
+      # check for ssl
+      if url =~ /^https:/
+        raise 'HTTPS support requires OpenSSL-Ruby' unless $HAVE_LIB['ssl']
+        use_ssl = true
+      end
+
+      # strip 'http://' prefix from URL
+      url.gsub!(/^\w+?:\/\//, '') if url =~ /^\w+?:\/\//
+
+      # get user and pass from URL
+      if url =~ /^([^:]*):([^@]*)@/
+        user, pass = $1, $2
+        url.gsub(/^.+?@/, '')
+      end
+
+      # get host and path portions of url
+      raise "Couldn't parse URL: \"#{url}\"" unless url =~ /^(.+?)\/(.*)$/
+      host, path = $1, $2
+
+
+      # check for port in URL
+      if host =~ /:(\d+)$/
+        port = $1.to_i
+        host.gsub!(/:(\d+)$/, '')
+      end
+
+      # start up proxy support
+      proxy = find_proxy(host) || { }
+      
+      # initialize http connection
+      http = Net::HTTP::new(host, port, proxy['host'], proxy['port'])
+      if $HAVE_LIB['ssl'] && use_ssl
+        http.use_ssl = use_ssl
+      end
+      http.open_timeout = $config['http_open_timeout'] || 30
+      # http.read_timeout = $config['http_read_timeout'] || 120
+      http.start
+      raise "Couldn't connect to host \"#{host}:#{port}\"" unless http
+
+      begin 
+        # check last-modified header first
+        if last_modified
+          # build headers
+          headers = $config['use_http_headers'] ? $config['http_headers'] : {}
+          headers['If-Modified-Since'] = last_modified
+          
+          # handle basic http authentication
+          if user
+            pass ||= ''
+            headers['Authorization'] = 'Basic ' <<
+                                       ["#{user}:#{pass}"].pack('m').strip
+          end
+
+          # get response
+          resp = http.head('/' << path, headers)
+
+          # check header
+          if last_modified == resp['last-modified']
+            # it's the same as the old content
+            ret = [nil, last_modified]
+          else
+            # it's changed, get it again
+            ret = get_http_url(url, nil)
+          end
+        else
+          # no cache, just get the result
+          headers = $config['use_http_headers'] ? $config['http_headers'] : {}
+
+          # handle basic http authentication
+          if user
+            pass ||= ''
+            headers['Authorization'] = 'Basic ' <<
+                                       ["#{user}:#{pass}"].pack('m').strip
+          end
+
+          # get the result
+          resp, content = http.get(('/' << path), headers)
+
+          if resp.code.to_i != 200
+            # if we got anythign other than success, raise an exception
+            # (this might be a little overzealous, anyone?
+            raise "HTTP Error: #{resp.code} #{resp.message}" \
+          end
+
+          # build return array
+          ret = [content, resp['last-modified']]
+        end
+      rescue 
+        resp = $!.response
+
+        # handle unchanged content and redirects
+        if resp.code.to_i == 304      # hasn't changed
+          ret = [nil, last_modified]
+        elsif resp.code =~ /3\d{2}/   # redirect
+          location = resp['location']
+          if location =~ /^\//
+            # handle relative host, absolute path redirects
+            location = host << ':' << port.to_s << location
+            location = 'http' << (http.use_ssl ? 's' : '') << '://' << location
+          elsif location !~ /^http/
+            # handle relative host, relative path redirects
+            path.gsub!(/[^\/]+$/, '') if path =~ /[^\/]+$/
+            location = 'http' << (http.use_ssl ? 's' : '') << '://' << 
+                       host << ':' << port.to_s << '/' << path << '/' <<
+                       location
+          end
+
+          ret = get_http_url(location, last_modified)
+        else
+          raise "HTTP Error: #$!"
+        end
+      ensure
+        # close HTTP connection
+        # Note: if we don't specify this, then the connection is pooled
+        # for the HTTP/1.1 spec (do we prefer that kind of behavior?
+        # maybe I should make in an option)
+        http.finish if http.active?
+      end
+
+
+      # return URL content and last-modified header
+      ret
+    end
+
+    #
+    # Return the contents of a file URL
+    #
+    def Engine::get_file_url(url, last_modified = nil)
+      ret = [nil, nil]
+
+      # work with a copy of the url
+      path = url.dup
+
+      # strip 'file:' prefix from URL
+      path.gsub!(/^\w+?:/, '') if path =~ /^\w+?:/
+
+      if stat = File::stat(path)
+        stat_mtime = stat.mtime.to_s
+        
+        if last_modified
+          # check last-modified header first
+          if last_modified == stat_mtime
+            # it's the same as the old content
+            ret = [nil, last_modified]
+          else
+            # it's changed, get it again
+            ret = get_file_url(url, nil)
+          end
+        else
+          # no cache, just get the result
+          if file = File::open(path)
+            ret = [file.read, stat_mtime]
+            file.close
+          else
+            raise "Couldn't open file URL: #$!"
+          end
+        end
+      else
+        raise "File URL Error: #$!"
+      end
+
+      # return URL content and last-modified header
+      ret
+    end
+
+    #
+    # Return the contents of an exec URL
+    #
+    def Engine::get_exec_url(url, last_modified = nil)
+      ret = [nil, nil]
+
+      # work with a copy of the url
+      cmd = url.dup
+
+      # strip 'exec:' prefix from URL
+      cmd.gsub!(/^[^:]+?:/, '') if cmd =~ /^[^:]+?:/
+
+      # no cache, just get the result
+      begin 
+        pipe = IO::popen(cmd, 'r')
+        ret = [pipe.read, nil]
+        pipe.close
+      rescue
+        raise "Couldn't read exec URL: #$!"
+      end
+
+      # return URL content and last-modified header
+      ret
     end
 
     #
@@ -3900,10 +4174,10 @@ $config = {
 
   # URL handlers
   'url_handlers'          => {
-    'http'      => proc { |url, last_mod| Feed::get_http_url(url, last_mod) },
-    'https'     => proc { |url, last_mod| Feed::get_http_url(url, last_mod) },
-    'file'      => proc { |url, last_mod| Feed::get_file_url(url, last_mod) },
-    'exec'      => proc { |url, last_mod| Feed::get_exec_url(url, last_mod) },
+    'http'      => proc { |url, last_mod| Engine::get_http_url(url, last_mod) },
+    'https'     => proc { |url, last_mod| Engine::get_http_url(url, last_mod) },
+    'file'      => proc { |url, last_mod| Engine::get_file_url(url, last_mod) },
+    'exec'      => proc { |url, last_mod| Engine::get_exec_url(url, last_mod) },
   },
 
   # Raise an exception (which generally means crash) if the URL type is
@@ -4126,19 +4400,19 @@ $config = {
 
 
     # Literal control L is horrid -- richlowe 2003-06-26
-    ?\                => proc { |win, key| resize_term },
-    Ncurses::KEY_RESIZE => proc { |win, key| resize_term },
+    ?\                => proc { |win, key| Raggle::Interfaces::NcursesInterface::resize_term },
+    Ncurses::KEY_RESIZE => proc { |win, key| Raggle::Interfaces::NcursesInterface::resize_term },
 
     ?s                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::sort_feeds },
 
     ?o                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::open_link },
 
-    ?m                  => proc { |win, key| mark_items_as_read },
+    ?m                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::mark_items_as_read },
 
-    ?!                  => proc { |win, key| drop_to_shell },
+    ?!                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::drop_to_shell },
 
-    ?p                  => proc { |win, key| select_prev_unread },
-    ?n                  => proc { |win, key| select_next_unread },
+    ?p                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::select_prev_unread },
+    ?n                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::select_next_unread },
 
     ?U                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::manual_update },
     ?a                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::gui_add_feed },
@@ -4276,7 +4550,7 @@ $config = {
   },
 
   # live feeds
-  'feeds'    => Raggle::FeedList.new,
+  'feeds'    => Raggle::Feed::List.new,
 
   # debugging / internal options (don't touch)
   'use_raw_mode'  => true,

@@ -1977,3 +1977,9 @@
   * raggle: moved methods around so modules are contiguous blocks of
     code
   * raggle: this breaks feed lists.. gonna have to check for them later
+
+* Sun Jul 11 08:41:41 2004, pabs <pabs@pablotron.org>
+  * raggle: finish fixing keybindings
+  * raggle: move Feed::get_* to Engine::get_*
+  * raggle: FeedList => Feed::List (breaks feeds.yaml again)
+  * raggle: documentation for tons of methods.

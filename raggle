@@ -1604,7 +1604,7 @@ ENDUSAGE
     # standard output.
     #
     def CLI::find_feeds(str)
-      results = find_feeds(str)
+      results = Engine::find_feeds(str)
       results.each_with_index do |feed, i|
         puts "% 2d. %s - %s" % [i + 1, feed['sitename'], feed['dataurl']]
       end

@@ -2419,3 +2419,12 @@ _Cvs
 
 * Wed Mar 16 16:27:53 2005, pabs <pabs@pablotron.org>
   * TODO: mark stuff off, make list of remaining things to take care of
+
+* Wed Mar 16 18:15:40 2005, pabs <pabs@pablotron.org>
+  * raggle: preliminary i18n support (via gettext-ruby).  this just 
+    wraps the basic strings, and i'm deliberately not installing the
+    locale stuff in the makefile, because i think it's too rough
+    to rely on.  package maintainers will probably have to fine-tune
+    this stuff for me because i'm kind of a neophyte in this area :D.
+  * added po/
+  * added po/en_US.po

@@ -92,6 +92,7 @@ require 'thread'
   'drb'       => ['drb',            'DRb',          false],
   'xmlrpc'    => ['xmlrpc/client',  'xmlrpc4r',     false],
   'iconv'     => ['iconv',          'Iconv',        false],
+  'gettext'   => ['gettext',        'GetText',      false],
   'fileutils' => ['fileutils',      'FileUtils',    false],
 }.each { |key, info|
   path, title, required = info[0, 3]
@@ -115,14 +116,22 @@ ENDERR
   end
 }
 
+#
+# define this as soon as possible
+#
+def _(str)
+  $HAVE_LIB['gettext'] ? GetText::_(str) : str
+end
+
 unless $HAVE_LIB['webrick'] || $HAVE_LIB['ncurses']
-  $stderr.puts <<-ENDERR
+  $stderr.puts _(<<-ENDERR
 ERROR: No interfaces available.
 You're missing the both the Ncurses-Ruby and WEBrick modules.  You need
 one or the other in order to run Raggle.  For installation instructions,
 Please see the file README or visit the following URL:
   http://www.raggle.org/docs/install/
 ENDERR
+)
   exit(-1)
 end
 
@@ -3093,7 +3102,7 @@ ENDUSAGE
           if feed['title']
             title = feed['title'].strip
           else
-            title = ($config['default_feed_title'] || 'Untitled Feed').dup
+            title = ($config['default_feed_title'] || _('Untitled Feed')).dup
           end
 
           # count unread items and total size
@@ -3675,7 +3684,7 @@ ENDUSAGE
         
         # draw status bar
         $new_status = ''
-        NcursesInterface::set_status $config['msg_welcome']
+        NcursesInterface::set_status($config['msg_welcome'] % [$VERSION])
         
         # create windows
         $a_win = 0
@@ -4819,7 +4828,7 @@ ENDUSAGE
                   end
 
                   until Thread::list.size < ($config['max_threads'] || 60)
-                    $log.puts 'DEBUG: Waiting for threads'
+                    $log.puts _('DEBUG: Waiting for threads')
                     sleep 5
                   end
                 end
@@ -4846,7 +4855,7 @@ ENDUSAGE
             
             # finish log entries
             interval = $config['feed_sleep_interval']
-            $new_status = $config['msg_grab_done']
+            $new_status = $config['msg_grab_done'] % [ $VERSION ]
             if $config['use_manual_update']
               log.puts "#{Time.now}: Done checking."
               Thread::stop
@@ -5171,44 +5180,44 @@ $config = {
   },
 
   # messages
-  'msg_welcome'           => " Welcome to Raggle #{$VERSION}.",
-  'msg_exit'              => "| Press Q to exit ",
-  'msg_close'             => '[X] ',
-  'msg_grab_done'         => " Raggle #{$VERSION}",
-  'msg_load_config'       => 'Raggle: Loading config...',
-  'msg_load_list'         => 'Raggle: Loading feed list...',
-  'msg_save_list'         => 'Raggle: Saving feed list...',
-  'msg_load_cache'        => 'Raggle: Loading feed cache...',
-  'msg_save_cache'        => 'Raggle: Saving feed cache...',
-  'msg_load_theme'        => 'Raggle: Loading theme...',
-  'msg_save_theme'        => 'Raggle: Saving theme...',
-  'msg_thanks'            => 'Thanks for using Raggle!',
-  'msg_default_input'     => 'Input:',
-  'msg_new_value'         => 'New value:',
-  'msg_term_resize'       => 'Terminal Resize: ',
-  'msg_links'             => 'Links:',
-  'msg_images'            => 'Images:',
-  'msg_add_feed'          => 'Enter URL:',
-  'msg_feed_added'        => 'Feed added',
-  'msg_confirm_delete'    => 'Delete current feed? (y/n)',
-  'msg_find_entry'        => 'Find:',
-  'msg_cat_title'         => 'Display Category',
-  'msg_find_feed'         => 'Find Feeds:',
-  'msg_searching'         => ' Searching...',
-  'msg_find_title'        => 'Search Results for "%s" - %s matching feeds',
-  'msg_find_desc'         => 'Please select a feed...',
-  'msg_find_nomatches'    => 'No results found',
-  'msg_keys_title'        => 'Current Key Bindings',
-  'msg_added_existing'    => 'Warning: Added existing feed',
-  'msg_edit_title'        => 'Edit Feed Options',
-  'msg_bad_option'        => 'Warning: Bad option for %s',
-  'msg_edit_success'      => 'New option saved',
-  'msg_save_done'         => 'Configuration saved',
-  'msg_opml_input'        => 'OPML file or URI:',
-  'msg_opml_exported'     => 'OPML exported',
-  'msg_opml_imported'     => 'OPML imported',
-  'msg_bad_uri'           => 'Error: bad or empty URI',
-  'msg_exec_url'          => 'WARNING: exec url found!',
+  'msg_welcome'           => _(' Welcome to Raggle %s.'),
+  'msg_exit'              => _('| Press Q to exit '),
+  'msg_close'             => _('[X] '),
+  'msg_grab_done'         => _(' Raggle %s'),
+  'msg_load_config'       => _('Raggle: Loading config...'),
+  'msg_load_list'         => _('Raggle: Loading feed list...'),
+  'msg_save_list'         => _('Raggle: Saving feed list...'),
+  'msg_load_cache'        => _('Raggle: Loading feed cache...'),
+  'msg_save_cache'        => _('Raggle: Saving feed cache...'),
+  'msg_load_theme'        => _('Raggle: Loading theme...'),
+  'msg_save_theme'        => _('Raggle: Saving theme...'),
+  'msg_thanks'            => _('Thanks for using Raggle!'),
+  'msg_default_input'     => _('Input:'),
+  'msg_new_value'         => _('New value:'),
+  'msg_term_resize'       => _('Terminal Resize: '),
+  'msg_links'             => _('Links:'),
+  'msg_images'            => _('Images:'),
+  'msg_add_feed'          => _('Enter URL:'),
+  'msg_feed_added'        => _('Feed added'),
+  'msg_confirm_delete'    => _('Delete current feed? (y/n)'),
+  'msg_find_entry'        => _('Find:'),
+  'msg_cat_title'         => _('Display Category'),
+  'msg_find_feed'         => _('Find Feeds:'),
+  'msg_searching'         => _(' Searching...'),
+  'msg_find_title'        => _('Search Results for "%s" - %s matching feeds'),
+  'msg_find_desc'         => _('Please select a feed...'),
+  'msg_find_nomatches'    => _('No results found'),
+  'msg_keys_title'        => _('Current Key Bindings'),
+  'msg_added_existing'    => _('Warning: Added existing feed'),
+  'msg_edit_title'        => _('Edit Feed Options'),
+  'msg_bad_option'        => _('Warning: Bad option for %s'),
+  'msg_edit_success'      => _('New option saved'),
+  'msg_save_done'         => _('Configuration saved'),
+  'msg_opml_input'        => _('OPML file or URI:'),
+  'msg_opml_exported'     => _('OPML exported'),
+  'msg_opml_imported'     => _('OPML imported'),
+  'msg_bad_uri'           => _('Error: bad or empty URI'),
+  'msg_exec_url'          => _('WARNING: exec url found!'),
 
   # menu bar color
   'menu_bar_cols'         => 24,
@@ -5308,7 +5317,7 @@ $config = {
   'feed_refresh_warn'     => 60,
 
   # default feed name and refresh rate
-  'default_feed_title'    => 'Untitled Feed',
+  'default_feed_title'    => _('Untitled Feed'),
   'default_feed_refresh'  => 120,
   'default_feed_priority' => 0,
 
@@ -5516,7 +5525,7 @@ $config = {
     # feed window attributes
     'win_feed'      => {
       'key'         => 'feed',
-      'title'       => 'Feeds',
+      'title'       => _('Feeds'),
       'coords'      => [0, 0, 25, -1],
       'type'        => 'list',
       'colors'      => { 
@@ -5537,7 +5546,7 @@ $config = {
     # item window attributes
     'win_item'      => {
       'key'         => 'item',
-      'title'       => 'Items',
+      'title'       => _('Items'),
       'coords'      => [25, 0, -1, 15],
       'type'        => 'list',
       'colors'      => {
@@ -5555,7 +5564,7 @@ $config = {
     # desc window attributes
     'win_desc'      => {
       'key'         => 'desc',
-      'title'       => 'Description',
+      'title'       => _('Description'),
       'coords'      => [25, 15, -1, -1],
       'type'        => 'text',
       'colors'      => {

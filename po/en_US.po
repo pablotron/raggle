@@ -1,0 +1,189 @@
+# Raggle US English language file.
+# Copyright (C) 2005 Paul Duncan <pabs@pablotron.org>
+# This file is distributed under the same license as the Raggle package.
+# Paul Duncan <pabs@pablotron.org, 2005.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Raggle 0.4.0\n"
+"POT-Creation-Date: 2005-03-16 17:51-0500\n"
+"PO-Revision-Date: 2005-03-16 17:51-0500\n"
+"Last-Translator: Paul Duncan <pabs@pablotron.org>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: raggle:3105 raggle:5320
+msgid "Untitled Feed"
+msgstr ""
+
+#: raggle:4831
+msgid "DEBUG: Waiting for threads"
+msgstr ""
+
+#: raggle:5183
+msgid " Welcome to Raggle %s."
+msgstr ""
+
+#: raggle:5184
+msgid "| Press Q to exit "
+msgstr ""
+
+#: raggle:5185
+msgid "[X] "
+msgstr ""
+
+#: raggle:5186
+msgid " Raggle %s"
+msgstr ""
+
+#: raggle:5187
+msgid "Raggle: Loading config..."
+msgstr ""
+
+#: raggle:5188
+msgid "Raggle: Loading feed list..."
+msgstr ""
+
+#: raggle:5189
+msgid "Raggle: Saving feed list..."
+msgstr ""
+
+#: raggle:5190
+msgid "Raggle: Loading feed cache..."
+msgstr ""
+
+#: raggle:5191
+msgid "Raggle: Saving feed cache..."
+msgstr ""
+
+#: raggle:5192
+msgid "Raggle: Loading theme..."
+msgstr ""
+
+#: raggle:5193
+msgid "Raggle: Saving theme..."
+msgstr ""
+
+#: raggle:5194
+msgid "Thanks for using Raggle!"
+msgstr ""
+
+#: raggle:5195
+msgid "Input:"
+msgstr ""
+
+#: raggle:5196
+msgid "New value:"
+msgstr ""
+
+#: raggle:5197
+msgid "Terminal Resize: "
+msgstr ""
+
+#: raggle:5198
+msgid "Links:"
+msgstr ""
+
+#: raggle:5199
+msgid "Images:"
+msgstr ""
+
+#: raggle:5200
+msgid "Enter URL:"
+msgstr ""
+
+#: raggle:5201
+msgid "Feed added"
+msgstr ""
+
+#: raggle:5202
+msgid "Delete current feed? (y/n)"
+msgstr ""
+
+#: raggle:5203
+msgid "Find:"
+msgstr ""
+
+#: raggle:5204
+msgid "Display Category"
+msgstr ""
+
+#: raggle:5205
+msgid "Find Feeds:"
+msgstr ""
+
+#: raggle:5206
+msgid " Searching..."
+msgstr ""
+
+#: raggle:5207
+msgid "Search Results for \"%s\" - %s matching feeds"
+msgstr ""
+
+#: raggle:5208
+msgid "Please select a feed..."
+msgstr ""
+
+#: raggle:5209
+msgid "No results found"
+msgstr ""
+
+#: raggle:5210
+msgid "Current Key Bindings"
+msgstr ""
+
+#: raggle:5211
+msgid "Warning: Added existing feed"
+msgstr ""
+
+#: raggle:5212
+msgid "Edit Feed Options"
+msgstr ""
+
+#: raggle:5213
+msgid "Warning: Bad option for %s"
+msgstr ""
+
+#: raggle:5214
+msgid "New option saved"
+msgstr ""
+
+#: raggle:5215
+msgid "Configuration saved"
+msgstr ""
+
+#: raggle:5216
+msgid "OPML file or URI:"
+msgstr ""
+
+#: raggle:5217
+msgid "OPML exported"
+msgstr ""
+
+#: raggle:5218
+msgid "OPML imported"
+msgstr ""
+
+#: raggle:5219
+msgid "Error: bad or empty URI"
+msgstr ""
+
+#: raggle:5220
+msgid "WARNING: exec url found!"
+msgstr ""
+
+#: raggle:5528
+msgid "Feeds"
+msgstr ""
+
+#: raggle:5549
+msgid "Items"
+msgstr ""
+
+#: raggle:5567
+msgid "Description"
+msgstr ""

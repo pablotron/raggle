@@ -812,9 +812,9 @@ module Raggle
         @images << @current_attributes['src']
         if @lines[-1]
           title = ''
-          if @current_attributes['title'].length > 0
+          if @current_attributes['title'] and @current_attributes['title'].length > 0
             title = @current_attributes['title']
-          elsif @current_attributes['alt'].length > 0
+          elsif @current_attributes['alt'] and @current_attributes['alt'].length > 0
             title = @current_attributes['alt']
           end
           if title == ''

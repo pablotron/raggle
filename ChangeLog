@@ -2307,3 +2307,6 @@
 
 * Mon Jan 31 10:07:00 2005, Andreas Krennmair <ak@synflood.at>
   * raggle: added image reference list below links.
+
+* Wed Feb 02 16:58:00 2005, redshift <redshift@halffull.org>
+  * raggle: fixed bug with image reflist - missing 'title' could crash

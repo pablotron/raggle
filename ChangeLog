@@ -2008,3 +2008,6 @@
 * Wed Jul 14 10:36:30 2004, pabs <pabs@pablotron.org>
   * raggle: moved thread handling to Engine::set_thread_priorities
   * raggle: each interface now has a main_loop method
+
+* Wed Jul 14 15:52:55 2004, pabs <pabs@pablotron.org>
+  * raggle: update tom's RSS feed URL

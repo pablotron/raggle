@@ -42,11 +42,12 @@
 $VERSION = '0.1.0'
 
 # load required modules
-require 'pstore'
+require 'getoptlong'
 require 'ncurses'
-require 'yaml'
-require 'rexml/document'
 require 'net/http'
+require 'pstore'
+require 'rexml/document'
+require 'yaml'
 
 begin 
   require 'net/https'
@@ -1096,124 +1097,75 @@ end
 # 
 def handle_Command_line(opts)
   ret = { 'mode' => 'view' }
-  grab_next = 0
 
-  0.upto(opts.size - 1) { |i|
-    if grab_next > 0
-      grab_next -= 1
-      next
-    end
-    
-    case opts[i]
-    when '-a'
-      ret['mode'] = 'add'
-    when '--add'
-      ret['mode'] = 'add'
-    when '--add-feed'
-      ret['mode'] = 'add'
-    when '-e'
-      ret['mode'] = 'edit'
-      grab_next = 1
-      ret['id'] = opts[i + 1]
-    when '--edit'
-      ret['mode'] = 'edit'
-      grab_next = 1
-      ret['id'] = opts[i + 1]
-    when '--edit-feed'
-      ret['mode'] = 'edit'
-      grab_next = 1
-      ret['id'] = opts[i + 1]
-    when '-d'
-      ret['mode'] = 'delete'
-      grab_next = 1
-      ret['id'] = opts[i + 1]
-    when '--delete'
-      ret['mode'] = 'delete'
-      grab_next = 1
-      ret['id'] = opts[i + 1]
-    when '--delete-feed'
-      ret['mode'] = 'delete'
-      grab_next = 1
-      ret['id'] = opts[i + 1]
-    when '-i'
-      ret['mode'] = 'invalidate'
-      grab_next = 1
-      ret['id'] = opts[i + 1]
-    when '--invalidate'
-      ret['mode'] = 'invalidate'
-      grab_next = 1
-      ret['id'] = opts[i + 1]
-    when '--invalidate-feed'
-      ret['mode'] = 'invalidate'
-      grab_next = 1
-      ret['id'] = opts[i + 1]
-    when '--force'
-      ret['force'] = true
-    when '-l'
-      ret['mode'] = 'list'
-    when '--list'
-      ret['mode'] = 'list'
-    when '-c'
-      grab_next = 1
-      $config['config_path'] = opts[i + 1]
-    when '--config'
-      grab_next = 1
-      $config['config_path'] = opts[i + 1]
-    when '--config-file'
-      grab_next = 1
-      $config['config_path'] = opts[i + 1]
-    when '-t'
-      grab_next = 1
-      ret['title'] = opts[i + 1]
-    when '--title'
-      grab_next = 1
-      ret['title'] = opts[i + 1]
-    when  '-u'
-      grab_next = 1
-      ret['url'] = opts[i + 1]
-    when '--url'
-      grab_next = 1
-      ret['url'] = opts[i + 1]
-    when '-r'
-      grab_next = 1
-      ret['refresh'] = opts[i + 1].to_i
-    when '--refresh'
-      grab_next = 1
-      ret['refresh'] = opts[i + 1].to_i
-    when '-v'
-      puts "Raggle v#$VERSION"
-      exit 0
-    when '--version'
-      puts "Raggle v#$VERSION"
-      exit 0
-    when '--purge'
-      ret['mode'] = 'purge'
-    when '--sort'
-      ret['mode'] = 'sort'
-    when '--sort-feeds'
-      ret['mode'] = 'sort'
-    when '--lock-title'
-      ret['lock_title?'] = true
-    when '--unlock-title'
-      ret['lock_title?'] = false
-    when '--save-items'
-      ret['save_items?'] = true
-    when '--unsave-items'
-      ret['save_items?'] = false
-    when '--verbose'
-      $config['verbose'] = true
-    when '-h'
-      print_usage
-    when '--help'
-      print_usage
-    when '--usage'
-      print_usage
+  gopts = GetoptLong.new(
+    ["-a", "--add",        "--add-feed",        GetoptLong::NO_ARGUMENT],
+    ["-e", "--edit",       "--edit-feed",       GetoptLong::REQUIRED_ARGUMENT],
+    ["-d", "--delete",     "--delete-feed",     GetoptLong::REQUIRED_ARGUMENT],
+    ["-i", "--invalidate", "--invalidate-feed", GetoptLong::REQUIRED_ARGUMENT],
+    ["-c", "--config",     "--config-file",     GetoptLong::REQUIRED_ARGUMENT],
+    ["-l", "--list",                            GetoptLong::NO_ARGUMENT],
+    ["-t", "--title",                           GetoptLong::REQUIRED_ARGUMENT],
+    ["-u", "--url",                             GetoptLong::REQUIRED_ARGUMENT],
+    ["-r", "--refresh",                         GetoptLong::REQUIRED_ARGUMENT],
+    ["-v", "--version",                         GetoptLong::REQUIRED_ARGUMENT],
+    ["--purge",                                 GetoptLong::NO_ARGUMENT],
+    ["--sort", "--sort-feeds",                  GetoptLong::NO_ARGUMENT],
+    ["--lock-title",                            GetoptLong::NO_ARGUMENT],
+    ["--unlock-title",                          GetoptLong::NO_ARGUMENT],
+    ["--save-items",                            GetoptLong::NO_ARGUMENT],
+    ["--unsave-items",                          GetoptLong::NO_ARGUMENT],
+    ["--verbose",                               GetoptLong::NO_ARGUMENT],
+    ["-h", "--help", "--usage",                 GetoptLong::NO_ARGUMENT]
+  )
+
+  gopts.each do |opt, arg|
+    case opt
+      when "-a", "--add", "--add-feed"
+        ret['mode'] = 'add'
+      when "-e", "--edit", "--edit-feed"
+        ret['mode'] = 'edit'
+        ret['id'] = arg
+      when "-d", "--delete", "--delete-feed"
+        ret['mode'] = 'delete'
+        ret['id'] = arg
+      when "-i", "--invalidate", "--invalidate-feed"
+        ret['mode'] = 'invalidate'
+        ret['id'] = arg
+      when "-c", "--config", "--config-file"
+        $config['config_path'] = arg
+      when "-l", "--list"
+        ret['mode'] = 'list'
+      when "-t", "--title"
+        ret['title'] = arg
+      when "-u", "--url"
+        ret['url'] = arg
+      when "-r", "--refresh"
+        ret['refresh'] = arg
+      when "-v", "--version"
+        puts "Raggle v#$VERSION"
+        exit 0
+      when "--purge"
+        ret['mode'] = 'purge'
+      when "--sort", "--sort-feeds"
+        ret['mode'] = 'sort'
+      when "--lock-title"
+        ret['lock_title?'] = true
+      when "--unlock-title"
+        ret['lock_title?'] = false
+      when '--save-items'
+        ret['save_items?'] = true
+      when '--unsave-items'
+        ret['save_items?'] = false
+      when '--verbose'
+        $config['verbose'] = true
+      when '-h', '--help', '--usage'
+        print_usage
     else
-      $stderr.puts 'Unknown option: ' << opts[i]
-      exit -1
+        $stderr.puts 'Unknown option; ' << opt
     end
-  }
-
+  end
+       
   # check options
   if ret['mode'] == 'add'
     ['title', 'url', 'refresh'].each { |val|
@@ -1396,7 +1348,7 @@ end
 def main
   # expand the default config hash
   expand_config
-  
+
   # parse command-line options
   opts = handle_Command_line ARGV
   

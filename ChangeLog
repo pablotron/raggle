@@ -1276,3 +1276,8 @@
   * Makefile: changed man-target to output raggle.1 instead 
     of raggle.1.new
   * raggle.1: ran 'make man'
+
+* Wed Sep  3 17:03:27 2003, richlowe <richlowe@richlowe.net>
+  * raggle.pod: Fixed layout bugs in AUTHORS and HISTORY (mainly, because
+                Ville told me how)
+  * raggle.1: regenerated.

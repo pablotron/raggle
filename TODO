@@ -57,20 +57,29 @@ Raggle TODO
     them. Write to another file, and check it, then move it into place
 [ ] select and follow links in description window (suggested by Omnic)
 [-] add, remove, edit feeds inside Raggle
-[ ] SIGHUP to update now (also suggested by Omnic)
+[*] SIGHUP to update now (also suggested by Omnic)
 [ ] Feedster integration
 [ ] Technocrati integration
 [ ] syndic8 integration
 [ ] BlogThis support?
 [ ] user-configurable http open timeout and http read timeout
 [ ] per-feed xpath configuration?
-[*] feed groups
+[*] feed groups (only in web interface at the moment)
 [ ] clean separation of Ncurses and WEBrick interfaces (maybe an
     Interfaces module).  Don't require Ncurses if WEBrick is
     installed. 
     ( I would prefer if what you mean is "If Ncurses isn't installed
     and webrick is, start the web interface by default" that there be
     a big obvious message say what is happening and why -- richlowe 2003-09-25)
+    (i think it already starts the web interface if there's no ncurses
+    installed, but w/o the warning message.  the web interface is the
+    default in windows; do we want to print a warning for the default?
+    -- pabs Thu Oct 09 16:16:36 2003)
 [*] Thread#abort_on_exception for feed grabbing thread! (suggested by
     Harry Ohlsen <harryo@qiqsolutions.com>).
-[ ] thread pool for grabbing an arbitrary number of threads in parallel
+[*] thread pool for grabbing an arbitrary number of threads in parallel
+[ ] internationalization support (information in this mailing list post:
+    http://raggle.org/pipermail/raggle-dev/2003-September/000153.html)
+[ ] fix memory hogging either (either via weakref caching of feed
+    contents or only having the active feed in memory: note this
+    method is easier, but relies on sane disk caching for any speed)

@@ -1676,3 +1676,6 @@
 
 * Wed Oct 08 13:48:49 2003, pabs <pabs@pablotron.org>
   * raggle: --add can take a URL now (optional)
+
+* Thu Oct 09 16:17:06 2003, pabs <pabs@pablotron.org>
+  * raggle: update TODO with some older comments

@@ -13,7 +13,7 @@ Raggle TODO
 [*] fix blocking for feed grabbing (grab feeds in parallel?)
 [*] better theme format
 [*] Convert manpage (raggle.1) to -ms
-[ ] Window resizing.
+[-] Window resizing.
     Take a copy of ['theme']['window'], so we can resize without
     messing up the initial sizes (they need to be changed so
     resize_term knows what to do (not really, but still).
@@ -66,7 +66,8 @@ Raggle TODO
 [ ] BlogThis support?
 [-] user-configurable http open timeout and http read timeout
     (not gonna do this now)
-[ ] per-feed xpath configuration?
+[-] per-feed xpath configuration?
+    (huh? what do i mean by this?)
 [*] feed groups (only in web interface at the moment)
 [-] clean separation of Ncurses and WEBrick interfaces (maybe an
     Interfaces module).  Don't require Ncurses if WEBrick is
@@ -96,17 +97,23 @@ Raggle TODO
 [*] note about terminal capabilities (no color in OSX, or in vt100 mode, 
     outstanding resize problem, etc... prompted by email from Geoffrey G
     Plitt <ggp@andrew.cmu.edu>)
-[ ] make Raggle work with Ruby Curses API (heap's suggestion)
+[-] make Raggle work with Ruby Curses API (heap's suggestion)
+    (not doing this, it works 
 [ ] create a Gem for Raggle (http://rubygems.rubyforge.org/wiki/wiki.pl?CreateAGemInTenMinutes)
 [*] confirm delete feed (suggested by Peter Kleiweg <kleiweg@let.rug.nl>)
-[ ] automatic new item pseudo-feed (suggested by ")
+[-] automatic new item pseudo-feed (suggested by ")
+    (not doing this for this version of Raggle, it's in squaggle though)
 [*] automatically opening the desc links in your browser via the 
     number keys (suggested by ")
-[ ] after completing 0.4 cleanup, rewrite raggle engine in C for
+[-] after completing 0.4 cleanup, rewrite raggle engine in C for
     speed
-[ ] backend abstraction (be able to save to MySQL, LDAP, etc)
-[ ] use URI lib for url handling
-[ ] del.icio.us integration
+    (see libfeed and squaggle or C rewrite)
+[-] backend abstraction (be able to save to MySQL, LDAP, etc)
+    (not doing this, next version using sqlite though)
+[-] use URI lib for url handling
+    (not doing this, commenta bout it though)
+[-] del.icio.us integration
+    (not doing this, could be added as a keybinding though)
 [*] save feed list periodically (suggested by Manpreet Singh
     <junkblocker@yahoo.com>)
 [*] implement feed adding directly from find window

@@ -58,9 +58,11 @@ Raggle TODO
 [ ] select and follow links in description window (suggested by Omnic)
 [-] add, remove, edit feeds inside Raggle
 [*] SIGHUP to update now (also suggested by Omnic)
-[ ] Feedster integration
-[ ] Technocrati integration
-[ ] syndic8 integration
+[-] Feedster integration
+    (they still haven't published their XML-RPC interface :()
+[-] Technocrati integration
+    (can't find an xmlrpc interface for them)
+[*] syndic8 integration
 [ ] BlogThis support?
 [-] user-configurable http open timeout and http read timeout
     (not gonna do this now)

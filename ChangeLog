@@ -1749,3 +1749,16 @@
 * Thu Feb 19 23:10:59 2004, pabs <pabs@pablotron.org>
   * doc/default_config.rb: updated defaulta config
   * raggle: remove damn ruby1.8 at top
+
+* Fri Feb 20 04:26:14 2004, pabs <pabs@pablotron.org>
+  * README: updates to intro
+  * README: added note about WEBrick being included in windows
+  * README: web interface requires CSS as well as frames and js
+  * README: s/yaml/opml/
+  * README: prefer 'a' to --add
+  * README: added note about config file, added sample config file
+  * doc/default_config.rb: set max_threads to 7
+  * also updated online documentation, old raggle users should update
+    their feed url to point at http://raggle.org/rss/help/ (it uses the
+    version included in the HTTP request to figure out which file to 
+    point at)

@@ -51,7 +51,7 @@ $config = {
   'use_ascii_only?'       => false,
 
   # maximum number of threads (don't set to less than 5!)
-  'max_threads'           => 10,
+  'max_threads'           => 7,
 
   # thread priorities (best to leave these alone)
   'thread_priority_main'  => 10,

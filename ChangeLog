@@ -1910,3 +1910,60 @@
 * Sun Jul 11 05:34:13 2004, pabs <pabs@pablotron.org>
   * raggle: clean up command-l;ine usage, add ville to list of
     authors in there
+
+* Sun Jul 11 05:36:07 2004, pabs <pabs@pablotron.org>
+  * here's a rough guide to the layout i'm working towards:
+    module Raggle
+      module Util
+        # utility functions go in here (things like die, in_screen?)
+        # really basic stuff that doesn't fit anywhere else
+      end
+
+      module Engine
+        # core engine stuff (grabbing feeds, adding feeds, loading
+        # and saving config files, cache, etc)
+      end
+
+      module Interfaces
+        # all the various interface-specific crap goes in here
+
+        module NcursesInterface
+          # all ncurses-specific code should be in here.  anything
+          # that calls ncurses outside of here should become a hook
+          # ...which reminds me, we need a hook API :)
+          #
+          # yes, this means Key, Window, ListWindow, and TextWindow
+          # all belong in here now
+        end
+
+        module HTTPServerInterface
+          # all http server interface stuff goes here
+        end
+
+        module DRbServerInterface
+          # all drb server interface stuff goes here
+        end
+      end
+
+      module CLI
+        # all command-line argument processing and command-line 
+        # output methods go here
+      end
+    end
+
+    some stuff will need to be renamed (things like cli_find_feeds becomes
+    Raggle::CLI::find_feeds, ncurses_find_feeds becomes
+    Raggle::Interfaces::NcursesInterface::find_feeds, etc).  Anyway, that's
+    the general layout.  I've moved all the methods, they need to be prefixed
+    witht ehproper module names, and the pieces need to be connected together
+    again so they actually work (that's going to be the real bitch), we need a 
+    hook interface (I think something like an hash of proc arrays, then you
+    just do something like this):
+      def Engine::add_hook(hook, proc)
+        $config['hooks'][hook] = [] unless $config['hooks'][hook]
+        $config['hooks'][hook] << proc
+      end
+
+      def Engine::call_hook(hook, *args)
+        $config['hooks'][hook].call(*args)
+      end

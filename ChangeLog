@@ -2189,3 +2189,7 @@
     so items aren't just replaced by updates.  Press 'y' by default
     to bring back all feed items.
   * raggle: minor code cleanup
+
+* Wed Dec 22 10:55:00 2004, redshift <redshift@halffull.org>
+  * raggle: updated uses of $config['feeds'][id] to .get(id) for safety
+  * raggle: updated Freshmeat rss address

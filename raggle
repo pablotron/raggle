@@ -1276,13 +1276,14 @@ module Raggle
         win.clear
         
         win.items.clear # This should only ever have one entry
+        feed = $config['feeds'].get(id)
         win.items << {
-          # 'real_title' => $config['feeds'][id]['title'],
-          'title'      => $config['feeds'][id]['title'],
-          'content'    => $config['feeds'][id]['desc'],
-          'date'       => $config['feeds'][id]['date'],
-          'url'        => $config['feeds'][id]['url'],
-          'date'       => Time.at($config['feeds'][id]['updated']).strftime('%c'),
+          # 'real_title' => feed['title'],
+          'title'      => feed['title'],
+          'content'    => feed['desc'],
+          'date'       => feed['date'],
+          'url'        => feed['url'],
+          'date'       => Time.at(feed['updated']).strftime('%c'),
           'read?'      => false
         }
 
@@ -1832,14 +1833,14 @@ ENDUSAGE
         # Raises a feed's sort priority
         #
         def Key::raise_feed_priority
-          $config['feeds'][$a_feed]['priority'] += 1
+          $config['feeds'].get($a_feed)['priority'] += 1
         end
 
         #
         # Lowers a feed's sort priority
         #
         def Key::lower_feed_priority
-          $config['feeds'][$a_feed]['priority'] -= 1
+          $config['feeds'].get($a_feed)['priority'] -= 1
         end
 
         #
@@ -3580,7 +3581,7 @@ ENDUSAGE
         end
 
         def [](id)
-          $config['feeds'][id]
+          $config['feeds'].get(id)
         end
 
         def version
@@ -3693,7 +3694,7 @@ ENDUSAGE
         f.puts $config['feeds'].to_yaml
     
         # restore feed items (again, for web interface)
-        tmp.each_with_index { |t, i| $config['feeds'][i]['items'] = t }
+        tmp.each_with_index { |t, i| $config['feeds'].get(i)['items'] = t }
       end
     end
 
@@ -3714,7 +3715,7 @@ ENDUSAGE
     
         # can't keep adding params to Feed::List#add forever :/
         if opts['max_items']
-          $config['feeds'][-1]['max_items'] = opts['max_items']
+          $config['feeds'].get(-1)['max_items'] = opts['max_items']
         end
       else
         $new_status = $config['msg_added_existing']
@@ -4232,7 +4233,7 @@ ENDUSAGE
       # TODO: make this select the currently selected item again
       # (assuming it still exists)
       if !$config['run_http_server'] && !$config['run_drb_server'] &&
-         $config['feeds'][$a_feed]['url'] == feed['url']
+         $config['feeds'].get($a_feed)['url'] == feed['url']
         $wins[NcursesInterface::get_win_id('feed')].select_win_item
       end
     
@@ -4978,7 +4979,7 @@ $config = {
       'items'     => [ ],
     },
     { 'title'     => 'FreshMeat',
-      'url'       => 'http://themes.freshmeat.net/backend/fm-newsletter.rdf',
+      'url'       => 'http://download.freshmeat.net/backend/fm-newsletter.rdf',
       'site'      => 'http://www.freshmeat.net/',
       'desc'      => 'FreshMeat.',
       'refresh'   => 120,

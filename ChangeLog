@@ -1070,3 +1070,6 @@
 
 * Sun Aug 17 10:46:50 2003, pabs <pabs@pablotron.org>
   * added extras/test_html_renderer.rb (forgot about it before)
+
+* Sun Aug 17 10:48:15 2003, pabs <pabs@pablotron.org>
+  * raggle: add Ville to the list of authors at in the top comment

@@ -173,6 +173,12 @@ module Key
     $config[$SRC].move_down(win.active_item)
     win.move_item_down
   end
+
+  def Key::delete
+    win = $wins[$a_win]
+    $config[$SRC].delete(win.active_item)
+    win.delete_item
+  end
 end
 
 class FeedList
@@ -250,7 +256,7 @@ class FeedList
     @feeds[id + 1] = @feeds[id]
     @feeds[id] = nitem
   end
-  
+
   def refresh_interval_check(interval)
     if interval > 0 && interval < $config['feed_refresh_warn']
         err = <<ENDWARNING
@@ -685,7 +691,12 @@ class Window
     @active_item = @active_item - 1
     draw_items
   end
- 
+
+  def delete_item
+    @items.delete_at(@active_item)
+    @active_item = @active_item + 1
+    draw_items
+  end
 end
 
 #
@@ -1700,6 +1711,9 @@ $config = {
 
     ?u                  => proc { |win, key| Key::move_item_up },
     ?d                  => proc { |win, key| Key::move_item_down },
+
+    Ncurses::KEY_DC     => proc { |win, key| Key::delete },
+    ?D                  => proc { |win, key| Key::delete },
 
     Ncurses::KEY_RESIZE => proc { |win, key| resize_term },
   },

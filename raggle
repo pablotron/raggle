@@ -1606,7 +1606,7 @@ def main
         
         # finish log entries
         interval = $config['feed_sleep_interval']
-        $new_status = $config['msg_welcome']
+        $new_status = $config['msg_grab_done']
         log.puts "#{Time.now}: Done checking.  Sleeping for #{interval}s."
         log.flush
         sleep interval
@@ -1761,6 +1761,7 @@ $config = {
   'msg_welcome'           => " Welcome to Raggle #{$VERSION}.",
   'msg_exit'              => "| Press Q to exit ",
   'msg_close'             => '[X] ',
+  'msg_grab_done'         => " Raggle #{$VERSION}",
   'msg_load_config'       => 'Raggle: Loading config...',
   'msg_load_list'         => 'Raggle: Loading feed list...',
   'msg_save_list'         => 'Raggle: Saving feed list...',

@@ -520,6 +520,10 @@
 * Mon Jun 23 18:32:35 2003, richlowe <richlowe@richlowe.net>
   * Makefile: Don't install rss_grab.rb
 
+* Mon Jun 23 18:49:04 2003, pabs <pabs@pablotron.org>
+  * raggle: added 'msg_grab_done' and changed the grab feed thread to
+    use it instead (it defaults to "Raggle #$VERSION" at the moemnt)
+  * README: add comment about terminal size
 
 
 

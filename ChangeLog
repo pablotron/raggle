@@ -453,6 +453,8 @@
 * Sun Jun 22 04:43:12 2003, richlowe <richlowe@richlowe.net>
   * raggle.1: Fix type of list used in BUGS.
 
+* Sun Jun 22 04:56:14 2003, richlowe <richlowe@richlowe.net>
+  * raggle.1: Mention the email address that bug reports should be sent to.
 
 
 

@@ -2470,3 +2470,8 @@ _Cvs
     work as advertised now
   * added extras/sql/mysql.sql (sample schema for bookmarks table)
   * added extras/sql/sqlite.sql (sample schema for bookmarks table)
+
+* Sun Mar 20 23:52:11 2005, pabs <pabs@pablotron.org>
+  * raggle: comment out sqlite and mysql stuff for now (but leave them
+    as examples)
+  * raggle: comment out rubygems requirement (for now)

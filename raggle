@@ -80,7 +80,7 @@ require 'net/http'
 require 'pstore'
 require 'thread'
 require 'time'
-require 'rubygems'
+# require 'rubygems'
 
 #########################
 # load external modules #
@@ -5817,62 +5817,66 @@ $config = {
     # save bookmarks to sqlite
     # note: requires the sqlite-ruby library, and the bookmark
     # database must exist, with the appropriate table
-    { :type   => :db,
-      :dbtype => :sqlite,
-    
-      # path to database file
-      # note: database file MUST already exist!
-      :path   => '${config_dir}/bookmarks.db',
-
-      # name of table to save bookmarks into
-      # note: this table MUST already exist!
-      :table  => 'raggle_bookmarks',
-
-      # list of fields (note: you can omit any of these)
-      :fields => {
-        :title  => 'title',
-        :desc   => 'description',
-        :url    => 'url',
-        :tags   => 'tags',
-      },
-
-      # optional settings
-      # don't prompt for descriptions (default: false)
-      # :no_desc => false,
-      # don't prompt for tags (default: false)
-      # :no_tag => false,
-    },
+# 
+#     { :type   => :db,
+#       :dbtype => :sqlite,
+#     
+#       # path to database file
+#       # note: database file MUST already exist!
+#       :path   => '${config_dir}/bookmarks.db',
+# 
+#       # name of table to save bookmarks into
+#       # note: this table MUST already exist!
+#       :table  => 'raggle_bookmarks',
+# 
+#       # list of fields (note: you can omit any of these)
+#       :fields => {
+#         :title  => 'title',
+#         :desc   => 'description',
+#         :url    => 'url',
+#         :tags   => 'tags',
+#       },
+# 
+#       # optional settings
+#       # don't prompt for descriptions (default: false)
+#       # :no_desc => false,
+#       # don't prompt for tags (default: false)
+#       # :no_tag => false,
+#     },
+# 
 
     # save bookmarks to mysql
     # note: requires the sqlite-ruby library, and the bookmark
     # database must exist, with the appropriate table
-    { :type   => :db,
-      :dbtype => :mysql,
-    
-      # db server, username, password, and name of database to use
-      :host   => 'vault',
-      :user   => 'pabs',
-      :pass   => 'p3p51',
-      :dbname => 'pablotron',
-
-      # name of table to save bookmarks into
-      # note: this table MUST already exist!
-      :table  => 'raggle_bookmarks',
-
-      # list of fields (note: you can omit any of these)
-      :fields => {
-        :title  => 'title',
-        :desc   => 'description',
-        :url    => 'url',
-        :tags   => 'tags',
-      },
-
-      # optional settings
-      # don't prompt for descriptions (default: false)
-      # :no_desc => false,
-      # don't prompt for tags (default: false)
-      # :no_tag => false,
-    },
+# 
+#     { :type   => :db,
+#       :dbtype => :mysql,
+#     
+#       # db server, username, password, and name of database to use
+#       :host   => 'HOSTNAME', # (use 'localhost' if it's on this machine)
+#       :user   => 'USERNAME',
+#       :pass   => 'PASSWORD',
+#       :dbname => 'raggle_database',
+# 
+#       # name of table to save bookmarks into
+#       # note: this table MUST already exist!
+#       :table  => 'raggle_bookmarks',
+# 
+#       # list of fields (note: you can omit any of these)
+#       :fields => {
+#         :title  => 'title',
+#         :desc   => 'description',
+#         :url    => 'url',
+#         :tags   => 'tags',
+#       },
+# 
+#       # optional settings
+#       # don't prompt for descriptions (default: false)
+#       # :no_desc => false,
+#       # don't prompt for tags (default: false)
+#       # :no_tag => false,
+#     },
+# 
   ],
 
   # live feeds

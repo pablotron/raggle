@@ -2435,3 +2435,7 @@ _Cvs
 
 * Wed Mar 16 19:05:34 2005, pabs <pabs@pablotron.org>
   * TODO: mark i18n off, mother chuckers!
+
+* Wed Mar 16 19:13:31 2005, pabs <pabs@pablotron.org>
+  * raggle: increment version to 0.4.0 (from 0.4.0-test)
+  * releasing 0.4.0

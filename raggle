@@ -67,10 +67,11 @@ end
 #
 # I like die
 #
-def die(args)
+def die(*args)
   errstr = "#$0: FATAL: #{args.join("\n")}"
   errstr << ": #$!" if $!
-  $stderr.puts errstr.gsub(/%/, '%%')
+  errstr.gsub!(/%/, '%%') if errstr =~ /%/
+  at_exit { $stderr.puts errstr }
   exit -1
 end
 

@@ -862,6 +862,8 @@
 * Thu Jul 03 15:15:19 2003, pabs <pabs@pablotron.org>
   * raggle: escape % in die strings
 	
+* Thu Jul 03 16:06:09 2003, pabs <pabs@pablotron.org>
+  * raggle: args => *args in die()
 
 
 

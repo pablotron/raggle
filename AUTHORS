@@ -2,10 +2,31 @@ Paul Duncan <pabs@pablotron.org>
 * Main author.
 
 Richard Lowe <richlowe@richlowe.net>
-* Nothing of note.
+* fixed HTTPS support
+* lots of code cleanups (moved keys to Key module, feed list into
+  FeedList, etc)
+* sanitized (and cleaner) window scrolling code
+* working page up/page down keys
+* nifty feed window updating on item select
+* feed invalidation
+* man page
+* syck documentation
+* item deletion
+* description window scrolling
+* getoptlong option handling
+* graceful SIG{INT,QUIT} handling
+* makefile cleanups
+* item title in description window
 
 Ville Aine <vaine@cs.helsinki.fi>
-* patch to fix Home and End key bindings.
-* patch to fix off by one error in FeedList#get, FeedList#delete, 
+* fixed Home and End key bindings.
+* fixed off by one error in FeedList#get, FeedList#delete, 
   FeedList#invalidate, and FeedLIst#edit
-* patch to clean up command-line option handling
+* cleaned up command-line option handling
+* fixed HTTP connection handling during exceptions
+* fixed off by one in select_next_unread
+* fixed crash in Key::delete
+* OPML import/export
+
+Richard Zidlicky <rz@linux-m68k.org>
+* HTTP proxy support

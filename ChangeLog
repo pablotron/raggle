@@ -1067,3 +1067,6 @@
   * added extras/rss_dir_list.rb (as a test for exec: URLs).  Note that
     this command can take quite a while to run on larger directories or
     slower machines (because of the stat() calls)
+
+* Sun Aug 17 10:46:50 2003, pabs <pabs@pablotron.org>
+  * added extras/test_html_renderer.rb (forgot about it before)

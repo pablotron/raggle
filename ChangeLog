@@ -691,3 +691,6 @@
   * raggle: make die() act like BSD err()/errx() (depending on whether $!
             is set)
 
+* Mon Jun 23 22:02:37 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Up version to 0.2.0
+

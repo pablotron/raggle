@@ -501,6 +501,10 @@
   * TODO, BUGS: Mention that I have patches for description scrolling
   * raggle.1: Sync with BUGS
 
+* Mon Jun 23 05:07:58 2003, richlowe <richlowe@richlowe.net>
+  * raggle.1: Update BUG report URL to match inline documentation.
+	      *please* try to keep these in sync
+
 
 
 

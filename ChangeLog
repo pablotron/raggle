@@ -1592,3 +1592,8 @@
 * Wed Sep 24 00:08:51 2003, pabs <pabs@pablotron.org>
   * extras/web_ui/inc/default.css: fixed => absolute, so things look
     right in IE
+
+* Wed Sep 24 14:17:51 2003, pabs <pabs@pablotron.org>
+  * raggle: make raggle work (hopefully) on single-user win32 machines
+  * extras/web_ui/index.html: make frames sligntly larger
+  * extras/web_ui/titlebar.html: add export button (doesn't work yet)

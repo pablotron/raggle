@@ -147,7 +147,7 @@ module Path
   # Find home directory (different env vars on unix and win32)
   #
   def Path::find_home
-    ENV['HOME'] || ENV['HOMEPATH']
+    ENV['HOME'] || ENV['USERPROFILE'] || ENV['HOMEPATH']
   end
   
   #
@@ -212,7 +212,8 @@ def find_win32_proxy
     end
   end
   
-  # ret.each { |key, val| puts "DEBUG: #{key} => #{val}" }
+  # dump proxy debug
+  # ret && ret.each { |key, val| puts "DEBUG: #{key} => #{val}" }
   
   ret
 end

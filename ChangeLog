@@ -1518,3 +1518,12 @@
   * raggle: add $ keybinding (jump to last item in window)
   * raggle: add 0 keybinding (jump to first item in window)
 
+* Sun Sep 21 16:00:14 2003, pabs <pabs@pablotron.org>
+  * raggle: slightly nicer "no interfaces found" message
+  * raggle: add "load templates" message
+  * raggle: make web shutdown sleep interval configurable (via
+    $config['http_server']['shutdown_sleep']
+  * extras/web_ui/index.html: show frame borders
+  * added extras/web_ui/inc/default.css (merge *.css into default.css)
+  * extras/web_ui/quit.html: added body class
+  * extras/web_ui/quit.html: point at default.css

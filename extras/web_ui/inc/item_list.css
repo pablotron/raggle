@@ -73,17 +73,17 @@ p {
 /**************************/
 #item-table {
   width: 100%;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .item-tr-unread-even {
   background-color: #ffffff;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .item-tr-unread-odd {
   background-color: #eeeeee;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .item-date-unread-even {
@@ -111,12 +111,12 @@ p {
 /************************/
 .item-tr-read-even {
   background-color: #ffffff;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .item-tr-read-odd {
   background-color: #eeeeee;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .item-date-read-even {

@@ -407,7 +407,7 @@ module Raggle
     def Path::find_browser
       ret = ENV['RAGGLE_BROWSER']
       ret ||= ENV['BROWSER']
-      ret ||= %w{links elinks w3m lynx explorer.exe}.find { |app| find_app(app) }
+      ret ||= %w{links elinks w3m lynx iexplore.exe explorer.exe}.find { |app| find_app(app) }
 
       # die if we couldn't find a browser
       die "Couldn't find suitable browser.",
@@ -608,6 +608,7 @@ module Raggle
       def initialize(source, width)
         @source, @width = source, width
         @links = []
+        $links = []
         @rendered_text = render
       end
 
@@ -719,7 +720,7 @@ module Raggle
           @lines.delete_at(@lines.size - 1)
         end
 
-        # If there are links, insert the them here
+        # If there are links, insert them here
         unless @links.empty?
           @lines << ''
           @lines << $config['msg_links']
@@ -768,6 +769,7 @@ module Raggle
           @last_link_index = href_index + 1
         else
           @links << href
+          $links << href
           @last_link_index = @links.size
         end
       end
@@ -1870,9 +1872,19 @@ ENDUSAGE
           NcursesInterface::set_active_win(a_win)
         end
         
-        def Key::open_link
+        #
+        # opens a story link by number, or item link by default
+        #
+        def Key::open_link(num = 0)
           win = $wins[NcursesInterface::get_win_id('desc')]
-          win.select_win_item
+
+          if num == 0  # open default item link
+            win.select_win_item
+          elsif $links[num - 1]  # open link from inside story
+            item = { 'title'  => win.items[win.active_item]['title'],
+                     'url'    => $links[num - 1] }
+            NcursesInterface::open_link(item)
+          end
         end
 
         def Key::manual_update
@@ -2154,7 +2166,7 @@ ENDUSAGE
             elsif @items[@active_item].has_key? 'cat'
               NcursesInterface::select_cat @items[@active_item]['cat']
             elsif @items[@active_item].has_key? 'url'
-              NcursesInterface::open_url @items[@active_item]
+              NcursesInterface::open_link @items[@active_item]
             end
           end
         end
@@ -2795,14 +2807,11 @@ ENDUSAGE
       #
       # open an item's url in Ncurses mode
       #
-      def NcursesInterface::open_url(item)
+      def NcursesInterface::open_link(item)
         return unless item['title'] and item['url']  # need item info
 
         # are we opening new screen windows?
         use_screen = $config['use_screen'] && in_screen?
-
-        # drop out of curses mode
-        NcursesInterface::save_screen unless use_screen
 
         # get browser command
         cmd = $config['browser_cmd'].map { |cmd_part|
@@ -2814,15 +2823,18 @@ ENDUSAGE
         }
 
         if use_screen  # prepend screen command if we're using it
-          screen_cmd = $config['screen_cmd'].map do |cmd_part|
+          screen_cmd = $config['screen_cmd'].map { |cmd_part|
             if cmd_part =~ /%s/
               cmd_part % item['title']
             else
               cmd_part
             end
-          end
+          }
           cmd.unshift(*screen_cmd)  # build new command
         end
+
+        # drop out of curses mode
+        NcursesInterface::save_screen unless use_screen
 
         system(*cmd)
   
@@ -3130,8 +3142,9 @@ ENDUSAGE
           when 'PPAGE':     key = 'Page Up'
           when '':        key = 'Control-L'
           when '	':  key = 'Tab'
+          when /^\d$/:      key = '1-9'
           end
-          unless key == old_key
+          unless key == old_key  # remove cruft if key info updated
             keys[key] = keys[old_key]
             keys.delete(old_key) 
           end
@@ -4853,6 +4866,16 @@ $config = {
     ?C                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::close_window} ),
 
     ??                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::show_key_bindings} ),
+
+    ?1                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::open_link(1)} ),
+    ?2                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::open_link(2)} ),
+    ?3                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::open_link(3)} ),
+    ?4                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::open_link(4)} ),
+    ?5                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::open_link(5)} ),
+    ?6                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::open_link(6)} ),
+    ?7                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::open_link(7)} ),
+    ?8                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::open_link(8)} ),
+    ?9                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::open_link(9)} ),
   } : {}),
 
   # color palette (referenced by themes)

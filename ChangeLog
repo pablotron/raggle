@@ -2224,3 +2224,8 @@
 * Mon Dec 27 10:32:00 2004, redshift <redshift@halffull.org>
   * raggle: moved url opening code to separate method, which cleaned up
     select_win_item and can be used for (future) description url opening code
+
+* Mon Dec 27 12:51:00 2004, redshift <redshift@halffull.org>
+  * raggle: keys 1 through 9 will now open links within a story, shown at the
+    bottom of the description window - 'o' still opens the default item link
+  * raggle: minor cleanup

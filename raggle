@@ -317,7 +317,7 @@ class FeedList
   def edit(id, opts)
     raise "FeedList#edit: Feed not found: #{id}" unless @feeds.size >= id
     refresh_interval_check opts['refresh'] if !opts['force'] &&
-      opts.has_key?('refresh')
+                                              opts.has_key?('refresh')
     ourl = $config['feeds'].get(id)['url']
     %w{title url refresh lock_title?}.each { |key|
       $config['feeds'].get(id)[key] = opts[key] if opts.has_key? key
@@ -369,6 +369,10 @@ module Feed
     port = 80
     use_ssl = false
 
+    # work with a copy of the url
+    url = url.dup
+
+    # check for ssl
     if url =~ /^https:/
       raise 'HTTPS support requires OpenSSL-Ruby' unless $HAVE_SSL
       use_ssl = true
@@ -1197,59 +1201,59 @@ def handle_Command_line(opts)
   ret = { 'mode' => 'view' }
 
   gopts = GetoptLong.new(
-    ["-a", "--add",        "--add-feed",        GetoptLong::NO_ARGUMENT],
-    ["-e", "--edit",       "--edit-feed",       GetoptLong::REQUIRED_ARGUMENT],
-    ["-d", "--delete",     "--delete-feed",     GetoptLong::REQUIRED_ARGUMENT],
-    ["-i", "--invalidate", "--invalidate-feed", GetoptLong::REQUIRED_ARGUMENT],
-    ["-c", "--config",     "--config-file",     GetoptLong::REQUIRED_ARGUMENT],
-    ["-l", "--list",                            GetoptLong::NO_ARGUMENT],
-    ["-t", "--title",                           GetoptLong::REQUIRED_ARGUMENT],
-    ["-u", "--url",                             GetoptLong::REQUIRED_ARGUMENT],
-    ["-r", "--refresh",                         GetoptLong::REQUIRED_ARGUMENT],
-    ["-v", "--version",                         GetoptLong::REQUIRED_ARGUMENT],
-    ["--purge",                                 GetoptLong::NO_ARGUMENT],
-    ["--sort", "--sort-feeds",                  GetoptLong::NO_ARGUMENT],
-    ["--lock-title",                            GetoptLong::NO_ARGUMENT],
-    ["--unlock-title",                          GetoptLong::NO_ARGUMENT],
-    ["--save-items",                            GetoptLong::NO_ARGUMENT],
-    ["--unsave-items",                          GetoptLong::NO_ARGUMENT],
-    ["--verbose",                               GetoptLong::NO_ARGUMENT],
-    ["-h", "--help", "--usage",                 GetoptLong::NO_ARGUMENT]
+    ['-a', '--add',        '--add-feed',        GetoptLong::NO_ARGUMENT],
+    ['-e', '--edit',       '--edit-feed',       GetoptLong::REQUIRED_ARGUMENT],
+    ['-d', '--delete',     '--delete-feed',     GetoptLong::REQUIRED_ARGUMENT],
+    ['-i', '--invalidate', '--invalidate-feed', GetoptLong::REQUIRED_ARGUMENT],
+    ['-c', '--config',     '--config-file',     GetoptLong::REQUIRED_ARGUMENT],
+    ['-l', '--list',                            GetoptLong::NO_ARGUMENT],
+    ['-t', '--title',                           GetoptLong::REQUIRED_ARGUMENT],
+    ['-u', '--url',                             GetoptLong::REQUIRED_ARGUMENT],
+    ['-r', '--refresh',                         GetoptLong::REQUIRED_ARGUMENT],
+    ['-v', '--version',                         GetoptLong::REQUIRED_ARGUMENT],
+    ['--purge',                                 GetoptLong::NO_ARGUMENT],
+    ['--sort', '--sort-feeds',                  GetoptLong::NO_ARGUMENT],
+    ['--lock-title',                            GetoptLong::NO_ARGUMENT],
+    ['--unlock-title',                          GetoptLong::NO_ARGUMENT],
+    ['--save-items',                            GetoptLong::NO_ARGUMENT],
+    ['--unsave-items',                          GetoptLong::NO_ARGUMENT],
+    ['--verbose',                               GetoptLong::NO_ARGUMENT],
+    ['-h', '--help', '--usage',                 GetoptLong::NO_ARGUMENT]
   )
 
   gopts.each do |opt, arg|
     case opt
-      when "-a", "--add", "--add-feed"
+      when '-a', '--add', '--add-feed'
         ret['mode'] = 'add'
-      when "-e", "--edit", "--edit-feed"
+      when '-e', '--edit', '--edit-feed'
         ret['mode'] = 'edit'
-        ret['id'] = arg
-      when "-d", "--delete", "--delete-feed"
+        ret['id'] = arg.to_i
+      when '-d', '--delete', '--delete-feed'
         ret['mode'] = 'delete'
-        ret['id'] = arg
-      when "-i", "--invalidate", "--invalidate-feed"
+        ret['id'] = arg.to_i
+      when '-i', '--invalidate', '--invalidate-feed'
         ret['mode'] = 'invalidate'
-        ret['id'] = arg
-      when "-c", "--config", "--config-file"
+        ret['id'] = arg.to_i
+      when '-c', '--config', '--config-file'
         $config['config_path'] = arg
-      when "-l", "--list"
+      when '-l', '--list'
         ret['mode'] = 'list'
-      when "-t", "--title"
+      when '-t', '--title'
         ret['title'] = arg
-      when "-u", "--url"
+      when '-u', '--url'
         ret['url'] = arg
-      when "-r", "--refresh"
-        ret['refresh'] = arg
-      when "-v", "--version"
+      when '-r', '--refresh'
+        ret['refresh'] = arg.to_i
+      when '-v', '--version'
         puts "Raggle v#$VERSION"
         exit 0
-      when "--purge"
+      when '--purge'
         ret['mode'] = 'purge'
-      when "--sort", "--sort-feeds"
+      when '--sort', '--sort-feeds'
         ret['mode'] = 'sort'
-      when "--lock-title"
+      when '--lock-title'
         ret['lock_title?'] = true
-      when "--unlock-title"
+      when '--unlock-title'
         ret['lock_title?'] = false
       when '--save-items'
         ret['save_items?'] = true
@@ -1260,8 +1264,10 @@ def handle_Command_line(opts)
       when '-h', '--help', '--usage'
         print_usage
     else
-        $stderr.puts 'Unknown option; ' << opt
+        $stderr.puts 'Unknown option: ' << opt
     end
+
+    ret
   end
        
   # check options
@@ -1485,15 +1491,15 @@ def main
     save_feed_list
     exit 0
   when 'delete'
-    delete_feed opts['id'].to_i
+    delete_feed opts['id']
     save_feed_list
     exit 0
   when 'invalidate'
-    invalidate_feed opts['id'].to_i
+    invalidate_feed opts['id']
     save_feed_list
     exit 0
   when 'edit'
-    edit_feed opts['id'].to_i, opts
+    edit_feed opts['id'], opts
     save_feed_list
     exit 0
   when 'sort'
@@ -1549,7 +1555,7 @@ def main
           
           # update feed attributes
           feed['title'] = chan.title unless $config['lock_feed_title'] ||
-                                            feed['lock_title?'] = true
+                                            feed['lock_title?'] == true
           feed['desc'] = chan.desc
           feed['site'] = chan.link
           feed['updated'] = t.to_i
@@ -2105,58 +2111,10 @@ ragglebug@pablotron.org.
       'updated'   => 0,
       'items'     => [ ],
     },
-    { 'title'     => 'Anandtech (NiF)',
-      'url'       => 'http://www.newsisfree.com/HPE/xml/feeds/61/161.xml',
-      'site'      => 'http://www.anandtech.com/',
-      'desc'      => 'Anandtech',
-      'refresh'   => 120,
-      'updated'   => 0,
-      'items'     => [ ],
-    },
-    { 'title'     => 'Consensus at Lawyerpoint',
-      'url'       => 'http://bpdg.blogs.eff.org/index.rdf',
-      'site'      => 'http://www.eff.org/',
-      'desc'      => 'Consensus at Lawyerpoint',
-      'refresh'   => 120,
-      'updated'   => 0,
-      'items'     => [ ],
-    },
-    { 'title'     => 'Creative Commons',
-      'url'       => 'http://creativecommons.org/weblog/rss',
-      'site'      => 'http://creativecommons.org/',
-      'desc'      => 'Creative Commons',
-      'refresh'   => 120,
-      'updated'   => 0,
-      'items'     => [ ],
-    },
     { 'title'     => 'Daily Daemon News',
       'url'       => 'http://daily.daemonnews.org/ddn.rdf.php3',
       'site'      => 'http://daemonnews.org/',
       'desc'      => 'Daily Daemon News',
-      'refresh'   => 120,
-      'updated'   => 0,
-      'items'     => [ ],
-    },
-    { 'title'     => 'EFF News (NiF)',
-      'url'       => 'http://www.newsisfree.com/HPE/xml/feeds/22/3222.xml',
-      'site'      => 'http://www.eff.org/',
-      'desc'      => 'EFF News.',
-      'refresh'   => 120,
-      'updated'   => 0,
-      'items'     => [ ],
-    },
-    { 'title'     => 'Exploding Cigar',
-      'url'       => 'http://www.explodingcigar.com/backend.xml',
-      'site'      => 'http://www.explodingcigar.com/',
-      'desc'      => 'Exploding Cigar',
-      'refresh'   => 120,
-      'updated'   => 0,
-      'items'     => [ ],
-    },
-    { 'title'     => 'FlipCode (NiF)',
-      'url'       => 'http://www.newsisfree.com/HPE/xml/feeds/08/208.xml',
-      'site'      => 'http://www.flipcode.org/',
-      'desc'      => 'FlipCode.',
       'refresh'   => 120,
       'updated'   => 0,
       'items'     => [ ],
@@ -2185,22 +2143,6 @@ ragglebug@pablotron.org.
       'updated'   => 0,
       'items'     => [ ],
     },
-    { 'title'     => 'Leoville',
-      'url'       => 'http://www.leoville.com/mt/index.xml',
-      'site'      => 'http://www.leoville.com/',
-      'desc'      => 'Leoville',
-      'refresh'   => 120,
-      'updated'   => 0,
-      'items'     => [ ],
-    },
-    { 'title'     => 'Linux Magazine',
-      'url'       => 'http://www.linux-mag.com/lm.rss',
-      'site'      => 'http://www.linux-mag.com/',
-      'desc'      => 'Linux Magazine',
-      'refresh'   => 120,
-      'updated'   => 0,
-      'items'     => [ ],
-    },
     { 'title'     => 'Linux Weekly News',
       'url'       => 'http://www.lwn.net/headlines/rss',
       'site'      => 'http://www.lwn.net/',
@@ -2209,66 +2151,10 @@ ragglebug@pablotron.org.
       'updated'   => 0,
       'items'     => [ ],
     },
-    { 'title'     => 'MetaFilter',
-      'url'       => 'http://xml.metafilter.com/rss.xml',
-      'site'      => 'http://www.metafilter.com/',
-      'desc'      => 'MetaFilter',
-      'refresh'   => 120,
-      'updated'   => 0,
-      'items'     => [ ],
-    },
-    { 'title'     => 'MovieComments',
-      'url'       => 'http://www.moviecomments.com/recentrev_rss.php',
-      'site'      => 'http://www.moviecomments.com/',
-      'desc'      => 'MovieComments',
-      'refresh'   => 120,
-      'updated'   => 0,
-      'items'     => [ ],
-    },
-    { 'title'     => 'MTV News (NiF)',
-      'url'       => 'http://www.newsisfree.com/HPE/xml/feeds/92/1792.xml',
-      'site'      => 'http://www.mtv.com/',
-      'desc'      => 'MTV News (NiF)',
-      'refresh'   => 120,
-      'updated'   => 0,
-      'items'     => [ ],
-    },
-    { 'title'     => 'O\'Reilly Network',
-      'url'       => 'http://www.oreillynet.com/cs/xml/query/q/295?x-ver=1.0',
-      'site'      => 'http://www.oreillynet.com/',
-      'desc'      => 'O\'Reilly Network',
-      'refresh'   => 120,
-      'updated'   => 0,
-      'items'     => [ ],
-    },
-    { 'title'     => 'Open Sounds',
-      'url'       => 'http://www.opensounds.net/backend.php',
-      'site'      => 'http://www.opensounds.net/',
-      'desc'      => 'John Maguire.',
-      'refresh'   => 120,
-      'updated'   => 0,
-      'items'     => [ ],
-    },
-    { 'title'     => 'PHP Journal',
-      'url'       => 'http://www.phpj.com/backend.php',
-      'site'      => 'http://www.phpj.com/',
-      'desc'      => 'PHP Journal',
-      'refresh'   => 120,
-      'updated'   => 0,
-      'items'     => [ ],
-    },
     { 'title'     => 'Pigdog Journal',
       'url'       => 'http://www.pigdog.org/pigdog.rdf',
       'site'      => 'http://www.pigdog.org/',
       'desc'      => 'Pigdog Journal',
-      'refresh'   => 120,
-      'updated'   => 0,
-      'items'     => [ ],
-    },
-    { 'title'     => 'Political Wire',
-      'url'       => 'http://politicalwire.com/headlines.xml',
-      'site'      => 'http://politicalwire.com/',
-      'desc'      => 'Political Wire',
       'refresh'   => 120,
       'updated'   => 0,
       'items'     => [ ],
@@ -2289,34 +2175,10 @@ ragglebug@pablotron.org.
       'updated'   => 0,
       'items'     => [ ],
     },
-    { 'title'     => 'Universal Rule',
-      'url'       => 'http://radio.weblogs.com/0112083/rss.xml',
-      'site'      => 'http://radio.weblogs.com/0112083/',
-      'desc'      => 'Universal Rule',
-      'refresh'   => 120,
-      'updated'   => 0,
-      'items'     => [ ],
-    },
-    { 'title'     => 'use Perl',
-      'url'       => 'http://use.perl.org/useperl.rdf',
-      'site'      => 'http://use.perl.org/',
-      'desc'      => 'Universal Rule',
-      'refresh'   => 120,
-      'updated'   => 0,
-      'items'     => [ ],
-    },
     { 'title'     => 'W3C',
       'url'       => 'http://www.w3.org/2000/08/w3c-synd/home.rss',
       'site'      => 'http://www.w3.org/',
       'desc'      => 'W3C',
-      'refresh'   => 120,
-      'updated'   => 0,
-      'items'     => [ ],
-    },
-    { 'title'     => 'Webmonkey',
-      'url'       => 'http://radio.weblogs.com/0112083/rss.xml',
-      'site'      => 'http://radio.weblogs.com/0112083/',
-      'desc'      => 'Webmonkey',
       'refresh'   => 120,
       'updated'   => 0,
       'items'     => [ ],

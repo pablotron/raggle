@@ -431,3 +431,21 @@
   * raggle: change updated timestamp on all default feeds to zero
 	  
 
+* Sun Jun 22 04:09:24 2003, pabs <pabs@pablotron.org>
+  * raggle: duplicate url in get_url (prevent prefix stripping)
+  * raggle: move .to_i back into option handling (opts['id'] should
+    always be a Fixnum
+  * raggle: fix lock_title? bug
+  * raggle: pruned default feed list to 10 items
+    
+
+
+
+
+
+
+
+
+
+
+

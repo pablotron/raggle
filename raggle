@@ -45,10 +45,13 @@ $VERSION = '0.3.0'
 # disable these unless this file is executed.
 if __FILE__ == $0
   trap('INT') { puts "Interrupted"; exit -1 }
-  trap('QUIT') { puts "Quit"; exit -1 }
-  trap('HUP') { puts "Hangup"; exit -1 }
-  trap('TERM') { puts "Term"; exit -1 }
-  trap('KILL') { puts "Term"; exit -1 }
+
+  # win32 doesn't support these signals
+  if RUBY_PLATFORM !~ /win32/i
+    trap('QUIT') { puts "Quit"; exit -1 }
+    trap('HUP') { puts "Hangup"; exit -1 }
+    trap('TERM') { puts "Term"; exit -1 }
+  end
 end
 
 #########################
@@ -61,41 +64,57 @@ require 'pstore'
 #########################
 # load external modules #
 #########################
-{ 'ncurses'         => 'Ncurses-Ruby',
-  'rexml/document'  => 'REXML',
-  'yaml'            => 'YAML',
-}.each { |module_name, module_title|
+{ # key => [path, title, required]
+  'ncurses' => ['ncurses',        'Ncurses-Ruby', false],
+  'rexml'   => ['rexml/document', 'REXML',        true],
+  'yaml'    => ['yaml',           'YAML',         true],
+  'ssl'     => ['net/https',      'OpenSSL-Ruby', false],
+  'webrick' => ['webrick',        'WEBrick',      false],
+}.each { |key, info|
+  path, title, required = info[0, 3]
+  $HAVE_LIB ||= {}
+
   begin
-    require module_name
+    require path
+    $HAVE_LIB[key] = true
   rescue LoadError
-    $stderr.puts <<-ENDERR
+    if required
+      $stderr.puts <<-ENDERR
 ERROR: #$!
-You're missing the #{module_title} module.  For installation
+You're missing the #{title} module.  For installation
 instructions, Please see the file README or visit the following URL:
   http://www.raggle.org/docs/install/
 ENDERR
-    exit -1
+      exit -1
+    else
+      $HAVE_LIB[key] = false
+    end
   end
 }
 
-begin 
-  require 'net/https'
-  $HAVE_SSL = true
-rescue LoadError
-  $HAVE_SSL = false
+unless $HAVE_LIB['webrick'] || $HAVE_LIB['ncurses']
+  $stderr.puts <<-ENDERR
+ERROR: No interfaces available.
+You're missing the both the Ncurses-Ruby and WEBrick modules.  For
+installation instructions, Please see the file README or visit the
+following URL:
+  http://www.raggle.org/docs/install/
+ENDERR
+  exit -1
 end
 
-begin
-  require 'webrick'
-  $HAVE_WEBRICK = true
-rescue LoadError
-  $HAVE_WEBRICK = false
+# hackery to avoid mucking with config below
+unless $HAVE_LIB['ncurses'] 
+  module Ncurses
+    def method_missing
+      nil
+    end
+  end
 end
 
 ###################
 # utility methods #
 ###################
-
 
 #
 # I like die
@@ -114,6 +133,13 @@ module Path
   #
   def Path::find_app(app)
     ENV['PATH'].split(/:/).find { |path| test ?x, "#{path}/#{app}" }
+  end
+  
+  #
+  # Find home directory (different env vars on unix and win32)
+  #
+  def Path::find_home
+    ENV['HOME'] || ENV['HOMEPATH']
   end
   
   #
@@ -920,7 +946,7 @@ module Feed
 
     # check for ssl
     if url =~ /^https:/
-      raise 'HTTPS support requires OpenSSL-Ruby' unless $HAVE_SSL
+      raise 'HTTPS support requires OpenSSL-Ruby' unless $HAVE_LIB['ssl']
       use_ssl = true
     end
 
@@ -949,7 +975,7 @@ module Feed
     
     # initialize http connection
     http = Net::HTTP::new(host, port, proxy['host'], proxy['port'])
-    http.use_ssl = use_ssl if $HAVE_SSL
+    http.use_ssl = use_ssl if $HAVE_LIB['ssl']
     http.start
     raise "Couldn't connect to host \"#{host}:#{port}\"" unless http
 
@@ -2428,7 +2454,7 @@ def handle_command_line(opts)
         when '--ascii'
           ret['ascii'] = true
         when '--server'
-          if $HAVE_WEBRICK
+          if $HAVE_LIB['webrick']
             $config['run_http_server'] = true
             $config['http_server']['port'] = arg.to_i \
               if $config['http_server'] && arg && arg.to_i > 0
@@ -3004,7 +3030,7 @@ def main
     }
   }
 
-  if $HAVE_WEBRICK && $config['run_http_server']
+  if $HAVE_LIB['webrick'] && $config['run_http_server']
     http_thread = Thread.new {
       $http_server = Raggle::HTTPServer::new($config['http_server'])
       $http_server.start
@@ -3085,7 +3111,7 @@ end
 # default config #
 ##################
 $config = {
-  'config_dir'            => ENV['HOME'] + '/.raggle',
+  'config_dir'            => Path::find_home + '/.raggle',
   'config_path'           => '${config_dir}/config.rb',
   'feed_list_path'        => '${config_dir}/feeds.yaml',
   'feed_cache_path'       => '${config_dir}/feed_cache.store',

@@ -1281,3 +1281,9 @@
   * raggle.pod: Fixed layout bugs in AUTHORS and HISTORY (mainly, because
                 Ville told me how)
   * raggle.1: regenerated.
+
+* Wed Sep 03 21:18:23 2003, pabs <pabs@pablotron.org>
+  * raggle: don't trap anything other than SIGINT on win32
+  * raggle: use ENV['HOMEPATH'] on win32
+  * raggle: cleaned up module loading
+  * raggle: only die if both ncurses and webrick are missing

@@ -482,8 +482,12 @@
 	    sucks feature freeze", I think Paul will kill me if this
 	    breaks other stuff :)
 
-
-
+* Sun Jun 22 11:07:14 2003, pabs <pabs@pablotron.org>
+  * README: updated system requirements
+  * README: added installation section
+  * README: added getting started section
+  * README: added related links section
+  * README: added Richard to the authors section
 
 
 

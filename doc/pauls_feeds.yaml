@@ -1,0 +1,437 @@
+--- !ruby/object:FeedList 
+feeds: 
+  - items: []
+    title: " Raggle"
+    url: http://www.pablotron.org/software/raggle/help.rss
+    refresh: -1
+    site: http://www.pablotron.org/software/raggle/
+    updated: 1055113783
+  - items: []
+    title: ActiveState
+    url: www.activestate.com/news.xml
+    refresh: 120
+    desc: "ActiveState is at the forefront of Open Source software, providing products and services for all popular Operating Systems including Windows, Linux and Solaris."
+    site: http://www.ActiveState.com
+    updated: 1056265528
+  - items: []
+    title: Advogato
+    url: www.advogato.org/rss/articles.xml
+    refresh: 120
+    desc: Recent Advogato articles
+    site: http://www.advogato.org/article/
+    updated: 1056265529
+  - items: []
+    title: AlterNet
+    url: www.alternet.org/rss/rss.xml
+    refresh: 120
+    desc: Alternative News and Information.
+    site: http://www.alternet.org
+    updated: 1056265530
+  - items: []
+    title: AnandTech Web News
+    url: www.newsisfree.com/HPE/xml/feeds/61/161.xml
+    refresh: 120
+    desc: "The entry page to AnandTech, find reviews on computer hardware. Also find news on the computer industry. (By http://www.newsisfree.com/syndicate.php - FOR PERSONAL AND NON COMMERCIAL USE ONLY!)"
+    site: http://www.anandtech.com/news/index.html
+    updated: 1056265531
+  - items: []
+    title: BBC News | Science & Nature
+    url: www.newsisfree.com/HPE/xml/feeds/63/63.xml
+    refresh: 120
+    desc: " (By http://www.newsisfree.com/syndicate.php - FOR PERSONAL AND NON COMMERCIAL USE ONLY!)"
+    site: http://news.bbc.co.uk/1/hi/sci/tech/default.stm
+    updated: 1056265532
+  - items: []
+    title: Chris Brumme
+    url: blogs.gotdotnet.com/cbrumme/blogxbrowsing.asmx/GetRss?
+    refresh: 120
+    desc: 
+    site: http://blogs.gotdotnet.com/cbrumme/
+    updated: 1056265533
+  - items: []
+    title: Consensus at Lawyerpoint
+    url: bpdg.blogs.eff.org/index.rdf
+    refresh: 120
+    desc: Being a true account of the undertakings of the Broadcast Protection Discussion Group
+    site: http://bpdg.blogs.eff.org/
+    updated: 1056265545
+  - items: []
+    title: Creative Commons
+    url: creativecommons.org/weblog/rss
+    refresh: 120
+    desc: "Creative Commons: weblog"
+    site: http://creativecommons.org/weblog/
+    updated: 1056265547
+  - items: []
+    title: Daily Daemon News
+    url: daily.daemonnews.org/ddn.rdf.php3
+    refresh: 120
+    desc: Daemon News PHP News System
+    site: http://daily.daemonnews.org
+    updated: 1056265548
+  - items: []
+    title: Digital Theatre
+    url: www.dtheatre.com/backend.php?xml=yes
+    refresh: 120
+    desc: "Film News that matters, Reviews, and Media Resources, Free Stock Photos"
+    site: http://www.dtheatre.com
+    updated: 1056265548
+  - items: []
+    title: Dive Into Mark
+    url: diveintomark.org/xml/rss.xml
+    refresh: 120
+    desc: A lot of effort went into making this effortless.
+    site: http://diveintomark.org/
+    updated: 10562612050
+  - items: []
+    title: drop.org
+    url: www.drop.org/module.php?mod=node&op=feed
+    refresh: 120
+    desc: "Drop.org is an active community of web enthusiasts that exchange ideas and experiences about the latest developments in web technology.  It is where developers, designers, strategists and content managers meet to discuss and talk about community design, web services, knowledge management, P2P, information architecture, content syndication, online journalism, content management, online collaboration, weblog software, and much, much more.  Hide your daughters for we talk meta, plumb communities and eat with our hands."
+    site: http://www.drop.org/
+    updated: 1056265549
+  - items: []
+    title: EFF News
+    url: www.newsisfree.com/HPE/xml/feeds/22/3222.xml
+    refresh: 120
+    desc: "News for web users that write back (EFF) (By http://www.newsisfree.com/syndicate.php - FOR PERSONAL AND NON COMMERCIAL USE ONLY!)"
+    site: http://www.eff.org/news/
+    updated: 1056265550
+  - items: []
+    title: Exploding Cigar
+    url: www.explodingcigar.com/backend.xml
+    refresh: 120
+    desc: Weird News from Real Sources
+    site: http://www.explodingcigar.com/
+    updated: 1056265551
+  - items: []
+    title: Firefly (Feedster)
+    url: www.feedster.com/rss.php?q=firefly
+    refresh: 120
+    desc: Feedster powered RSS feed.
+    site: http://www.feedster.com/searches.php
+    updated: 1056265552
+  - items: []
+    title: FlipCode
+    url: www.newsisfree.com/HPE/xml/feeds/08/208.xml
+    refresh: 120
+    desc: " (By http://www.newsisfree.com/syndicate.php - FOR PERSONAL AND NON COMMERCIAL USE ONLY!)"
+    site: http://www.flipcode.com/
+    updated: 1056265572
+  - items: []
+    title: Frans Bouma
+    url: weblogs.asp.net/fbouma/rss.aspx
+    refresh: 120
+    desc: Generator.CreateCoolTool();
+    site: http://weblogs.asp.net/fbouma/
+    updated: 10562612051
+  - items: []
+    title: freshmeat.net
+    url: themes.freshmeat.net/backend/fm-newsletter.rdf
+    refresh: 120
+    desc: "freshmeat maintains the Web's largest index of Unix and cross-platform open source software. Thousands of applications are meticulously cataloged in the freshmeat database, and links to new code are added daily."
+    site: http://freshmeat.net/
+    updated: 1056265573
+  - items: []
+    title: From the Orient
+    url: www.dellah.com/orient/index.xml
+    refresh: 120
+    desc: "I, from the orient to the drooping west, Making the wind my post-horse, still unfold"
+    site: http://www.dellah.com/orient/
+    updated: 1056265577
+  - items: []
+    title: Gimp-Devel
+    url: www.newsisfree.com/HPE/xml/feeds/32/1432.xml
+    refresh: 120
+    desc: "This is the Kernel Cousin for the gimp-devel mailing list (By http://www.newsisfree.com/syndicate.php - FOR PERSONAL AND NON COMMERCIAL USE ONLY!)"
+    site: http://kt.zork.net/gimp/latest.html
+    updated: 10562612055
+  - items: []
+    title: Gizmodo
+    url: www.gizmodo.net/index.xml
+    refresh: 120
+    desc: in partnership with Gizmodo
+    site: http://www.gizmodo.com/
+    updated: 10562612056
+  - items: []
+    title: "Google News: Business"
+    url: bootleg-rss.g-blog.net/news_google_com.pcgi?topic=business
+    refresh: 120
+    desc: "Add '?topic=general', '?topic=world', '?topic=us', '?topic=business', '?topic=scitech', '?topic=sports', '?topic=entertainment' or '?topic=health' to the script's URL to access the other topics. (0) Bootleg/scraped RSS feed. Updated every 10 minutes. See http://bootleg-rss.g-blog.net for a bunch of other quality feeds."
+    site: http://news.google.com
+    updated: 1056265579
+  - items: []
+    title: "Google News: Entertainment"
+    url: bootleg-rss.g-blog.net/news_google_com.pcgi?topic=entertainment
+    refresh: 120
+    desc: "Add '?topic=general', '?topic=world', '?topic=us', '?topic=business', '?topic=scitech', '?topic=sports', '?topic=entertainment' or '?topic=health' to the script's URL to access the other topics. (5) Bootleg/scraped RSS feed. Updated every 10 minutes. See http://bootleg-rss.g-blog.net for a bunch of other quality feeds."
+    site: http://news.google.com
+    updated: 1056265580
+  - items: []
+    title: "Google News: General"
+    url: bootleg-rss.g-blog.net/news_google_com.pcgi?topic=
+    refresh: 120
+    desc: "Add '?topic=general', '?topic=world', '?topic=us', '?topic=business', '?topic=scitech', '?topic=sports', '?topic=entertainment' or '?topic=health' to the script's URL to access the other topics. (5) Bootleg/scraped RSS feed. Updated every 10 minutes. See http://bootleg-rss.g-blog.net for a bunch of other quality feeds."
+    site: http://news.google.com
+    updated: 1056265581
+  - items: []
+    title: "Google News: Health"
+    url: bootleg-rss.g-blog.net/news_google_com.pcgi?topic=health
+    refresh: 120
+    desc: "Add '?topic=general', '?topic=world', '?topic=us', '?topic=business', '?topic=scitech', '?topic=sports', '?topic=entertainment' or '?topic=health' to the script's URL to access the other topics. (5) Bootleg/scraped RSS feed. Updated every 10 minutes. See http://bootleg-rss.g-blog.net for a bunch of other quality feeds."
+    site: http://news.google.com
+    updated: 1056265582
+  - items: &id001 []
+    title: "Google News: SciTech"
+    url: bootleg-rss.g-blog.net/news_google_com.pcgi?topic=world
+    refresh: 120
+    desc: "Add '?topic=general', '?topic=world', '?topic=us', '?topic=business', '?topic=scitech', '?topic=sports', '?topic=entertainment' or '?topic=health' to the script's URL to access the other topics. (8) Bootleg/scraped RSS feed. Updated every 10 minutes. See http://bootleg-rss.g-blog.net for a bunch of other quality feeds."
+    site: http://news.google.com
+    updated: 1056265582
+  - items: *id001 
+    title: "Google News: World"
+    url: bootleg-rss.g-blog.net/news_google_com.pcgi?topic=world
+    refresh: 120
+    desc: "Add '?topic=general', '?topic=world', '?topic=us', '?topic=business', '?topic=scitech', '?topic=sports', '?topic=entertainment' or '?topic=health' to the script's URL to access the other topics. (8) Bootleg/scraped RSS feed. Updated every 10 minutes. See http://bootleg-rss.g-blog.net for a bunch of other quality feeds."
+    site: http://news.google.com
+    updated: 1056265583
+  - items: []
+    title: Happy Deflationist
+    url: greatdeals.blogspot.com/rss/greatdeals.xml
+    refresh: 120
+    desc: "Fresh deals and bargains on tech products and computer hardware, found for you on Amazon.com, eBay, and elsewhere on the web. Stuff that you actually want to buy, and can afford as well. Plus links to product reviews to help you take a quick buying decision, and recommendations from a true hardware geek!"
+    site: http://greatdeals.blogspot.com
+    updated: 10562612057
+  - items: []
+    title: KernelTrap
+    url: kerneltrap.org/module.php?mod=node&op=feed
+    refresh: 120
+    desc: KernelTrap is a web community devoted to sharing the latest in kernel development news. The site is a hobby and has no commercial aims.
+    site: http://www.kerneltrap.org/
+    updated: 1056265584
+  - items: []
+    title: kuro5hin.org
+    url: www.kuro5hin.org/backend.rdf
+    refresh: 120
+    desc: "technology and culture, from the trenches"
+    site: http://www.kuro5hin.org/
+    updated: 1056265586
+  - items: []
+    title: Leoville
+    url: www.leoville.com/mt/index.xml
+    refresh: 120
+    desc: "Random observations from Leo Laporte, host of TechTV's The Screen Savers."
+    site: http://www.leoville.com/mt/
+    updated: 1056265586
+  - items: []
+    title: Linux Magazine
+    url: www.linux-mag.com/lm.rss
+    refresh: 120
+    desc: Linux Magazine Online
+    site: http://www.linux-mag.com/
+    updated: 1056265587
+  - items: []
+    title: Linux Security
+    url: www.linuxsecurity.com/linuxsecurity_articles.rdf
+    refresh: 120
+    desc: "The Community's Center for Security"
+    site: http://www.linuxsecurity.com
+    updated: 10562612058
+  - items: []
+    error: "Couldn't get URL \"www.linuxbrit.co.uk/rss.php\": execution expired."
+    title: Linuxbrit
+    url: www.linuxbrit.co.uk/rss.php
+    refresh: 120
+    desc: ''
+    site: http://linuxbrit.co.uk
+    updated: 1056235243
+  - items: []
+    title: Liquid Theater
+    url: liquidtheater.com/liquidtheater.rss
+    refresh: 120
+    desc: ''
+    site: http://liquidtheater.com
+    updated: 1056258717
+  - items: []
+    title: LWN.net
+    url: www.lwn.net/headlines/rss
+    refresh: 120
+    desc: |-
+      Complete and concise coverage of events in the Linux
+      		     community
+
+    site: http://lwn.net/
+    updated: 1056265618
+  - items: []
+    title: MetaFilter
+    url: xml.metafilter.com/rss.xml
+    refresh: 120
+    desc: The past 24 hours of MetaFilter
+    site: http://www.metafilter.com/
+    updated: 1056265619
+  - items: []
+    title: Middle East Newsline
+    url: www.newsisfree.com/HPE/xml/feeds/47/2847.xml
+    refresh: 120
+    desc: ''
+    site: http://www.menewsline.com/headlines.html
+    updated: 1056258720
+  - items: []
+    title: moreover...
+    url: www.moreover.com/cgi-local/page?index_jokes+rss
+    refresh: 120
+    desc: ''
+    site: http://www.moreover.com
+    updated: 1056258721
+  - items: []
+    title: MovieComments
+    url: www.moviecomments.com/recentrev_rss.php
+    refresh: 120
+    desc: Recent movie reviews from MovieComments.com where the reviews are written by people like you!  Anybody can review movies at MovieComments.com!
+    site: http://www.moviecomments.com
+    updated: 1056265620
+  - items: []
+    title: MTV.com News
+    url: www.newsisfree.com/HPE/xml/feeds/92/1792.xml
+    refresh: 120
+    desc: " (By http://www.newsisfree.com/syndicate.php - FOR PERSONAL AND NON COMMERCIAL USE ONLY!)"
+    site: http://www.mtv.com/news/
+    updated: 1056265621
+  - items: []
+    title: "O'Reilly Net"
+    url: www.oreillynet.com/cs/xml/query/q/295?x-ver=1.0
+    refresh: 120
+    desc: |-
+
+      	The O'Reilly Network: for developers who need in-depth technical content on open source and emerging technologies.
+         
+
+    site: http://www.oreillynet.com/
+    updated: 1056265622
+  - items: []
+    title: OpenSounds
+    url: www.opensounds.net/backend.php
+    refresh: 120
+    desc: OpenSounds
+    site: http://www.opensounds.net/
+    updated: 1056265623
+  - items: []
+    title: Pablotron
+    url: www.pablotron.org/?theme=rss&max=20
+    refresh: 120
+    desc: "Paul Duncan's brain dump."
+    site: http://www.pablotron.org/
+    updated: 1056265624
+  - items: []
+    title: PHP Journal
+    url: www.phpj.com/backend.php
+    refresh: 120
+    desc: PHP Journal
+    site: http://www.phpj.com/
+    updated: 1056265626
+  - items: []
+    title: Pigdog Journal
+    url: www.pigdog.org/pigdog.rdf
+    refresh: 120
+    desc: The Online Handbook of Bad People of the Future
+    site: http://www.pigdog.org/
+    updated: 1056265627
+  - items: []
+    title: Political Wire
+    url: politicalwire.com/headlines.xml
+    refresh: 120
+    desc: All the political news in one place.
+    site: http://politicalwire.com/
+    updated: 1056265627
+  - items: []
+    title: PragDave
+    url: www.pragprog.com/pragdave/index.rss
+    refresh: 120
+    desc: "Dave's Weblog: a blend of ire and fantasy."
+    site: http://www.pragprog.com/pragdave
+    updated: 1056265628
+  - items: []
+    error: "Couldn't get URL \"kylie.pablotron.org/~richlowe/index.cgi/index.rss\": execution expired."
+    title: Richlowe.NET
+    url: kylie.pablotron.org/~richlowe/index.cgi/index.rss
+    refresh: 120
+    desc: ''
+    site: http://kylie.pablotron.org/~richlowe/index.cgi
+    updated: 1056235263
+  - items: []
+    title: RootPrompt
+    url: www.rootprompt.org/rss/
+    refresh: 120
+    desc: ''
+    site: http://rootprompt.org
+    updated: 1056258764
+  - items: []
+    title: RSS Info
+    url: blogspace.com/rss/rss10
+    refresh: 120
+    desc: ''
+    site: http://www.blogspace.com/rss/
+    updated: 1056258765
+  - items: []
+    title: Slashdot
+    url: slashdot.org/slashdot.rss
+    refresh: 120
+    desc: "News for nerds, stuff that matters"
+    site: http://slashdot.org/
+    updated: 1056265662
+  - items: []
+    title: Solaris Central
+    url: www.SolarisCentral.org/news/SolarisCentral.rdf
+    refresh: 120
+    desc: ''
+    site: http://www.solariscentral.org
+    updated: 1056258767
+  - items: []
+    title: Squacks of the Parrot
+    url: www.sidhe.org/~dan/blog/index.rdf
+    refresh: 120
+    desc: "Dan natters on about, well, stuff."
+    site: http://www.sidhe.org/~dan/blog/
+    updated: 1056265663
+  - items: []
+    title: Techfocus
+    url: www.techfocus.org/backend.php
+    refresh: 120
+    desc: ''
+    site: http://techfocus.org
+    updated: 1056258774
+  - items: []
+    title: This Modern World
+    url: www.thismodernworld.com/index.rdf
+    refresh: 120
+    desc: 
+    site: http://www.thismodernworld.com/
+    updated: 1056265669
+  - items: []
+    title: Universal Rule
+    url: radio.weblogs.com/0112083/rss.xml
+    refresh: 120
+    desc: Rambling Life in the Digital Realm.
+    site: http://radio.weblogs.com/0112083/
+    updated: 1056265670
+  - items: []
+    title: use Perl
+    url: use.perl.org/useperl.rdf
+    refresh: 120
+    desc: "All the Perl that's Practical to Extract and Report"
+    site: http://use.perl.org/
+    updated: 1056265672
+  - items: []
+    title: W3C
+    url: www.w3.org/2000/08/w3c-synd/home.rss
+    refresh: 120
+    desc: Leading the Web to Its Full Potential...
+    site: http://www.w3.org/
+    updated: 1056265673
+  - items: []
+    title: Webmonkey
+    url: hotwired.lycos.com/webmonkey/meta/headlines.rdf
+    refresh: 120
+    desc: ''
+    site: http://r.hotwired.com/r/hw_wm_r_mynscp/http://www.webmonkey.com
+    updated: 1056258779

@@ -1987,3 +1987,7 @@
 * Sun Jul 11 10:03:34 2004, pabs <pabs@pablotron.org>
   * raggle: apply old fix for HTTP success codes (all 2xx codes are
     considered success, not just 200).
+
+* Sun Jul 11 10:07:29 2004, pabs <pabs@pablotron.org>
+  * Makefile: added make apidoc target (builds api documentation in
+    doc/api).

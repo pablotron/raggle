@@ -27,6 +27,9 @@ install :
 	cp -r ${DOCS} ${DOCDIR} && \
 	cp -r ${DATA} ${DATADIR}
 
+apidoc:
+	rdoc --op doc/api raggle
+
 man :
 	pod2man --release 0.2 --center "User Commands Manual" \
 	    --official raggle.pod > raggle.1

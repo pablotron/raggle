@@ -2298,7 +2298,7 @@ ENDUSAGE
           if $HAVE_LIB['xmlrpc']
             NcursesInterface::find_feeds
           else
-            $new_status = "Feed searching requires the ruby xmlrpc library."
+            $new_status = _("Feed searching requires the ruby xmlrpc library.")
           end
         end
 

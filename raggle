@@ -1183,7 +1183,7 @@ module Raggle
       end
 
       #
-      # Sort feeds by title (case-insensitive).
+      # Sort feeds by priority then title (case-insensitive).
       #
       def sort
         @feeds.sort! { |a, b|
@@ -1446,7 +1446,8 @@ Options:
   --save-items                  Save old items of feed (for '--add' and
                                 '--edit').
   --server                      Run Raggle in HTTP server mode.
-  --sort, --sort-feeds          Sort feeds by title (case-insensitive).
+  --sort, --sort-feeds          Sort feeds by priority then title
+                                (case-insensitive).
   -t, --title                   Title attribute of feed (for '--add' and
                                 '--edit').
   --unlock-title                Unlock Title attribute of feed (for '--add'
@@ -2640,7 +2641,7 @@ ENDUSAGE
             'read?' => item['read?']
           }
         }
-      
+
         # redraw item window
         item_win.draw_items
       

@@ -5,8 +5,9 @@
 <html>
   <head>
     <title>Raggle: Feed Items</title>
-    <meta http-equiv='refresh'
-          content='__REFRESH__;url=/raggle/item/?feed_id=__FEED_ID__' />
+    <!--meta http-equiv='refresh'
+          content='__REFRESH__;url=/raggle/item/?feed_id=__FEED_ID__'
+          /-->
     <meta name='author'         content='Raggle' />
     <meta name='description'    content='Raggle Feed Item List' />
     <meta name='keywords'       content='rss channel feed item' />
@@ -21,6 +22,8 @@
     parent.desc.location.href = '/raggle/desc?feed_id=' +
       feed_id + '&amp;item_id=' + item_id;
     parent.feed.location.href = '/raggle/feed';
+    parent.feed.location.href = '/raggle/feed';
+    parent.item.location.reload();
     return true;
   }
 

@@ -44,12 +44,19 @@ $VERSION = '0.3.0'
 # On the other hand, dumping trace is very useful when running tests, therefore
 # disable these unless this file is executed.
 if __FILE__ == $0
-  trap('INT') { puts "Interrupted"; exit -1 }
+  trap('INT') {
+    if $config['run_http_server']
+      puts 'Interrupted: Starting shutdown (this may take a few minutes).';
+    else
+      puts 'Interrupted';
+    end
+    exit -1
+  }
 
   # win32 doesn't support these signals
   if RUBY_PLATFORM !~ /win32/i
-    trap('QUIT') { puts "Quit"; exit -1 }
-    trap('TERM') { puts "Term"; exit -1 }
+    trap('QUIT') { puts 'Quit'; exit -1 }
+    trap('TERM') { puts 'Term'; exit -1 }
 
     # HUP invalidates all feeds and forces a refresh immediately
     trap('HUP') { invalidate_feed(-1); $feed_thread.run }
@@ -1844,7 +1851,7 @@ module Raggle
 
       # load templates
       @templates = Hash::new
-      %w{feed feed_list item item_list desc feed_image}.each { |tmpl|
+      %w{feed feed_list item item_list desc feed_image quit}.each { |tmpl|
         path = $config['web_ui_root_path'] + "/inc/#{tmpl}.html"
         @templates[tmpl] = File::open(path).readlines.join if test(?e, path)
       }
@@ -1855,6 +1862,16 @@ module Raggle
       s.mount('/', WEBrick::HTTPServlet::FileHandler,
               $config['web_ui_root_path'], true)
 
+      s.mount_proc('/raggle/quit') { |req, res|
+        quit_thread = Thread::new {
+          sleep 5;
+          $feed_thread.kill;
+          $http_server.shutdown
+        }
+
+        res['Content-Type'] = 'text/html'
+        res.body = @templates['quit']
+      }
 
       # set up feed list mount point
       s.mount_proc('/raggle/feed') { |req, res|
@@ -1872,11 +1889,11 @@ module Raggle
             sort_feeds
           when 'invalidate_all'
             invalidate_feed(-1)
+            $feed_thread.run
           when 'add'
             url = $1 if req.query_string =~ /url=(.*)$/
             add_feed({ 'url' => url })
             $feed_thread.run if $config['update_after_add']
-            sleep 1 # sleep for a second so the update happens
           when 'delete'
             if req.query_string =~ /id=(\d+)/
               id = $1.to_i
@@ -1886,10 +1903,10 @@ module Raggle
             if req.query_string =~ /id=(\d+)/
               id = $1.to_i
               invalidate_feed(id)
+              $feed_thread.run 
             end
           when 'save_feed_list'
             save_feed_list
-
         end
           
         # build feed list title
@@ -2425,8 +2442,15 @@ def save_feed_list
   File::open($config['feed_list_path'], 'w') { |f|
     $stdout.puts $config['msg_save_list'] if $config['raggle_mode'] == 'view'
     $stdout.flush
-    $config['feeds'].each { |feed| feed['items'].clear }
+
+    # save feed items before clearing htem (for web interface)
+    tmp = []
+    $config['feeds'].each { |feed| tmp << feed['items']; feed['items'] = [] }
+
     f.puts $config['feeds'].to_yaml
+
+    # restore feed items (again, for web interface)
+    tmp.each_with_index { |t, i| $config['feeds'][i]['items'] = t }
   }
 end
 
@@ -3210,7 +3234,8 @@ def main
               # so it's contents are updated
               # TODO: make this select the currently selected item again
               # (assuming it still exists)
-              if $config['feeds'][$a_feed]['url'] == feed['url']
+              if !$config['run_http_server'] &&
+                 $config['feeds'][$a_feed]['url'] == feed['url']
                 $wins[get_win_id('feed')].select_win_item
               end
 
@@ -3438,7 +3463,7 @@ $config = {
   'http_server' => {
     'bind_address'        => '127.0.0.1', # localhost only
     'port'                => 2222,        # port to bind to
-    'page_refresh'        => 20,          # refresh interval (feed & item wins)
+    'page_refresh'        => 120,         # refresh interval (feed & item wins)
     'empty_item'          => {
       'title'             => '',
       'url'               => '',

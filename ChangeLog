@@ -1492,3 +1492,25 @@
     can also be set on a global feed basis with $config['max_feed_items']
   * raggle: added '-A' shortcut for --ascii
   * raggle: fix a bit of evil tabbing again ;)
+
+* Mon Sep 15 20:27:06 2003, pabs <pabs@pablotron.org>
+  * raggle: added a bit more info to interrupted message if web server
+    is runnign
+  * raggle: added quit template to list
+  * raggle: added "/raggle/quit" path
+  * raggle: reload all button in web interface runs feed thread
+  * raggle: save_feed_list restores item list (for web interface)
+  * raggle: don't select current window item when running as web
+    server
+  * raggle: update page refresh to 2 minutes (use javascript to
+    force refreshes now)
+  * extras/web_ui/titlebar.html: add doctype
+  * extras/web_ui/titlebar.html: add quit button
+  * extras/web_ui/inc/feed.html: add update and delete buttons
+  * extras/web_ui/inc/feed_list.html: refresh feed window when 
+    selecting feed as well
+  * extras/web_ui/inc/item_list.html: disable meta refresh
+  * extras/web_ui/inc/item_list.html: refresh feed window and this
+    window when selecting item 
+  * added extras/web_ui/inc/quit.html
+

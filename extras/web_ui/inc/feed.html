@@ -7,4 +7,11 @@
        onClick='selectFeed(__INDEX__)'
        href='/raggle/item/?category=__CATEGORY__&amp;feed_id=__INDEX__'>__TITLE__</a>
   </td>
+  <td class='feed-opts-__READ__-__EVEN__'>
+    <a href='/raggle/feed?mode=invalidate&amp;id=__INDEX__'
+       onMouseOver='window.status = "Update Feed"'>U</a>
+    <a href='/raggle/feed?mode=delete&amp;id=__INDEX__'
+       onClick='return confirm("Delete feed \"__TITLE__\"?")'
+       onMouseOver='window.status = "Delete Feed"'>X</a>
+  </td>
 </tr>

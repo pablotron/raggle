@@ -8,6 +8,7 @@ win_feed:
     - 40
     - 15
   colors: 
+    h_empty: 32
     box: 4
     a_box: 3
     text: 1
@@ -15,6 +16,7 @@ win_feed:
     unread: 6
     a_title: 21
     h_text: 16
+    empty: 2
     h_unread: 36
   key: feed
 status_bar_cols: 24
@@ -27,14 +29,22 @@ win_desc:
     - -1
     - -1
   colors: 
+    f_site: 1
     box: 4
+    f_title: 
+      - 1
+      - bold
     a_box: 3
     text: 1
     title: 1
     date: 6
+    f_error: 2
+    f_url: 1
     url: 6
     a_title: 21
     h_text: 16
+    f_update: 1
+    f_desc: 1
   key: desc
 window_order: 
   - feed

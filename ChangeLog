@@ -509,6 +509,9 @@
  * raggle: --lock-title and --save-items were being ignored with --add,
            fix (apparently missed in a merge).
 
+* Mon Jun 23 16:50:12 2003, pabs <pabs@pablotron.org>
+  * raggle: updated themes to support new feed color stuff
+
 
 
 

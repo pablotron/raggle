@@ -1,5 +1,4 @@
 name: Monochrome
-status_bar_cols: 11
 win_feed: 
   title: Feeds
   type: list
@@ -8,20 +7,19 @@ win_feed:
     - 0
     - 25
     - -1
-  key: feed
   colors: 
+    h_empty: 11
     box: 1
-    title: 1
-    text: 1
     a_box: 1
-    h_text: 11
-    a_title: 11
+    text: 1
+    title: 1
     unread: 1
+    a_title: 11
+    h_text: 11
+    empty: 1
     h_unread: 11
-window_order: 
-  - feed
-  - item
-  - desc
+  key: feed
+status_bar_cols: 11
 win_desc: 
   title: Description
   type: text
@@ -30,19 +28,28 @@ win_desc:
     - 15
     - -1
     - -1
-  key: desc
   colors: 
+    f_site: 1
     box: 1
-    title: 1
-    text: 1
+    f_title: 
+      - 1
+      - bold
     a_box: 1
-    h_text: 11
-    a_title: 11
-    unread: 1
-    h_unread: 11
+    text: 1
+    title: 1
+    date: 1
+    f_error: 1
+    f_url: 1
     url: 11
-author: Paul Duncan <pabs@pablotron.org>
-url: http://www.pablotron.org/software/raggle/
+    a_title: 11
+    h_text: 11
+    f_update: 1
+    f_desc: 1
+  key: desc
+window_order: 
+  - feed
+  - item
+  - desc
 win_item: 
   title: Items
   type: list
@@ -51,13 +58,15 @@ win_item:
     - 0
     - -1
     - 15
-  key: item
   colors: 
     box: 1
-    title: 1
-    text: 1
     a_box: 1
-    h_text: 11
-    a_title: 11
+    text: 1
+    title: 1
     unread: 1
+    a_title: 11
+    h_text: 11
     h_unread: 11
+  key: item
+url: http://www.pablotron.org/software/raggle/
+author: Paul Duncan <pabs@pablotron.org>

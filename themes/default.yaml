@@ -1,5 +1,4 @@
 name: Default Theme
-status_bar_cols: 24
 win_feed: 
   title: Feeds
   type: list
@@ -8,20 +7,19 @@ win_feed:
     - 0
     - 25
     - -1
-  key: feed
   colors: 
+    h_empty: 32
     box: 4
-    title: 1
-    text: 1
     a_box: 3
-    h_text: 16
-    a_title: 21
+    text: 1
+    title: 1
     unread: 6
+    a_title: 21
+    h_text: 16
+    empty: 2
     h_unread: 36
-window_order: 
-  - feed
-  - item
-  - desc
+  key: feed
+status_bar_cols: 24
 win_desc: 
   title: Description
   type: text
@@ -30,18 +28,28 @@ win_desc:
     - 15
     - -1
     - -1
-  key: desc
   colors: 
+    f_site: 1
     box: 4
-    title: 1
-    text: 1
+    f_title: 
+      - 1
+      - bold
     a_box: 3
+    text: 1
+    title: 1
     date: 6
-    h_text: 16
-    a_title: 21
+    f_error: 2
+    f_url: 1
     url: 6
-author: Paul Duncan <pabs@pablotron.org>
-url: http://www.pablotron.org/software/raggle/
+    a_title: 21
+    h_text: 16
+    f_update: 1
+    f_desc: 1
+  key: desc
+window_order: 
+  - feed
+  - item
+  - desc
 win_item: 
   title: Items
   type: list
@@ -50,13 +58,15 @@ win_item:
     - 0
     - -1
     - 15
-  key: item
   colors: 
     box: 4
-    title: 1
-    text: 1
     a_box: 3
-    h_text: 16
-    a_title: 21
+    text: 1
+    title: 1
     unread: 6
+    a_title: 21
+    h_text: 16
     h_unread: 36
+  key: item
+url: http://www.pablotron.org/software/raggle/
+author: Paul Duncan <pabs@pablotron.org>

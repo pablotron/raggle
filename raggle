@@ -46,6 +46,9 @@ $VERSION = '0.3.0'
 if __FILE__ == $0
   trap('INT') { puts "Interrupted"; exit -1 }
   trap('QUIT') { puts "Quit"; exit -1 }
+  trap('HUP') { puts "Hangup"; exit -1 }
+  trap('TERM') { puts "Term"; exit -1 }
+  trap('KILL') { puts "Term"; exit -1 }
 end
 
 #########################

@@ -1203,3 +1203,6 @@
 
 * Sun Aug 31 14:45:52 2003, pabs <pabs@pablotron.org>
   * raggle: refresh statusb ar after adding feed from gui
+
+* Mon Sep 01 00:50:07 2003, pabs <pabs@pablotron.org>
+  * save feeds on SIGHUP, and SIGTERM as well (suggested by Omnic)

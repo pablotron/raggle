@@ -599,21 +599,23 @@ module HTML
     #
     # source:: HTML source
     def self.each_token(source)
-      source.scan(PARSER_RE) do |tag, text|
-	#p tag, text
-	if tag
-	  if tag[0] == ?/
-	    yield :END_TAG, tag[1..-1], NO_ATTRIBUTES
-	  else
-	    if tag =~ /\A(\w+)\s*(.*)\z/m
-	      attributes = NO_ATTRIBUTES
-	      attributes = parse_attributes($2) if $2
-	      yield :START_TAG, $1, attributes
-	    end
-	  end
-	else
-	  yield :TEXT, text, NO_ATTRIBUTES unless text == ""
-	end
+      if source 
+        source.scan(PARSER_RE) do |tag, text|
+          #p tag, text
+          if tag
+            if tag[0] == ?/
+              yield :END_TAG, tag[1..-1], NO_ATTRIBUTES
+            else
+              if tag =~ /\A(\w+)\s*(.*)\z/m
+                attributes = NO_ATTRIBUTES
+                attributes = parse_attributes($2) if $2
+                yield :START_TAG, $1, attributes
+              end
+            end
+          else
+            yield :TEXT, text, NO_ATTRIBUTES unless text == ""
+          end
+        end
       end
     end
   end
@@ -2607,8 +2609,10 @@ def main
       }
     }
   }
-  Thread::main.priority = $config['thread_priority_main']
-  $feed_thread.priority = $config['thread_priority_feed']
+  Thread::main.priority = $config['thread_priority_main'] ?
+                          $config['thread_priority_main'] : 5
+  $feed_thread.priority = $config['thread_priority_feed'] ?
+                          $config['thread_priority_feed'] : 0
 
   begin
     # main input loop

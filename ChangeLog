@@ -1123,3 +1123,10 @@
 * Tue Aug 19 17:35:35 2003, pabs <pabs@pablotron.org>
   * raggle: don't restrict ourselves to ruby1.8 (dont' know how that got
     there...)
+
+* Wed Aug 20 15:37:36 2003, pabs <pabs@pablotron.org>
+  * raggle: fix nil in HTML::Parser::each_token reported by
+    mgarriss@earthlink.net
+  * raggle: clean up Ville's evil tabbing ;).
+  * raggle: fix thread_priority_* unset in config bug reported by
+    Richard Zidlicky <rz@linux-m68k.org

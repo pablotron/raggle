@@ -1040,3 +1040,7 @@
   * raggle: added manual updating (for modem lusers).  you have to enable 
     $config['use_manual_update'], then the feed grabbing thread will only
     run when the user presses 'U'(that's shift-U).
+
+* Sun Aug 17 07:43:18 2003, pabs <pabs@pablotron.org>
+  * raggle: added $config['update_on_startup']: do we update the feed
+    list automatically on startup?

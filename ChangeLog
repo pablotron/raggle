@@ -1063,3 +1063,7 @@
   * raggle: don't import OPML URLs with exec: prefix. period.
   * raggle: don't check refresh interval on file: or exec: URLs
 
+* Sun Aug 17 10:44:40 2003, pabs <pabs@pablotron.org>
+  * added extras/rss_dir_list.rb (as a test for exec: URLs).  Note that
+    this command can take quite a while to run on larger directories or
+    slower machines (because of the stat() calls)

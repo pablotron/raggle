@@ -1514,3 +1514,7 @@
     window when selecting item 
   * added extras/web_ui/inc/quit.html
 
+* Tue Sep 16 15:11:03 2003, pabs <pabs@pablotron.org>
+  * raggle: add $ keybinding (jump to last item in window)
+  * raggle: add 0 keybinding (jump to first item in window)
+

@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby1.8
+#!/usr/bin/env ruby
 # -*- Mode: Ruby -*-
 
 #######################################################################
@@ -3605,7 +3605,9 @@ $config = {
     Ncurses::KEY_UP     => proc { |win, key| Key::scroll_up },
     Ncurses::KEY_DOWN   => proc { |win, key| Key::scroll_down },
     Ncurses::KEY_HOME   => proc { |win, key| Key::scroll_top },
+    ?0                  => proc { |win, key| Key::scroll_top },
     Ncurses::KEY_END    => proc { |win, key| Key::scroll_bottom },
+    ?$                  => proc { |win, key| Key::scroll_bottom },
     Ncurses::KEY_PPAGE  => proc { |win, key| Key::scroll_up_page },
     Ncurses::KEY_NPAGE  => proc { |win, key| Key::scroll_down_page },
 

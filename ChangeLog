@@ -1138,3 +1138,7 @@
 
 * Wed Aug 20 16:54:47 2003, pabs <pabs@pablotron.org>
   * BUGS: add entry for memory leak
+
+* Thu Aug 21 18:27:37 2003, pabs <pabs@pablotron.org>
+  * Makefile: mkdir => mkdir -p (is that POSIX?)
+  * Makefile: install extras/ in $DATADIR 

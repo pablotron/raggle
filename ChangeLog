@@ -1291,3 +1291,7 @@
 * Wed Sep 03 21:28:16 2003, pabs <pabs@pablotron.org>
   * raggle: added explorer.exe and netscape.exe to browser list
     (yes, i'm serious)
+
+* Wed Sep 03 21:37:09 2003, pabs <pabs@pablotron.org>
+  * raggle: evil method missing hack! (just a test to see if it'll
+    get win32 people going w/o hackery)

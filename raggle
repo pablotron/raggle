@@ -106,7 +106,7 @@ end
 # hackery to avoid mucking with config below
 unless $HAVE_LIB['ncurses'] 
   module Ncurses
-    def method_missing
+    def Ncurses::method_missing(*args)
       nil
     end
   end

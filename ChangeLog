@@ -2358,3 +2358,7 @@ _Cvs
   * raggle: add comments to several methods and modules missing them
     (for API documentation, and some vague attempt at a semblence of
     organization)
+
+* Tue Mar 15 12:18:01 2005, pabs <pabs@pablotron.org>
+  * raggle: change HTML::TAG_SET so rdoc won't barf when generating API
+    documentation.

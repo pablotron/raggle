@@ -1,6 +1,4 @@
 #!/usr/bin/env ruby
-# -*- Mode: Ruby -*- vim: sts=2 sw=2 expandtab
-
 #######################################################################
 # Raggle - Console RSS aggregator                                     #
 # by Paul Duncan <pabs@pablotron.org>,                                #
@@ -432,6 +430,9 @@ module Raggle
     end
   end
 
+  #
+  # Proxy-related methods for Raggle.
+  #
   module Proxy
     #
     # Find a proxy in Windows by checking the registry.
@@ -548,11 +549,12 @@ module Raggle
       #
       def initialize
         @tags = Hash.new
-        yield self
+        yield self if block_given?
       end
 
       #
       # TODO: Raggle::HTML::TagSet::define_tag placeholder
+      #
       def define_tag(*names)
         yield tag_spec = Tag.new
         names.each do |name|
@@ -564,7 +566,7 @@ module Raggle
       # Is the given tag defined?
       #
       # Example:
-      # tag_set.defined?('p') #=> true
+      #   tag_set.defined?('p') #=> true
       #
       def defined?(name)
         @tags.has_key?(name)
@@ -578,7 +580,17 @@ module Raggle
       end
     end
 
-    TAG_SET = TagSet.new do |tag_set|
+    TAG_SET = TagSet.new 
+
+    #
+    # initialize HTML::TAG_SET, must be called before HTML::render_html
+    #
+    # Note: the only reason I'm doing things this way is to keep RDoc
+    # from barfing (it was doing exactly that witht he old way of
+    # initializing HTML::TAG_SET :()
+    #
+    def self.init_tagset
+      tag_set = TAG_SET
       tag_set.define_tag 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'  do |tag|
         tag.start_actions = :maybe_new_paragraph
         tag.end_actions = :new_paragraph
@@ -4844,6 +4856,8 @@ end
 # main program
 #
 def main
+  Raggle::HTML::init_tagset
+
   # load config files (config.rb, and feeds.yaml)
   opts = Raggle::Engine::load_config
   
@@ -5681,3 +5695,5 @@ if __FILE__ == $0
     main
   end
 end
+
+# -*- Mode: Ruby -*- vim: sts=2 sw=2 expandtab

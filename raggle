@@ -82,7 +82,7 @@ $config = {
 
   # messages
   'msg_welcome'           => " Welcome to Raggle #{$VERSION}.",
-  'msg_exit'              => "| Press ESC or Q to exit ",
+  'msg_exit'              => "| Press Q to exit ",
   'msg_close'             => '[X] ',
   'msg_load_config'       => 'Raggle: Loading config...',
   'msg_load_feeds'        => 'Raggle: Loading feed cache...',
@@ -110,7 +110,7 @@ $config = {
   'browser'               => find_browser,
   'browser_cmd'           => '${browser} %s',
 
-  # color palette (referenced by window attributes)
+  # color palette (referenced by themes)
   'color_palette'         => [
     [  1, Ncurses::COLOR_WHITE,    Ncurses::COLOR_BLACK   ],
     [  2, Ncurses::COLOR_RED,      Ncurses::COLOR_BLACK   ],
@@ -162,9 +162,10 @@ $config = {
         'title'     => 1,
         'text'      => 1,
         'h_text'    => 16,
-        'box'       => 2,
+        'box'       => 4,
         'a_title'   => 21,
-        'a_box'     => 2,
+        # 'a_title'   => 36,
+        'a_box'     => 1,
         'unread'    => 6,
         'h_unread'  => 36,
       },
@@ -182,7 +183,7 @@ $config = {
         'h_text'    => 16,
         'box'       => 4,
         'a_title'   => 21,
-        'a_box'     => 4,
+        'a_box'     => 1,
         'unread'    => 6,
         'h_unread'  => 36,
       },
@@ -198,9 +199,9 @@ $config = {
         'title'     => 1,
         'text'      => 1,
         'h_text'    => 16,
-        'box'       => 6,
+        'box'       => 4,
         'a_title'   => 21,
-        'a_box'     => 6,
+        'a_box'     => 1,
         'url'       => 6,
         'date'      => 6,
       },
@@ -871,6 +872,22 @@ class Window
         set_status ' ' << @items[@active_item]['title']
         select_win_item if $config['focus'] == 'auto'
       end
+    when Ncurses::KEY_PPAGE
+      if @items.size > 0
+        w, h = wh
+        @active_item = (@active_item + h - 3) % items.size
+        ai = @active_item
+
+        if ai < @offset || ai >= @offset + (h - 3)
+          @offset = @active_item - (h - 3)
+          @offset = 0 if @offset < 0
+        end
+
+        draw_items
+        set_status ' ' << @items[@active_item]['title']
+        select_win_item if $config['focus'] == 'auto'
+      end
+    when Ncurses::KEY_NPAGE
     when ?\n
       select_win_item
     when ?\ 
@@ -1293,10 +1310,6 @@ begin
         done = true
       when ?q
         done = true
-# 
-#       when ?\e
-#         done = true
-# 
       else  
         $wins[$a_win].handle_key c
       end

@@ -98,6 +98,7 @@
   * raggle: slightly wider feed window
   * raggle: slightly shorter item window
   * raggle: added a ton of default feeds (i may tone this down a little)
+  * raggle: removed ESC as a quit key -- seems to fix system call
   * raggle: load browser (seems to crash on return.. dunno why)
   * raggle: saner set_status()
   * raggle: added populate_feed_window()
@@ -121,3 +122,8 @@
   * raggle: executing stuff works now
   * raggle: added color on cyan palette options
   * raggle: Feed::Window#draw takes a color instead of a hilite boolean
+
+* Sun Jun 15 06:46:30 2003, pabs <pabs@pablotron.org>
+  * raggle: cleaner default theme
+  * raggle: scrolling works! hoora!
+  * raggle: change default colors

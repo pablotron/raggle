@@ -97,7 +97,8 @@ $config = {
   'scroll_wrapping'       => true,
 
   # Number of list items per "page" (wrt page up/down)
-  'page_step'             => 4,
+  # (if < 0, then the height of the window, minus N items)
+  'page_step'             => -1,
 
   # date formats
   'item_date_format'      => '%c',
@@ -189,6 +190,9 @@ $config = {
     'author'        => 'Paul Duncan <pabs@pablotron.org>',
     'url'           => 'http://www.pablotron.org/software/raggle/',
 
+    # window order (order for window changes, etc)
+    'window_order'  => ['feed', 'item', 'desc'],
+    
     # status bar color
     'status_bar_cols'       => 24,
 
@@ -941,14 +945,18 @@ class Window
   # Scroll one page up.
   #
   def scroll_up_page
-    activate scroll_bound((@active_item - $config['page_step']) % @items.size)
+    step = $config['page_step']
+    step = dimensions[1] - 2 - step if step < 0
+    activate scroll_bound((@active_item - step) % @items.size)
   end
 
   #
   # Scroll one page down.
   #
   def scroll_down_page
-    activate scroll_bound((@active_item + $config['page_step']) % @items.size)
+    step = $config['page_step']
+    step = dimensions[1] - 2 - step if step < 0
+    activate scroll_bound((@active_item + step) % @items.size)
   end
        
   #
@@ -1740,7 +1748,7 @@ begin
   # create windows
   $a_win = 0
   $wins = []
-  ['feed', 'item', 'desc'].each { |i|
+  $config['theme']['window_order'].each { |i|
     $wins << Window.new($config['theme']["win_#{i}"])
     # $wins[-1].draw LONG_STRING
   }

@@ -225,3 +225,8 @@
   * raggle: strip leading and trailing whitespace from feed item 
     titles
   * raggle: do the same for feeds as well :)
+
+* Thu Jun 19 16:14:57 2003, pabs <pabs@pablotron.org>
+  * raggle: negative page_step for window-height page-{up,down}
+  * raggle: added 'theme/window_order' option (to control order of
+    window activation)

@@ -83,3 +83,4 @@ Raggle TODO
 [ ] fix memory hogging either (either via weakref caching of feed
     contents or only having the active feed in memory: note this
     method is easier, but relies on sane disk caching for any speed)
+[ ] update keybindings documentation

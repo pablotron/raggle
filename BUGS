@@ -55,7 +55,7 @@ Bugs
     etc
     (a full list is available here:
     http://raggle.org/pipermail/raggle-dev/2003-September/000099.html)
-[ ] win32 installer doesn't work correctly on single-user systems
+[*] win32 installer doesn't work correctly on single-user systems
     (ENV['HOMEPATH'] isn't set)
 [ ] win32 build doesn't handle setting a non C:\Program Files\Raggle
     install path gracefully (i think we can fix this and the bug above 

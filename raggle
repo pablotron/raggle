@@ -726,7 +726,7 @@ module Feed
     end
 
     # strip 'http://' prefix from URL
-    url.gsub!(/^\w+?:\/\//, '') if url =~ /^\w+?:\/\//
+    url.gsub!(%r!^\w+?://!, '') if url =~ %r!^\w+?://!
 
     # get host and path portions of url
     raise "Couldn't parse URL: \"#{url}\"" unless url =~ /^(.+?)\/(.*)$/

@@ -1861,16 +1861,16 @@ ENDUSAGE
         end
 
         def Key::select_item
-          $wins[$a_win].select_win_item
+          $wins[$a_win].select_win_item if $wins[$a_win]
         end
 
-        def Key::move_item_up
+        def Key::move_feed_up
           win = $wins[NcursesInterface::get_win_id('feed')]
           $a_feed = $config['feeds'].move_up(win.active_item)
           win.move_item_up
         end
 
-        def Key::move_item_down
+        def Key::move_feed_down
           win = $wins[NcursesInterface::get_win_id('feed')]
           $a_feed = $config['feeds'].move_down(win.active_item)
           win.move_item_down
@@ -1882,11 +1882,17 @@ ENDUSAGE
         def Key::delete
           feed_win = NcursesInterface::get_win_id('feed')
           item_win = NcursesInterface::get_win_id('item')
+          desc_win = NcursesInterface::get_win_id('desc')
           if $a_win == feed_win and $config['feeds'].size > 0
             win = $wins[feed_win]
             # delete feed from feedlist and window
             $config['feeds'].delete(win.active_item)
             win.delete_item
+            if $config['feeds'].size == 0  # empty list, clear stagnant info
+              $wins[item_win].items.clear; $wins[item_win].draw_items
+              $wins[desc_win].items.clear; $wins[desc_win].draw_items
+              return
+            end
           elsif $a_win == item_win and  # if we're on a visible item...
                 $wins[item_win].items.size > 0
             win = $wins[item_win]
@@ -1912,17 +1918,24 @@ ENDUSAGE
         #
         def Key::undelete_all
           item_win = NcursesInterface::get_win_id('item')
-          $config['feeds'].get($a_feed)['items'].each {|item| item['visible'] = true }
+
+          feed = $config['feeds'].get($a_feed) rescue return
+          feed['items'].each {|item| item['visible'] = true }
+
           NcursesInterface::populate_item_win($a_feed)
           NcursesInterface::populate_feed_win
+
           $wins[item_win].draw_items
           $wins[item_win].select_win_item if $a_win != NcursesInterface::get_win_id('feed')
         end
 
+        #
+        # Invalidate the current feed, forcing it to refresh at next update
+        #
         def Key::invalidate_feed
-          id = $wins[NcursesInterface::get_win_id('feed')].active_item
-          name = $config['feeds'].get(id)['title']
-          $config['feeds'].invalidate(id)
+          feed = $config['feeds'].get($a_feed) rescue return
+          name = feed['title']
+          $config['feeds'].invalidate($a_feed)
           NcursesInterface::set_status " Forcing update for \"#{name}\""
         end
 
@@ -1934,7 +1947,7 @@ ENDUSAGE
 
           if id == -1  # new window
             w, h = $config['w'] - 15, 10  # get height/width
-            feed = $config['feeds'].get($a_feed)
+            feed = $config['feeds'].get($a_feed) rescue return
 
             # create window and add it to window list
             $wins << win = NcursesInterface::ListWindow::new({
@@ -1961,7 +1974,7 @@ ENDUSAGE
             NcursesInterface::set_active_win(NcursesInterface::get_win_id('edit'))
           else
             if id == $a_win  # window open; toggle to closed
-              $wins[id].close
+              $wins[id].close(true)
             else  # window open but not selected; select it
               NcursesInterface::set_active_win(id)
             end
@@ -1972,14 +1985,16 @@ ENDUSAGE
         # Raises a feed's sort priority
         #
         def Key::raise_feed_priority
-          $config['feeds'].get($a_feed)['priority'] += 1
+          feed = $config['feeds'].get($a_feed) rescue return
+          feed['priority'] += 1
         end
 
         #
         # Lowers a feed's sort priority
         #
         def Key::lower_feed_priority
-          $config['feeds'].get($a_feed)['priority'] -= 1
+          feed = $config['feeds'].get($a_feed) rescue return
+          feed['priority'] -= 1
         end
 
         #
@@ -2034,21 +2049,13 @@ ENDUSAGE
         # toggle view (html) source mode
         #
         def Key::view_source
-          # toggle global
-          $view_source = !$view_source
-          win = $wins[$a_win]
+          $view_source = !$view_source  # toggle global
 
-          if $a_win == NcursesInterface::get_win_id('desc')
-            if win.items 
-              # clear formatted content to force refresh
-              # (evil, but it works ;D)
-              win.items[0]['fmt_content'] = nil
-              win.draw_items
-            end
-          elsif $a_win != NcursesInterface::get_win_id('edit')
-            # if we're not in the desc window, just reselect the current
-            # item to force a refresh
-            win.select_win_item 
+          desc_win = $wins[NcursesInterface::get_win_id('desc')]
+          if desc_win.items[0]
+            # clear formatted content to force refresh
+            desc_win.items[0]['fmt_content'] = nil
+            desc_win.draw_items
           end
         end
 
@@ -2136,7 +2143,7 @@ ENDUSAGE
             NcursesInterface::set_active_win(NcursesInterface::get_win_id('keys'))
           else
             if id == $a_win # window open; toggle to closed
-              $wins[id].close
+              $wins[id].close(true)
             else # window open but not selected; select it
               NcursesInterface::set_active_win(id)
             end
@@ -2269,7 +2276,7 @@ ENDUSAGE
           old_wins = $wins.dup
           @win.del; $wins.delete_at(NcursesInterface::get_win_id(@key))
           NcursesInterface::goto_old_win if switchwin unless old_wins == $wins
-          $wins.each { |i| i.refresh }
+          $wins.each { |w| w.refresh }
         end
 
         #
@@ -2486,6 +2493,7 @@ ENDUSAGE
              
         def draw_items
           item = @items[0] # There can be only one
+          item = {} if item == nil  # no items = draw a blank
           y = 1
           w, h = dimensions
 
@@ -2499,7 +2507,7 @@ ENDUSAGE
           draw("Link: ", 1, y, 'text', false, false)
           if item['site']
             draw(item['site'].ljust(w - 2), 7, y, 'url', false, false)
-          else
+          elsif item['url']
             draw(item['url'].ljust(w - 2), 7, y, 'url', false, false)
           end
 
@@ -2584,6 +2592,7 @@ ENDUSAGE
           # This is a *terrible* way to figure out how many lines of text we'll end
           # up with.., XXX put me somewhere better.
           item = @items[0]
+          item = {} if item == nil
           s = item['fmt_content_num_lines'] ||
               reflow_string(item['content']).lines
           @offset += 1 if @offset < s - 1
@@ -2594,6 +2603,7 @@ ENDUSAGE
           # This is a *terrible* way to figure out how many lines of text we'll end
           # up with.., XXX put me somewhere better.
           item = @items[0]
+          item = {} if item == nil
           h,s = dimensions[1], 0
 
           %w{title url date}.each do |key|
@@ -2629,11 +2639,6 @@ ENDUSAGE
             @active_item = @active_item - 1
             draw_items
           end
-        end
-
-        def delete_item
-          @items.delete_at(@active_item)
-          NcursesInterface::populate_feed_win
         end
 
         def resize_width
@@ -2931,15 +2936,15 @@ ENDUSAGE
         desc_win.active_item = 0
         desc_win.items.clear
       
+        # get feed
+        feed = $config['feeds'].get($a_feed) rescue return
+      
         # mark item as read
         item_win.items[item]['read?'] = true
-        $config['feeds'].get($a_feed)['items'][id]['read?'] = true
+        feed['items'][id]['read?'] = true
       
         # redraw item window items (to mark selected item as read)
         item_win.draw_items
-      
-        # get feed
-        feed = $config['feeds'].get($a_feed)
       
         # fix host-relative URLs
         item_content = feed['items'][id]['desc']
@@ -5023,8 +5028,8 @@ $config = {
     ?\n                 => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::select_item} ),
     ?\                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::select_item} ),
 
-    ?u                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::move_item_up} ),
-    ?d                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::move_item_down} ),
+    ?u                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::move_feed_up} ),
+    ?d                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::move_feed_down} ),
 
     ?I                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::invalidate_feed} ),
     ?e                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::edit_feed} ),

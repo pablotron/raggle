@@ -2287,5 +2287,14 @@
 * Mon Jan 03 10:40:00 2005, redshift <redshift@halffull.org>
   * raggle: fixed bug where finding next/prev item would be jumpy because
     of re-selecting feed
-  * raggle: fixed bug where having no selected window would cause movement
-    operations to crash
+  * raggle: fixed several crash bugs relating to navigation with an empty
+    feed list
+  * raggle: fixed several crash bugs for operations on empty feed list
+  * raggle: deleting all feeds will now clear stagnant info from item and
+    description windows
+  * raggle: fixed bugs with closing edit/help windows
+  * raggle: fixed view_source - no need to select items, should just
+    always redraw description.  now works from any window
+  * raggle: remove delete_item from TextWindow - holdover from ListWindow
+  * raggle: rename move_item_{up,down} to move_feed_{up,down}, unless we
+    add item movement

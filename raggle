@@ -194,6 +194,27 @@ $config = {
     [ 37, Ncurses::COLOR_YELLOW,   Ncurses::COLOR_CYAN    ],
   ],
 
+  # key bindings
+  'keys'            => {
+    Ncurses::KEY_RIGHT  => proc { |win, key| next_window },
+    ?\t                 => proc { |win, key| next_window },
+
+    Ncurses::KEY_LEFT   => proc { |win, key| prev_window },
+    ?\\                 => proc { |win, key| prev_window },
+
+    Ncurses::KEY_F12    => proc { |win, key| quit_raggle },
+    ?q                  => proc { |win, key| quit_raggle },
+
+    Ncurses::KEY_UP     => proc { |win, key| win.scroll_up },
+    Ncurses::KEY_DOWN   => proc { |win, key| win.scroll_down },
+    Ncurses::KEY_END    => proc { |win, key| win.scroll_bottom },
+    Ncurses::KEY_PPAGE  => proc { |win, key| win.scroll_up_page },
+    Ncurses::KEY_NPAGE  => proc { |win, key| win.scroll_down_page },
+
+    ?\n                 => proc { |win, key| win.select_win_item },
+    ?\                  => proc { |win, key| win.select_win_item },
+  },
+
   # default theme settings
   'theme'           => {
     # theme information
@@ -1683,6 +1704,31 @@ def sort_feeds
   }
 end
 
+######################################
+# some convenient navigation methods #
+######################################
+
+#
+# navigate to next window
+# 
+def next_window
+  set_active_win(($a_win + 1) % $wins.size)
+end
+
+# 
+# navigate to previous window
+#
+def prev_window
+  set_active_win((($a_win - 1 < 0) ? $wins.size : $a_win) - 1)
+end
+
+#
+# quit the program
+#
+def quit_raggle
+  $done = true
+end
+
 #######################################################################
 # End Shenanigans, Begin Actual Code                                  #
 #######################################################################
@@ -1880,30 +1926,13 @@ begin
   
   # main input loop
   timeout = $config['input_select_timeout']
-  done = false
-  until done
+  $done = false
+  until $done
     # handle keyboard input
     r = select [$stdin], nil, nil, timeout
     if r && r.size > 0
-      case c = Ncurses::getch
-      when Ncurses::KEY_RIGHT
-        set_active_win(($a_win + 1) % $wins.size)
-      when ?\t
-        set_active_win(($a_win + 1) % $wins.size)
-      when Ncurses::KEY_LEFT
-        set_active_win((($a_win - 1 < 0) ? $wins.size : $a_win) - 1)
-      when ?\\
-        set_active_win((($a_win - 1 < 0) ? $wins.size : $a_win) - 1)
-      when Ncurses::KEY_F12
-        done = true
-      when Ncurses::KEY_MOUSE
-        ev_a = []
-        handle_mouse(ev_a[0]) if Ncurses::getmouse(ev_a) == Ncurses::OK
-      when ?q
-        done = true
-      else  
-        $wins[$a_win].handle_key c
-      end
+      c = Ncurses::getch
+      $config['keys'][c].call($wins[$a_win], c) if $config['keys'].has_key? c
     end
 
     # refresh window contents if there's been a feed update

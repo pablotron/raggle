@@ -268,3 +268,6 @@
     options.  They set and unset the save_items? attribute on feeds,
     respectively.
 
+* Fri Jun 20 03:47:26 2003, pabs <pabs@pablotron.org>
+  * implemented Richard's key bindings idea.  Key bindings are now
+    stored in $config and called as procs

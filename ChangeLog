@@ -1686,3 +1686,9 @@
 * Wed Oct 15 12:08:46 2003, pabs <pabs@pablotron.org>
   * TODO: more stuff.. ugh we'lll never get a release :(
 
+* Wed Oct 15 23:13:12 2003, richlowe <richlowe@richlowe.net>
+  * mono.yaml: Make usable, active things/focussed items are now bold on
+               terminals that support it, so you can actually tell what
+	       you're focused on, and looking at.   This is the theme to
+	       use if you frequently use raggle on terminals that have
+	       support for bold, but not color.

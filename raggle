@@ -281,7 +281,7 @@ class FeedList
 
   def invalidate(id)
     raise "FeedList#delete: Feed not found: #{id}" unless @feeds.size >= id
-    @feeds[id].updated = 0
+    @feeds[id]['updated'] = 0
   end
 
   def each_with_index
@@ -313,7 +313,9 @@ class FeedList
     %w{title url refresh lock_title?}.each { |key|
       $config['feeds'].get(id)[key] = opts[key] if opts.has_key? key
     }
-    $config['feeds'].invalidate(id) unless opts['url'] == ourl
+    if opts.has_key?('url') and opts['url'] != ourl
+      $config['feeds'].invalidate(id)
+    end
   end
 
   def move_up(id)

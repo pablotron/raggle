@@ -369,7 +369,12 @@
             mistake
 
 * Sun Jun 22 00:25:12 EDT 2003, richlowe <richlowe@richlowe.net>
-  * raggle: Use GetoptLong for arg parsing, and *greaty* simplify the case.
+  * raggle: Use GetoptLong for arg parsing, and *greaty* simplify the
+            case.
+
+* Sun Jun 22 00:31:12 EDT 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Fix FeedList#invalidate (calling a method when I should 
+	    have been setting a hash item).
 
 
 

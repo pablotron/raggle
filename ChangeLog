@@ -2129,3 +2129,11 @@
 * Thu Dec 09 23:01:05 2004, redshift <redshift@halffull.org>
   * raggle: added M and N to accompany m in Ncurses mode - they mark all
     items as unread and the current item as unread, respectively
+
+* Sun Dec 12 03:04:24 2004, pabs <pabs@pablotron.org>
+  * raggle: revert redshift's 2 minute => 15 minute change; the 
+    refresh times are in minutes, not hours. :D  Everything else
+    looks good, except I was deliberately not trimming whitespace from
+    the beginning so the "Raggle Help" feed would show up at the top
+    the first time people run Raggle, and through sorts.  If you have
+    a better solution, I'm all ears.

@@ -26,6 +26,8 @@ System Requirements
   http://www.ruby-lang.org/
 * REXML, version 2.4.0 (or newer) (included in Ruby 1.8.x):
   http://www.germane-software.com/software/rexml/
+* xmlrpc4r (included in Ruby 1.8.x):
+  http://www.fantasy-coders.de/ruby/xmlrpc4r/
 * YAML support
   Either:
     o YAML-Ruby, version 0.49.1 (or newer):

@@ -1812,3 +1812,10 @@
 
 * Sun Mar 21 07:46:36 2004, pabs <pabs@pablotron.org>
   * raggle: make the cat list box title configurable
+
+* Sun Mar 21 10:52:14 2004, pabs <pabs@pablotron.org>
+  * raggle: added preliminary feed searching via syndic8 rpc, it's
+    bound to 'f', but that might change
+  * README: added note about xmlrcp4r.. it's listed as required at
+    the moment, but it's marked as optional in raggle itself (the
+    key does nothing if xmlrpc4r isn't available)

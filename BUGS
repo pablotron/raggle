@@ -5,6 +5,10 @@ Bugs
     (work in progress)
 [ ] Sometimes (totally unreproducibly), the feeds file will be saved
     is the FeedList were an array, (not reproducible here)
+[ ] Sometimes (every time), the FeedList will be loaded as a Hash
+    rather than a FeedList by ruby1.8/syck.  Not reproducible with syck
+    0.35 under 1.6.  I'm tempted to blame syck, instrumented code
+    clearly shows that it leaves us as a FeedList, and comes back as a Hash.
 [ ] Code *very* untidy in places, (will be fixed post-release)
 [ ] Man page is worthlessly incomplete
 [ ] It's possible that sometimes the inline documentation ("Raggle"
@@ -17,5 +21,3 @@ Bugs
     though I don't know if that's related), the behaviour being
     correct under Linux suggests either a curses bug in the platform
     I'm testing on, or Linux being kinder to the code in this specific case.
-
-

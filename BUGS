@@ -34,3 +34,6 @@ Bugs
 [*] TextWindow#draw_items draws the title at x=1, but if the rest is
     drawn with x=1 it appears to be drawn one block to the right of the
     title.  Why? (workedaround, but very confusing).
+[ ] Various forms of output, will be very unhappy in an unquoted %
+    appears in what's passed to them, unfortunately, I'm not sure
+    which ones. (I've seen this once, but can't reproduce reliably).

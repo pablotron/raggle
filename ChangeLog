@@ -1077,3 +1077,6 @@
 * Sun Aug 17 10:50:36 2003, pabs <pabs@pablotron.org>
   * BUGS: add srl's OSX bug report to BUGS (although it might be a 
     screwy install on his machine)
+
+* Sun Aug 17 10:54:29 2003, pabs <pabs@pablotron.org>
+  * raggle: disable manual update in default config (silly me)

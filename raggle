@@ -2685,7 +2685,7 @@ $config = {
 
   # don't check every 60 seconds, wait for the update
   # key to be pressed (for modem users, slow computers, etc)
-  'use_manual_update'     => true,
+  'use_manual_update'     => false,
 
   # update feed list on startup?
   'update_on_startup'     => true,
@@ -2718,7 +2718,6 @@ $config = {
   #
   # WARNING: DO NOT CHANGE THIS TO 'exec' OR 'file'. DOING SO HAS
   # POTENTIALLY SERIOUS SECURITY RAMIFICATIONS.
-  #
   'default_url_handler'   => 'http',
 
   # default http headers

@@ -355,6 +355,10 @@ module Key
   def Key::manual_update
     $feed_thread.run if $config['use_manual_update']
   end
+
+  def Key::find_entry(win)
+    ncurses_find_entry(win)
+  end
 end
 
 module HTML
@@ -2475,6 +2479,62 @@ def ncurses_add_feed
 end
 
 #
+# find entry in window
+# 
+def ncurses_find_entry(win, direction = 1)
+  if win && win.items && win.items.size > 0
+    w, e_msg = $config['w'], $config['msg_find_entry']
+
+    # print entry message
+    msg = e_msg + (' ' * (w - e_msg.length - 1))
+    Ncurses::stdscr.color_set $config['theme']['status_bar_cols'], nil
+    Ncurses::mvprintw $config['h'], 0, msg.escape_format
+
+    # get string
+    str = ''
+    Ncurses::echo if $config['use_noecho']
+    Ncurses::mvprintw $config['h'], e_msg.size + 1, ''
+    Ncurses::getstr(str)
+    Ncurses::noecho if $config['use_noecho']
+
+    Ncurses::refresh
+
+    # if it's not nil, then add it to our list
+    if str && str.length > 0
+      new_index = -1
+      regex = /#{str}/i
+
+      # search forward from item
+      win.active_item.upto(win.items.size - 1) { |i|
+        if win.items[i]['title'] =~ regex
+          new_index = i
+          break
+        end
+      }
+      
+      # wrap search  (should this be an option?)
+      if new_index < 0
+        0.upto(win.active_item - 1) { |i|
+          if win.items[i]['title'] =~ regex
+            new_index = i
+            break
+          end
+        }
+      end
+
+      if new_index >= 0
+        win.activate new_index
+      end
+    end
+      
+    # redraw status bar
+    $new_status = $status
+    $status = msg
+    set_status($new_status)
+  end
+end
+
+#
 # purge extra feeds in cache
 #
 def purge_feed_cache
@@ -3107,6 +3167,7 @@ $config = {
   'msg_term_resize'       => 'Terminal Resize: ',
   'msg_links'             => 'Links:',
   'msg_add_feed'          => 'Enter URL:',
+  'msg_find_entry'        => 'Search:',
 
   # menu bar color
   'menu_bar_cols'         => 24,
@@ -3212,6 +3273,8 @@ $config = {
     ?d                  => proc { |win, key| Key::move_item_down },
 
     ?I                  => proc { |win, key| Key::invalidate_feed },
+
+    ?/                  => proc { |win, key| Key::find_entry(win) },
 
     Ncurses::KEY_DC     => proc { |win, key| Key::delete },
     ##

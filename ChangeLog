@@ -1231,3 +1231,6 @@
 
 * Tue Sep 02 10:22:40 2003, pabs <pabs@pablotron.org>
   * TODO: added some new ideas
+
+* Tue Sep 02 17:31:49 2003, pabs <pabs@pablotron.org>
+  * raggle: added search for entry key (bound to '/' by default)

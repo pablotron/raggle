@@ -56,10 +56,11 @@ Tom Paine <twp@gentoo.org>
 Ralf Horstmann <ralf.horstmann@webwasher.com
 * action_insert_link_href() nil reference fix
 
-Thomas Kirchner <tjkirch@rochester.rr.com>
+Thomas Kirchner <redshift@halffull.org>
 * get_win_id() fix 
-* refresh window on delete (Ncurses interface)
-* corrected feed deletion
-* find feeds fixes
-* vim modeline
-* misc status updates to 0.4 CVS
+* corrected feed deletion and status bar updating
+* feed finding fixes
+* feed sorting fixes
+* periodic and manual feeds/config saving
+* duplicate feed checking
+* miscellaneous cleanup

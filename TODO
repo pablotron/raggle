@@ -34,7 +34,7 @@ Raggle TODO
 [ ] item delete, mark items as unread, stick (save, hilite?) items, etc
 [*] proxy support (via ENV['HTTP_PROXY'], etc?)
 [ ] display / dump raw feed output
-[ ] conditional HTTP GET to reduce bandwidth use and increase speed
+[*] conditional HTTP GET to reduce bandwidth use and increase speed
 [ ] "update this feed now!" option from within Raggle
 [ ] 'manual_update' option for modem lusers
 [ ] Select Next Unread (n), should work for feeds as well as items
@@ -42,7 +42,7 @@ Raggle TODO
 [ ] Reverse ordering, (on a key) so you can read a big chunk of new
     items in chronological order (most are reverse chron) without
     undue discomfort
-[ ] Full HTML support is hard, but we at least need to do the right
+[*] Full HTML support is hard, but we at least need to do the right
     thing with <PRE>, this is entirely possible within String#reflow
     o Remove all calls to strip_tags (and have Window#text_draw do it
       *after* the reflow)

@@ -3,8 +3,9 @@
 
 #######################################################################
 # Raggle - Console RSS aggregator                                     #
-# by Paul Duncan <pabs@pablotron.org> and                             #
-#    Richard Lowe <richlowe@richlowe.net>                             #
+# by Paul Duncan <pabs@pablotron.org>,                                #
+#    Richard Lowe <richlowe@richlowe.net>, and                        #
+#    Richard Lowe <richlowe@richlowe.net>, and                        #
 #                                                                     #
 #                                                                     #
 # Please see the Raggle page at http://www.raggle.org/ for the latest #
@@ -47,13 +48,32 @@ if __FILE__ == $0
   trap('QUIT') { puts "Quit"; exit -1 }
 end
 
-# load required modules
+#########################
+# load built-in modules #
+#########################
 require 'getoptlong'
-require 'ncurses'
 require 'net/http'
 require 'pstore'
-require 'rexml/document'
-require 'yaml'
+
+#########################
+# load external modules #
+#########################
+{ 'ncurses'         => 'Ncurses-Ruby',
+  'rexml/document'  => 'REXML',
+  'yaml'            => 'YAML',
+}.each { |module_name, module_title|
+  begin
+    require module_name
+  rescue LoadError
+    $stderr.puts <<-ENDERR
+ERROR: #$!
+You're missing the #{module_title} module.  For installation
+instructions, Please see the file README or visit the following URL:
+  http://www.raggle.org/docs/install/
+ENDERR
+    exit -1
+  end
+}
 
 begin 
   require 'net/https'
@@ -112,11 +132,26 @@ def in_screen?
 end
 
 #
-# get the proxy host and port from ENV['http_proxy']
+# get the proxy host and port from $config['proxy'], or
+# ENV['http_proxy'] / ENV['no_proxy'] if $config['proxy'] isn't set
 #
-def find_proxy
-  ret = [nil, nil]
-  ret = [$1, $2] if ENV['http_proxy'] =~ /http:\/\/([^:]+):(\d+)/
+def find_proxy(host)
+  ret = nil
+
+  # get proxy settings from $config, and if they're not there, then
+  # check ENV
+  if $config['proxy'] && $config['proxy']['host']
+    ret = $config['proxy']
+  elsif ENV['http_proxy'] && ENV['http_proxy'] =~ /http:\/\/([^:]+):(\d+)/
+    ret = { 'host' => $1, 'port' => $2 }
+    no_proxy = ENV['no_proxy']
+    ret['no_proxy'] = no_proxy ? no_proxy.split(/\s*,\s*/) : []
+  end
+
+  # return nil if host is in no_proxy list
+  ret = nil if ret['no_proxy'] && 
+               ret['no_proxy'].find { |i| /#{i}/.match(host) }
+
   ret
 end
 
@@ -709,8 +744,12 @@ class FeedList
   end
 
   def invalidate(id)
-    raise "Invalid feed id: #{id}" unless id < @feeds.size
-    @feeds[id]['updated'] = 0
+    if id == -1
+      @feeds.each { |feed| feed['updated'] = 0 }
+    else
+      raise "Invalid feed id: #{id}" unless id < @feeds.size
+      @feeds[id]['updated'] = 0
+    end
   end
 
   def each_with_index
@@ -810,7 +849,7 @@ module Feed
   #
   # Return the contents of a URL
   #
-  def Feed::get_url(url)
+  def Feed::get_url(url, last_modified = nil)
     port = 80
     use_ssl = false
 
@@ -836,21 +875,38 @@ module Feed
       host.gsub!(/:(\d+)$/, '')
     end
 
+    # start up proxy support
+    proxy = find_proxy(host) || {}
+    
     # initialize http connection
-    http = Net::HTTP.start(host, port)
+    Net::HTTP.version_1_1
+    http = Net::HTTP::start(host, port, proxy['host'], proxy['port'])
     http.use_ssl = use_ssl if $HAVE_SSL
     raise "Couldn't connect to host \"#{host}:#{port}\"" unless http
 
-    # get result
-    resp, ret = nil, ''
-    begin
-      resp, ret = http.get('/' << path)
+    begin 
+      # check last-modified header first
+      if last_modified
+        resp = http.head('/' << path)
+        if last_modified == resp['last-modified']
+          # it's the same as the old content
+          ret = [nil, last_modified]
+        else
+          # it's changed, get it again
+          ret = get_url(url, nil)
+        end
+      else
+        # no cache, just get the result
+        resp, content = nil, ''
+        resp, content = http.get('/' << path)
+        ret = [content, resp['last-modified']]
+      end
     rescue 
       resp = $!.response
 
       # handle redirects
       if resp.code =~ /3\d{2}/
-        ret = get_url resp['Location']
+        ret = get_url(resp['location'], last_modified)
       else
         raise "HTTP Error: #$!"
       end
@@ -862,55 +918,59 @@ module Feed
       http.finish 
     end
 
-    # return URL content
+
+    # return URL content and last-modified header
     ret
   end
 
 
   class Channel
-    attr_accessor :title, :link, :desc, :lang, :items
+    attr_accessor :title, :link, :desc, :lang, :items, :last_modified
 
-    def initialize(url)
+    def initialize(url, last_modified = nil)
       parse_rss_url url
     end
 
     # 
     # Parse an RSS URL and return a FeedChannel object (which contains,
-    # among other things, an array of feed_item structs)
+    # among other things, an array of feed_item structs).  If the last
     #
-    def parse_rss_url(url)
+    def parse_rss_url(url, last_modified = nil)
       begin
-        content = Feed::get_url url
+        content, modified = Feed::get_url(url, last_modified)
       rescue
         raise "Couldn't get URL \"#{url}\": #$!."
       end
 
-      # parse URL content
-      doc = REXML::Document.new content
+      @last_modified = modified
+      if !modified || modified != last_modified
+        # parse URL content
+        doc = REXML::Document.new content
 
-      # get channel info
-      e = nil
-      @title = e.text if e = doc.root.elements['//channel/title']
-      @link = e.text if e = doc.root.elements['//channel/link']
-      @desc = e.text if e = doc.root.elements['//channel/description']
-      @lang = e.text if e = doc.root.elements['//channel/language']
-  
-      # build list of feed items
-      @items = []
-      doc.root.elements.each('//item') { |e| 
-        # get item attributes (the ones that are set, anyway... stupid
-        # RSS)
-        h = {}
-        [ 'title', 'link', 'date', 'description' ].each { |val|
-          h[val] = (t_e = e.elements[val]) ? t_e.text : ''
+        # get channel info
+        e = nil
+        @title = e.text if e = doc.root.elements['//channel/title']
+        @link = e.text if e = doc.root.elements['//channel/link']
+        @desc = e.text if e = doc.root.elements['//channel/description']
+        @lang = e.text if e = doc.root.elements['//channel/language']
+    
+        # build list of feed items
+        @items = []
+        doc.root.elements.each('//item') { |e| 
+          # get item attributes (the ones that are set, anyway... stupid
+          # RSS)
+          h = {}
+          [ 'title', 'link', 'date', 'description' ].each { |val|
+            h[val] = (t_e = e.elements[val]) ? t_e.text : ''
+          }
+
+          h['description'] = find_description(e)
+
+          # insert new item
+          @items << Feed::Item.new(h['title'], h['link'],
+                                   h['description'], h['date'])
         }
-
-        h['description'] = find_description(e)
-
-        # insert new item
-        @items << Feed::Item.new(h['title'], h['link'],
-                                 h['description'], h['date'])
-      }
+      end
     end
 
     def find_description(elem)
@@ -1615,7 +1675,8 @@ def select_feed(id)
   $config['feeds'].describe($a_feed)
   
   # activate item window
-  set_active_win(get_win_id('item')) if $config['focus'] == 'select'
+  set_active_win(get_win_id('item')) if $config['focus'] == 'select' ||
+                                        $config['focus'] == 'select_first'
 end
 
 #
@@ -1680,8 +1741,11 @@ def select_item(id)
   desc_win.draw_items
 
   # activate description window
-  set_active_win(get_win_id('desc')) if $config['focus'] == 'select' and
-                                       !$config['no_desc_auto_focus']
+  if (($config['focus'] == 'select' ||
+       $config['focus'] == 'select_first') &&
+      !$config['no_desc_auto_focus'])
+    set_active_win(get_win_id('desc'))
+  end
 end
 
 #
@@ -1806,8 +1870,7 @@ Usage:
   #$0 [options]
 
 Options:
-  -a, --add, --add-feed         Add a new feed (requires '--title', '--url',
-                                and '--refresh').
+  -a, --add, --add-feed         Add a new feed (requires '--url').
   -c, --config                  Specify an alternate config file.
   -d, --delete, --delete-feed   Delete an existing feed.
   -e, --edit, --edit-feed       Edit an existing feed.
@@ -1839,7 +1902,10 @@ Options:
   -v, --version                 Display version information.
 
 Examples:
-  # add a new feed, refresh every 30 minutes
+  # add a new feed (hello world!)
+  #$0 -a -u http://www.example.com/rss.xml
+
+  # add a new feed called 'test feed', refresh every 30 minutes
   #$0 -a -t 'test feed' -u http://www.example.com/feed.rss -r 30
 
   # list feeds and their ids
@@ -1962,7 +2028,7 @@ def handle_command_line(opts)
        
   # check options
   if ret['mode'] == 'add'
-    ['title', 'url', 'refresh'].each { |val|
+    ['url'].each { |val| # removed 'title' and 'refresh' for now
       unless ret[val]
         die "Missing '--#{val}'."
         exit -1
@@ -2004,6 +2070,7 @@ end
 # add a new feed
 #
 def add_feed(opts)
+    %w{title refresh}.each { |i| opts[i] ||= $config["default_feed_#{i}"] }
     $config['feeds'].add(opts['title'], opts['url'], opts['refresh'],
                          opts['lock_title?'], opts['save_items?'],
 			 '', '', [], opts['force'])
@@ -2166,10 +2233,6 @@ def drop_to_shell
   restore_screen
 end
 
-#######################################################################
-# End Shenanigans, Begin Actual Code                                  #
-#######################################################################
-
 ##
 # Ugly
 # -- richlowe 2003-07-01
@@ -2232,9 +2295,11 @@ def setup_win
     set_active_win(0)
 end
 
+#######################################################################
+# End Shenanigans, Begin Actual Code                                  #
+#######################################################################
+
 def main
-  
-  
   # expand the default config hash
   expand_config
 
@@ -2337,12 +2402,9 @@ def main
           log.puts "#{t}: Updating feed \"#{feed['title']}\" from \"#{feed['url']}\""
           # set_status "Updating \"#{feed['title']}\"..."
           
-          # TODO: save old items
-          # old_items = feed['items']
-          
           # get channel
           begin
-            chan = Feed::Channel.new(feed['url'])
+            chan = Feed::Channel.new(feed['url'], feed['last_modified'])
             feed.delete 'error'
           rescue
             # set_status "Error updating \"#{feed['title']}\"."
@@ -2352,43 +2414,53 @@ def main
           end
           
           # update feed attributes
-          feed['title'] = chan.title unless $config['lock_feed_title'] ||
-                                            feed['lock_title?'] == true
-          feed['desc'] = chan.desc
-          feed['site'] = chan.link
-          feed['updated'] = t.to_i
-          
-          # hash the urls, save the read status
-          urls = {}
-          feed['items'].each { |item| urls[item['url']] = item['read?'] }
+          if !chan.last_modified || chan.last_modified != feed['last_modified']
+            feed['title'] = chan.title unless $config['lock_feed_title'] ||
+                                              feed['lock_title?'] == true
+            feed['desc'] = chan.desc
+            feed['site'] = chan.link
+            feed['updated'] = t.to_i
 
-          # clear the list if we're not saving feed items
-          feed['items'].clear unless $config['save_feed_items'] ||
-                                     feed['save_items?']
-          
-          # insert new items
-          new_items = []
-          chan.items.each { |item|
-            unless (($config['save_feed_items'] || feed['save_items?']) &&
-                    urls.has_key?(item.link))
-              was_read = urls.has_key?(item.link) && urls[item.link]
-              new_items << {
-                'title' => item.title,
-                'date'  => item.date,
-                'url'   => item.link,
-                'desc'  => item.desc,
-                'read?' => was_read,
-                'added' => Time.now.to_i,
-              }
+            # Note: last_modified is slightly different than modified,
+            # because we're using it as a token, not as a timestamp
+            # -- paul
+            feed['last_modified'] = chan.last_modified
+            
+            # hash the urls, save the read status
+            urls = {}
+            feed['items'].each { |item| urls[item['url']] = item['read?'] }
+
+            # clear the list if we're not saving feed items
+            feed['items'].clear unless $config['save_feed_items'] ||
+                                       feed['save_items?']
+            
+            # insert new items
+            new_items = []
+            chan.items.each { |item|
+              unless (($config['save_feed_items'] || feed['save_items?']) &&
+                      urls.has_key?(item.link))
+                was_read = urls.has_key?(item.link) && urls[item.link]
+                new_items << {
+                  'title' => item.title,
+                  'date'  => item.date,
+                  'url'   => item.link,
+                  'desc'  => item.desc,
+                  'read?' => was_read,
+                  'added' => Time.now.to_i,
+                }
+              end
+            }
+            
+            # if we're saving old items, then prepend the new items
+            # otherwise, replace the old list
+            if $config['save_feed_items'] || feed['save_items?']
+              feed['items'] = new_items + feed['items']
+            else
+              feed['items'] = new_items
             end
-          }
-          
-          # if we're saving old items, then prepend the new items
-          # otherwise, replace the old list
-          if $config['save_feed_items'] || feed['save_items?']
-            feed['items'] = new_items + feed['items']
-          else
-            feed['items'] = new_items
+          else 
+            feed['updated'] = t.to_i
+            log.puts "Feed \"#{feed['title']}\" hasn't changed."
           end
           
           # redraw feed / item windows
@@ -2486,7 +2558,7 @@ $config = {
   'use_cache_lock'        => true,
 
   # ui options
-  'focus'                 => 'select', # ['none', 'select', 'auto']
+  'focus'                 => 'select', # ['none', 'select', 'select_first', 'auto']
   'no_desc_auto_focus'    => true,
   'scroll_wrapping'       => true,
 
@@ -2496,8 +2568,9 @@ $config = {
 
   # proxy settings
   'proxy' => {
-    'host'  => find_proxy[0],
-    'port'  => find_proxy[1],
+    'host'      => nil,
+    'port'      => nil,
+    'no_proxy'  => [],
   },
 
   # Number of list items per "page" (wrt page up/down)
@@ -2551,7 +2624,8 @@ $config = {
   # warn if feed refresh is set to less than this
   'feed_refresh_warn'     => 60,
 
-  # default refresh rate
+  # default feed name and refresh rate
+  'feed_default_title'    => 'Unnamed Feed',
   'feed_default_refresh'  => 120,
 
   # open new screen window for browser?
@@ -2769,7 +2843,7 @@ $config = {
 
   'default_feeds' => [
     { 'title'     => '  Raggle Help', # add a space so sorting puts it at top
-      'url'       => "http://www.raggle.org/files/help/help-#{$VERSION}.xml",
+      'url'       => "http://www.raggle.org/files/help-#{$VERSION}.xml",
       'site'      => 'http://www.raggle.org/',
       'refresh'   => 240,
       'updated'   => -1,
@@ -2801,7 +2875,7 @@ $config = {
       'items'     => [ ],
     },
     { 'title'     => 'KernelTrap',
-      'url'       => 'http://kerneltrap.org/module.php?mod=node&op=feed',
+      'url'       => 'http://kerneltrap.org/node/feed',
       'site'      => 'http://www.kerneltrap.org/',
       'desc'      => 'KernelTrap',
       'refresh'   => 120,
@@ -2832,10 +2906,26 @@ $config = {
       'updated'   => 0,
       'items'     => [ ],
     },
+    { 'title'     => 'Paul Duncan.org',
+      'url'       => 'http://www.paulduncan.org/rss/',
+      'site'      => 'http://www.paulduncan.org/',
+      'desc'      => 'Paul Duncan\'s other personal site.',
+      'refresh'   => 120,
+      'updated'   => 0,
+      'items'     => [ ],
+    },
     { 'title'     => 'Pigdog Journal',
       'url'       => 'http://www.pigdog.org/pigdog.rdf',
       'site'      => 'http://www.pigdog.org/',
       'desc'      => 'Pigdog Journal',
+      'refresh'   => 120,
+      'updated'   => 0,
+      'items'     => [ ],
+    },
+    { 'title'     => 'Richlowe.net',
+      'url'       => 'http://richlowe.net/index.cgi/index.rss',
+      'site'      => 'http://www.richlowe.net/',
+      'desc'      => 'Richlowe.net',
       'refresh'   => 120,
       'updated'   => 0,
       'items'     => [ ],

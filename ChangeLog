@@ -985,3 +985,21 @@
   * README: added RSS feeds for Richard and myself.
   * raggle: added RSS feeds for Richard and myself.
   (Ville, do you have a web site?)
+
+* Sat Aug 16 08:57:25 2003, pabs <pabs@pablotron.org>
+  * TODO: marked off some stuff that's been done
+  * raggle: added Ville to the list of authors
+  * raggle: added HTTP proxy support (via $config['proxy'] or, if that
+    isn't set, the http_proxy and no_proxy environment variables)
+  * raggle: --invalidate now accepts -1 to invalidate all feeds
+  * raggle: added conditional HTTP GET support (doesn't fetch or parse 
+    unless the Last-Modified header has changed)
+  * raggle: --add only requires a URL now
+  * raggle: removed a few old comments
+  * raggle: updated KernelTrap feed URL.
+  * raggle: added paulduncan.org and richlowe.net to default feed list.
+  * README: updated --add documentation in "Getting Started".
+  * README: mention Raggle mailing list in "Getting Started".
+  * raggle: added 'select_first' focus type.  doesn't work yet, but 
+    eventually it'll be the select first item on activate mode.
+

@@ -1,7 +1,7 @@
 Raggle 0.2.0 README
 ===================
 
-This document was last updated on Mon Jun 23 17:07:12 2003.
+This document was last updated on Sat Aug 16 11:00:54 2003.
 Please see the file COPYING for licensing and warranty information.  The
 latest version of this software is available at the following URL:
 http://www.raggle.org/.
@@ -86,16 +86,16 @@ and in the Raggle man page.
 Here's how you add a new RSS feed to Raggle:
 
   # add a new feed to raggle
-  raggle --add --title "title" --url "url" --refresh "refresh"
+  raggle --add --url "url"
 
-Where "title" is a title for the RSS feed, "url" is the URL to the RSS
-feed, and "refresh" is the number of minutes between each refresh.  A
-complete list of feed editing commands available from the command-line
-is available in the Raggle man page, or by typing "raggle --help".
+Where "url" is the URL to the RSS feed.  A complete list of feed editing
+commands available from the command-line is available in the Raggle man
+page, or by typing "raggle --help".
 
 And that's it!  If you have any questions or comments about Raggle, feel
-free to email either Richard or myself; our email addresses are
-available in the "About the Authors" section below.
+free to subscribe to the Raggle mailing list, or email Richard, Ville,
+or myself; our email addresses are available in the "About the Authors"
+section below.
 
 
 Configuration Files

@@ -36,7 +36,7 @@ Raggle TODO
 [ ] display / dump raw feed output
 [ ] conditional HTTP GET to reduce bandwidth use and increase speed
 [ ] "update this feed now!" option from within Raggle
-[ ] 'manual_update' option and keybinding for modem lusers
+[ ] 'manual_update' option for modem lusers
 [ ] Select Next Unread (n), should work for feeds as well as items
 [*] Previous unread item would be useful also (I don't read in order, always)
 [ ] Reverse ordering, (on a key) so you can read a big chunk of new

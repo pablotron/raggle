@@ -594,6 +594,10 @@ module Raggle
         tag.start_actions = :save_href
         tag.end_actions = :insert_link_ref
       end
+
+      tag_set.define_tag 'img' do |tag|
+        tag.start_actions = :handle_img
+      end
     end
 
     #
@@ -618,6 +622,7 @@ module Raggle
         @source, @width = source, width
         @links = []
         $links = []
+        @images = []
         @rendered_text = render
       end
 
@@ -738,7 +743,17 @@ module Raggle
             @lines << "%#{padding}d. %s" % [index + 1, link]
           end
         end
-        
+
+        # If there are images, insert references
+        unless @images.empty?
+          @lines << ''
+          @lines << $config['msg_images']
+          padding = @images.size / 10 + 1
+          @images.each_with_index do |image,index|
+            @lines << "%#{padding}d. %s" % [index + 1,image]
+          end
+        end
+
         rendered_text = @lines.join("\n") + "\n"
         $config['unescape_html'] ? rendered_text.unescape_html : rendered_text
       end
@@ -791,7 +806,25 @@ module Raggle
           @lines[-1] << '[%d]' % @last_link_index
         end
       end
-    end
+
+      def action_handle_img
+        return if not @current_attributes['src']
+        @images << @current_attributes['src']
+        if @lines[-1]
+          title = ''
+          if @current_attributes['title'].length > 0
+            title = @current_attributes['title']
+          elsif @current_attributes['alt'].length > 0
+            title = @current_attributes['alt']
+          end
+          if title == ''
+            @lines[-1] << '[img %d]' % @images.size
+          else
+            @lines[-1] << '[img %d: %s]' % [ @images.size, title ]
+          end
+        end
+      end
+    end  # module HTML
 
     #
     # Basic HTML parser.
@@ -4882,6 +4915,7 @@ $config = {
   'msg_new_value'         => 'New value:',
   'msg_term_resize'       => 'Terminal Resize: ',
   'msg_links'             => 'Links:',
+  'msg_images'            => 'Images:',
   'msg_add_feed'          => 'Enter URL:',
   'msg_feed_added'        => 'Feed added',
   'msg_confirm_delete'    => 'Delete current feed? (y/n)',

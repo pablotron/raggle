@@ -2304,3 +2304,6 @@
   * TODO: removed feed delete confirmation
   * doc/default_config.rb: updated default config from raggle for new
     options
+
+* Mon Jan 31 10:07:00 2005, Andreas Krennmair <ak@synflood.at>
+  * raggle: added image reference list below links.

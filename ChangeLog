@@ -1479,3 +1479,6 @@
 * Mon Sep 15 16:59:40 2003, pabs <pabs@pablotron.org>
   * raggle: make view source toggle work ind escription window as
     well
+
+* Mon Sep 15 17:01:41 2003, pabs <pabs@pablotron.org>
+  * raggle: dont' force 1.8 (gotta stop doing that ;))

@@ -1402,3 +1402,7 @@
   * raggle: finished Window#set_color, color entries for all
     window elements can include attributes now (fixes bug reported by
     Phil Gregory <phil@mithrandir.aperiodic.net>)
+
+* Sat Sep 13 13:19:15 2003, pabs <pabs@pablotron.org>
+  * raggle: add stdin and stdout support to OPML import/export
+    (--import-opml - and --export-opml -, respectively)

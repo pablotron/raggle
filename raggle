@@ -694,21 +694,25 @@ module OPML
     feed_list = $config['feeds']
 
     begin
-      doc = File.open(file_name) do |f|
-	doc = REXML::Document.new(f)
-	doc.root.elements.each('//outline') do |outline|
-	  title = outline.attributes['title']
-	  url = outline.attributes['xmlUrl']
-	  site = outline.attributes['htmlUrl'] || ''
-	  desc = outline.attributes['description'] || ''
+      file = (file_name == '-') ? $stdin : File::open(file_name)
 
-	  if title.nil? || url.nil?
-	    $stderr.puts "Warning: skipping incomplete OPML entry: #{outline}"
-	    next
-	  end
-    raise "WARNING!!! EXEC URL IN OPML IMPORT" if (url =~ /^exec:/)
-	  feed_list.add(title, url, refresh, lock_title, save_items, site, desc, [], force)
-	end
+      if file
+        doc = REXML::Document.new(file)
+        doc.root.elements.each('//outline') do |outline|
+          title = outline.attributes['title']
+          url = outline.attributes['xmlUrl']
+          site = outline.attributes['htmlUrl'] || ''
+          desc = outline.attributes['description'] || ''
+
+          if title.nil? || url.nil?
+            $stderr.puts "Warning: skipping incomplete OPML entry: #{outline}"
+            next
+          end
+          raise "WARNING!!! EXEC URL IN OPML IMPORT" if (url =~ /^exec:/)
+          feed_list.add(title, url, refresh, lock_title, save_items, site, desc, [], force)
+        end
+      else
+        raise "Couldn't open input file \"#{file_name}\"."
       end
     rescue REXML::ParseException
       die "Parsing #{file_name} failed: #{$!.message}"
@@ -738,8 +742,11 @@ module OPML
       doc << REXML::Document::DECLARATION
       doc.add(opml)
 
-      File.open(file_name, 'w') do |f|
-	doc.write(f, 0)
+      file = (file_name == '-') ? $stdout : File::open(file_name, 'w')
+      if file
+        doc.write(file, 0)
+      else
+        raise "Couldn't open output file \"#{file_name}\"."
       end
     rescue
       die $!.message

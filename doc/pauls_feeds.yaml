@@ -70,13 +70,6 @@ feeds:
     site: http://daily.daemonnews.org
     updated: 1056265548
   - items: []
-    title: Digital Theatre
-    url: www.dtheatre.com/backend.php?xml=yes
-    refresh: 120
-    desc: "Film News that matters, Reviews, and Media Resources, Free Stock Photos"
-    site: http://www.dtheatre.com
-    updated: 1056265548
-  - items: []
     title: Dive Into Mark
     url: diveintomark.org/xml/rss.xml
     refresh: 120

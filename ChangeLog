@@ -230,3 +230,6 @@
   * raggle: negative page_step for window-height page-{up,down}
   * raggle: added 'theme/window_order' option (to control order of
     window activation)
+
+* Thu Jun 19 17:18:04 EDT 2003, richlowe <richlowe@richlowe.net>
+  * raggle: refix net/https require (rebroke in pabs' merge, I guess)

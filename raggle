@@ -17,7 +17,7 @@ require 'net/http'
 begin 
   require 'net/https'
   $HAVE_SSL = true
-rescue
+rescue LoadError
   $HAVE_SSL = false
 end
 

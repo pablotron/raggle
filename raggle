@@ -330,6 +330,10 @@ module Key
     win = $wins[get_win_id('desc')]
     win.select_win_item
   end
+
+  def Key::manual_update
+    $feed_thread.run if $config['use_manual_update']
+  end
 end
 
 module HTML
@@ -2387,7 +2391,7 @@ def main
   Net::HTTP.version_1_1
 
   # start feed grabbing thread
-  feed_thread = Thread.new {
+  $feed_thread = Thread.new {
     File.open($config['grab_log_path'], $config['grab_log_mode']) { |log|
       log.puts "#{Time.now}: Starting grab log."
       loop {
@@ -2472,14 +2476,20 @@ def main
         # finish log entries
         interval = $config['feed_sleep_interval']
         $new_status = $config['msg_grab_done']
-        log.puts "#{Time.now}: Done checking.  Sleeping for #{interval}s."
-        log.flush
-        sleep interval
+        if $config['use_manual_update']
+          log.puts "#{Time.now}: Done checking."
+          log.flush
+          Thread::stop
+        else
+          log.puts "#{Time.now}: Done checking.  Sleeping for #{interval}s."
+          log.flush
+          sleep interval
+        end
       }
     }
   }
   Thread::main.priority = $config['thread_priority_main']
-  feed_thread.priority = $config['thread_priority_feed']
+  $feed_thread.priority = $config['thread_priority_feed']
 
   begin
     # main input loop
@@ -2508,7 +2518,7 @@ def main
     Ncurses::endwin
     
     # stop feed grabbing thread
-    feed_thread.exit
+    $feed_thread.exit
     
     # save feed cache
     save_feed_cache if $config['save_feed_cache']
@@ -2567,6 +2577,10 @@ $config = {
   # thread priorities (best to leave these alone)
   'thread_priority_main'  => 5,
   'thread_priority_feed'  => 0,
+
+  # don't check every 60 seconds, wait for the update
+  # key to be pressed (for modem users, slow computers, etc)
+  'use_manual_update'     => true,
 
   # proxy settings
   'proxy' => {
@@ -2724,6 +2738,8 @@ $config = {
 
     ?p                  => proc { |win, key| select_prev_unread },
     ?n                  => proc { |win, key| select_next_unread },
+
+    ?U                  => proc { |win, key| Key::manual_update },
   },
 
   # color palette (referenced by themes)

@@ -87,7 +87,7 @@ def get_url(url)
   # get result
   ret = ''
   begin
-    http.get('/' << path) { |line| lines << line }
+    http.get('/' << path) { |line| ret << line }
   rescue 
     raise "HTTP Error: #$!"
   end

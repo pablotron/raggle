@@ -30,3 +30,6 @@
 * Sun Jun 08 18:19:32 2003, pabs <pabs@pablotron.org>
   * raggle: added preliminary online documentation as a pseudo-feed
   * added rss_grab.rb
+
+* Sun Jun 08 18:21:41 2003, pabs <pabs@pablotron.org>
+  * rss_grab.rb: oops

@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# -*- Mode: Ruby -*-
 
 # Raggle version
 $VERSION = '0.1.0'
@@ -17,7 +18,7 @@ require 'net/http'
 begin 
   require 'net/https'
   $HAVE_SSL = true
-rescue
+rescue LoadError
   $HAVE_SSL = false
 end
 

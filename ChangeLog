@@ -174,3 +174,6 @@
     in feed item descriptions) to fix another bug reported by Richard
     Lowe <richlowe@richlowe.net>
   * raggle: renamed 'strip_html' option to 'strip_html_tags'
+
+* Thu Jun 19 02:44:33 EDT 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Fix bug in net/https require that caused it to be non-optional

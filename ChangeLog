@@ -1332,3 +1332,13 @@
 * Fri Sep 05 01:52:00 2003, heap <vaine@cs.helsinki.fi>
   * extras/test_html_renderer.rb: fixed failing 
     #test_links_are_rendered_offline.
+
+* Fri Sep 05 07:18:14 2003, pabs <pabs@pablotron.org>
+  * raggle: fix bugs reported by karl d'adamo
+  * raggle: handle HTTP 204 response properly
+  * raggle: fix a nil dereference in fix_character_encoding()
+  * raggle: handle host-relative, relative path HTTP redirects properly
+  * raggle: added $config['strip_external_entities'] (work-around for
+    broken REXML 2.7.1 external entity behavior)
+  * raggle: don't buffer feed log output
+  * raggle: wrap feed grabbing in begin/rescue pair

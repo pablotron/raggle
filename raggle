@@ -1031,6 +1031,8 @@ module Feed
 
         # get the result
         resp, content = http.get(('/' << path), headers)
+        raise "HTTP Error: #{resp.code} #{resp.message}" \
+          if resp.code.to_i != 200
         ret = [content, resp['last-modified']]
       end
     rescue 
@@ -1040,11 +1042,17 @@ module Feed
       if resp.code.to_i == 304      # hasn't changed
         ret = [nil, last_modified]
       elsif resp.code =~ /3\d{2}/   # redirect
-        # handle host-relative redirects
         location = resp['location']
         if location =~ /^\//
+          # handle relative host, absolute path redirects
           location = host << ':' << port.to_s << location
           location = 'http' << (http.use_ssl ? 's' : '') << '://' << location
+        elsif location !~ /^http/
+          # handle relative host, relative path redirects
+          path.gsub!(/[^\/]+$/, '') if path =~ /[^\/]+$/
+          location = 'http' << (http.use_ssl ? 's' : '') << '://' << 
+                     host << ':' << port.to_s << '/' << path << '/' <<
+                     location
         end
 
         ret = get_http_url(location, last_modified)
@@ -1151,6 +1159,10 @@ module Feed
 
       @last_modified = modified
       if !modified || modified != last_modified
+        # strip external entities (work-around for bug in REXML 2.7.1)
+        content.gsub!(/<!ENTITY %.*?>/m, '') if \
+          $config['strip_external_entities'] && content =~ /<!ENTITY %.*?>/m
+
         # parse URL content
         doc = REXML::Document.new content
 
@@ -1198,7 +1210,8 @@ module Feed
     def fix_character_encoding(element)
       tmp = ''
       encoding = $config['character_encoding'] || 'ISO-8859-1'
-      element.get_text.write(REXML::Output.new(tmp, encoding))
+      text = element.get_text
+      text.write(REXML::Output.new(tmp, encoding)) if text
       tmp.unescape_html
     end
   end
@@ -2940,92 +2953,96 @@ def main
   # start feed grabbing thread
   $feed_thread = Thread.new {
     File.open($config['grab_log_path'], $config['grab_log_mode']) { |log|
+      log.sync = true
       log.puts "#{Time.now}: Starting grab log."
-      log.flush
+      $log = log
+
       first_iteration = true
       loop {
         if !first_iteration || $config['update_on_startup']
-          $config['feeds'].each { |feed|
-            t = Time.now
-            
-            $new_status = " Checking feed \"#{feed['title']}\"..."
-            log.puts "#{Time.now}: Checking feed \"#{feed['title']}\""
-            next unless feed['refresh'] > 0 && 
-              feed['updated'] + (feed['refresh'] * 60) < t.to_i
-            
-            # update statusbar and grab log
-            $new_status = " Updating feed \"#{feed['title']}\"..."
-            log.puts "#{t}: Updating feed \"#{feed['title']}\" from " +
-                     "\"#{feed['url']}\""
-            log.flush
-            
-            # get channel
-            begin
-              chan = Feed::Channel.new(feed['url'], feed['last_modified'])
-              feed.delete 'error'
-            rescue
-              # set_status "Error updating \"#{feed['title']}\"."
-              log.puts "#{t}: Error: #$!"
-              log.flush
-              feed['error'] = "#$!"
-              next
-            end
-            
-            # update feed attributes
-            if !chan.last_modified ||
-               chan.last_modified != feed['last_modified']
-              feed['title'] = chan.title unless $config['lock_feed_title'] ||
-                                                feed['lock_title?'] == true
-              feed['desc'] = chan.desc
-              feed['site'] = chan.link
-              feed['updated'] = t.to_i
-
-              # Note: last_modified is slightly different than modified,
-              # because we're using it as a token, not as a timestamp
-              # -- paul
-              feed['last_modified'] = chan.last_modified
+          begin
+            $config['feeds'].each { |feed|
+              t = Time.now
               
-              # hash the urls, save the read status
-              urls = {}
-              feed['items'].each { |item| urls[item['url']] = item['read?'] }
-
-              # clear the list if we're not saving feed items
-              feed['items'].clear unless $config['save_feed_items'] ||
-                                         feed['save_items?']
+              $new_status = " Checking feed \"#{feed['title']}\"..."
+              log.puts "#{Time.now}: Checking feed \"#{feed['title']}\""
+              next unless feed['refresh'] > 0 && 
+                feed['updated'] + (feed['refresh'] * 60) < t.to_i
               
-              # insert new items
-              new_items = []
-              chan.items.each { |item|
-                unless (($config['save_feed_items'] || feed['save_items?']) &&
-                        urls.has_key?(item.link))
-                  was_read = urls.has_key?(item.link) && urls[item.link]
-                  new_items << {
-                    'title' => item.title,
-                    'date'  => item.date,
-                    'url'   => item.link,
-                    'desc'  => item.desc,
-                    'read?' => was_read,
-                    'added' => Time.now.to_i,
-                  }
-                end
-              }
+              # update statusbar and grab log
+              $new_status = " Updating feed \"#{feed['title']}\"..."
+              log.puts "#{t}: Updating feed \"#{feed['title']}\" from " +
+                       "\"#{feed['url']}\""
               
-              # if we're saving old items, then prepend the new items
-              # otherwise, replace the old list
-              if $config['save_feed_items'] || feed['save_items?']
-                feed['items'] = new_items + feed['items']
-              else
-                feed['items'] = new_items
+              # get channel
+              begin
+                chan = Feed::Channel.new(feed['url'], feed['last_modified'])
+                feed.delete 'error'
+              rescue
+                # set_status "Error updating \"#{feed['title']}\"."
+                log.puts "#{t}: Error: #$!"
+                feed['error'] = "#$!"
+                next
               end
-            else 
-              feed['updated'] = t.to_i
-              log.puts "Feed \"#{feed['title']}\" hasn't changed."
-            end
-            
-            # redraw feed / item windows
-            $update_wins = true
-            log.flush
-          }
+              
+              # update feed attributes
+              if !chan.last_modified ||
+                 chan.last_modified != feed['last_modified']
+                feed['title'] = chan.title unless $config['lock_feed_title'] ||
+                                                  feed['lock_title?'] == true
+                feed['desc'] = chan.desc
+                feed['site'] = chan.link
+                feed['updated'] = t.to_i
+
+                # Note: last_modified is slightly different than modified,
+                # because we're using it as a token, not as a timestamp
+                # -- paul
+                feed['last_modified'] = chan.last_modified
+                
+                # hash the urls, save the read status
+                urls = {}
+                feed['items'].each { |item| urls[item['url']] = item['read?'] }
+
+                # clear the list if we're not saving feed items
+                feed['items'].clear unless $config['save_feed_items'] ||
+                                           feed['save_items?']
+                
+                # insert new items
+                new_items = []
+                chan.items.each { |item|
+                  unless (($config['save_feed_items'] ||
+                           feed['save_items?']) &&
+                          urls.has_key?(item.link))
+                    was_read = urls.has_key?(item.link) && urls[item.link]
+                    new_items << {
+                      'title' => item.title,
+                      'date'  => item.date,
+                      'url'   => item.link,
+                      'desc'  => item.desc,
+                      'read?' => was_read,
+                      'added' => Time.now.to_i,
+                    }
+                  end
+                }
+                
+                # if we're saving old items, then prepend the new items
+                # otherwise, replace the old list
+                if $config['save_feed_items'] || feed['save_items?']
+                  feed['items'] = new_items + feed['items']
+                else
+                  feed['items'] = new_items
+                end
+              else 
+                feed['updated'] = t.to_i
+                log.puts "Feed \"#{feed['title']}\" hasn't changed."
+              end
+              
+              # redraw feed / item windows
+              $update_wins = true
+            }
+          rescue
+            log.puts 'Feed Error: ' << $!.to_s
+          end
         end
 
         first_iteration = false
@@ -3035,11 +3052,9 @@ def main
         $new_status = $config['msg_grab_done']
         if $config['use_manual_update']
           log.puts "#{Time.now}: Done checking."
-          log.flush
           Thread::stop
         else
           log.puts "#{Time.now}: Done checking.  Sleeping for #{interval}s."
-          log.flush
           sleep interval
         end
       }
@@ -3074,6 +3089,9 @@ def main
   if $config['run_http_server']
     http_thread.priority  = $config['thread_priority_http'] || 1
   end
+
+  # set abort on exception
+  # $feed_thread.abort_on_exception = true
 
   begin
     if $config['run_http_server']
@@ -3268,6 +3286,10 @@ $config = {
 
   # menu bar color
   'menu_bar_cols'         => 24,
+
+  # strip external entity declarations
+  # (workaround for bug in REXML 2.7.1)
+  'strip_external_entities' => true,
 
   # input select timeout (in seconds)
   'input_select_timeout'  => 0.2,

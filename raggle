@@ -288,7 +288,13 @@ class String
   end
 end
 
+#
+# Raggle engine and interface container module.
+#
 module Raggle
+  #
+  # Basic path searching methods.
+  #
   module Path
     #
     # Find an application in your $PATH.  Returns nil if the app
@@ -2713,37 +2719,6 @@ ENDUSAGE
       end
       
       #
-      # search for feeds, return array of hashes w/ results
-      #
-      def NcursesInterface::find_feeds(str)
-        syn = Raggle::Syndic8.new
-      
-        syn.keys -= ['siteurl']
-        syn.max_results = $config['syndic8_max_results']
-      
-        # query syndic8
-        ret = syn.find(str)
-      
-        # find empty and duplicate results
-        cruft = []
-        ret.each do |feed| 
-          cruft << feed if feed['dataurl'].size == 0
-          cruft << feed if feed['sitename'].size == 0 &&
-          feed['description'].size == 0
-          dups = ret.find_all { |f| f['dataurl'] == feed['dataurl'] }
-          if dups.size > 1
-            dups.shift
-            dups.each { |dup| cruft << dup }
-          end
-        end
-      
-        # delete cruft
-        cruft.each { |feed| ret.delete(feed) }
-      
-        ret
-      end
-
-      #
       # search for feeds from ncurses
       # 
       def NcursesInterface::find_feeds
@@ -3849,6 +3824,37 @@ ENDUSAGE
     
       # redraw feed / item windows
       $update_wins = true
+    end
+
+    #
+    # search for feeds, return array of hashes w/ results
+    #
+    def Engine::find_feeds(str)
+      syn = Raggle::Syndic8.new
+    
+      syn.keys -= ['siteurl']
+      syn.max_results = $config['syndic8_max_results']
+    
+      # query syndic8
+      ret = syn.find(str)
+    
+      # find empty and duplicate results
+      cruft = []
+      ret.each do |feed| 
+        cruft << feed if feed['dataurl'].size == 0
+        cruft << feed if feed['sitename'].size == 0 &&
+        feed['description'].size == 0
+        dups = ret.find_all { |f| f['dataurl'] == feed['dataurl'] }
+        if dups.size > 1
+          dups.shift
+          dups.each { |dup| cruft << dup }
+        end
+      end
+    
+      # delete cruft
+      cruft.each { |feed| ret.delete(feed) }
+    
+      ret
     end
   end
 end

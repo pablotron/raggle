@@ -19,10 +19,7 @@ Raggle TODO
     resize_term knows what to do (not really, but still).
     We need to know *where* the windows are.
     For instance, in the default config, narrowing "Feeds" means
-    widening the other two windows, and such.  This is all possible,
-    right now.  But takes surgery, which can wait until morning, if
-    you read this more than a week after I commit it, email me and
-    tell me to at the very least ammend this, to say why it's taken so long
+    widening the other two windows, and such.  
 [ ] Add a focus mode 'focus_smart'(?) that will select a feed when you
     flip from feeds into items (such that you don't have one feed by all
     visual accounts "Highlighted", but the items from another, since

@@ -2125,3 +2125,7 @@
 * Thu Dec 09 17:53:45 2004, redshift <redshift@halffull.org>
   * raggle: check for duplicate feeds on command line as well
   * raggle: upped refresh for default feeds from 2 to 15 minutes also
+
+* Thu Dec 09 23:01:05 2004, redshift <redshift@halffull.org>
+  * raggle: added M and N to accompany m in Ncurses mode - they mark all
+    items as unread and the current item as unread, respectively

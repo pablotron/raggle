@@ -2593,7 +2593,7 @@ ENDUSAGE
         if $config['repair_relative_urls']
           # get host portion of original URL
           host_url = feed['url']
-          host_url = host_url.gsub(/^((?:\w+):\/\/)?([^\/]+)(\/.*)?$/, '\1\2')
+          host_url.gsub!(/^((?:\w+):\/\/)?([^\/]+)(\/.*)?$/, '\1\2')
       
           item_content = item_content.gsub(/href\s*=\s*["']([^'"]+?)['"]/m) {
             m = $1.dup
@@ -2665,6 +2665,31 @@ ENDUSAGE
         win.items.each { |item| item['read?'] = true }
         $config['feeds'].get($a_feed)['items'].each { |item| item['read?'] = true }
       
+        NcursesInterface::populate_feed_win
+        win.draw_items
+      end
+
+      #
+      # mark current item as unread
+      #
+      def NcursesInterface::mark_current_as_unread
+        win = $wins[NcursesInterface::get_win_id('item')]
+        win.items[$a_item]['read?'] = false
+        $config['feeds'].get($a_feed)['items'][$a_item]['read?'] = false
+
+        win.scroll_down
+        NcursesInterface::populate_feed_win
+        win.draw_items
+      end
+
+      #
+      # mark all items in feed as unread
+      #
+      def NcursesInterface::mark_items_as_unread
+        win = $wins[NcursesInterface::get_win_id('item')]
+        win.items.each { |item| item['read?'] = false }
+        $config['feeds'].get($a_feed)['items'].each { |item| item['read?'] = false }
+
         NcursesInterface::populate_feed_win
         win.draw_items
       end
@@ -4579,6 +4604,8 @@ $config = {
     ?o                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::open_link },
 
     ?m                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::mark_items_as_read },
+    ?M                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::mark_items_as_unread },
+    ?N                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::mark_current_as_unread },
 
     ?!                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::drop_to_shell },
 

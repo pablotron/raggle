@@ -54,10 +54,12 @@ p {
 /**************************/
 .feed-tr-unread-even {
   background-color: #ffffff;
+  font-size: 10px;
 }
 
 .feed-tr-unread-odd {
   background-color: #eeeeee;
+  font-size: 10px;
 }
 
 .feed-count-unread-even {
@@ -87,10 +89,12 @@ p {
 /************************/
 .feed-tr-read-even {
   background-color: #ffffff;
+  font-size: 10px;
 }
 
 .feed-tr-read-odd {
   background-color: #eeeeee;
+  font-size: 10px;
 }
 
 .feed-count-read-even {
@@ -121,181 +125,3 @@ p {
   text-decoration: none;
 }
 
-
-/*********************************************************************/
-/* Title Style                                                       */
-/*********************************************************************/
-#titlebar {
-  left: 0;
-  right: 0;
-  font-family: arial, helvetica, sans-serif;
-  font-weight: bold;
-  text-align: left;
-  border-bottom: 2px solid #111111;
-  background-color: #eeeeee;
-  background-image: url(/images/default-title-bg.png);
-  background-repeat: repeat-x;
-  padding: 5px;
-}
-
-/* #titlebar:hover {
-  background-color: #ffffff;
-} */
-
-#tbName {
-  font-family: arial, helvetica, sans-serif;
-  font-weight: bold;
-  font-size: 32px;
-  color: #111111;
-  letter-spacing: 10px;
-}
-
-#tbName:hover {
-  text-decoration: none;
-}
-
-/*********************************************************************/
-/* Sidebar Style                                                     */
-/*********************************************************************/
-#sidebarArea {
-  float: left;
-  width: 100px;
-}
-
-.sidebar {
-  font-size: 12px;
-  margin: 10px;
-  width: 100px;
-
-  background-color: #ffffff;
-  border: 1px solid #050505;
-}
-
-.sidebar:hover {
-  background-color: #ffffff;
-  border: 1px solid #111111;
-}
-
-.sbLink {
-  color: #111111;
-  text-decoration: none;
-}
-
-.sbLink:hover {
-  color: #ffcc00;
-  text-decoration: underline;
-}
-
-.sbTitle {
-  background-color: #666666;
-  font-size: 9px;
-  font-weight: bold;
-  color: #ffffff;
-  padding: 2px;
-  padding-left: 5px;
-}
-
-.sbContent {
-  padding: 5px;
-}
-
-.sbValidXhtml {
-  margin: 10px;
-  padding: 5px;
-  width: 100px;
-}
-
-.activeItem {
-  color: #111111;
-  font-weight: bold;
-}
-
-.activeItem:hover {
-  color: #ffcc00;
-  text-decoration: underline;
-}
-
-#choose-theme-default {
-  color: #111111;
-  font-weight: bold;
-}
-
-#choose-theme-default:hover {
-  color: #ffcc00;
-  font-weight: bold;
-}
-
-/*********************************************************************/
-/* Content Style                                                     */
-/*********************************************************************/
-#content {
-  float: left;
-  position: absolute;
-  left: 115px;
-  right: 5px;
-  top: 49px;
-}
-
-.item {
-  margin: 10px;
-  background-color: #ffffff;
-  background-image: url(/images/default-item-bg.png);
-  background-repeat: repeat-x;
-  border: 1px solid #050505;
-}
-
-.title {
-  color: black;
-  font-family: arial, helvetica, sans-serif;
-  font-size: 14px;
-  font-weight: bold;
-  padding: 5px;
-  padding-bottom: 0px;
-  padding-top: 1px;
-}
-
-.subtitle {
-  font-size: 10px;
-  padding: 5px;
-  padding-top: 0px;
-  padding-bottom: 1px;
-}
-
-.date {
-  text-align: left;
-}
-
-.text {
-  margin: 0px;
-  padding: 5px;
-  background-color: white;
-  border-top: 1px solid black;
-}
-
-.permLink {
-  font-size: 9px;
-  padding-top: 0px;
-  padding-bottom: 0px;
-  padding-left: 0px;
-}
-
-/*********************************************************************/
-/* News Archive Style                                                */
-/*********************************************************************/
-#archiveTable {
-  border: 0px;
-  font-size: 11px;
-  text-align: left;
-}
-
-/*********************************************************************/
-/* Misc Style                                                        */
-/*********************************************************************/
-#copyright {
-  padding-right: 15px; 
-  font-size: 10px;
-  float: right;
-  /*position: absolute;
-  bottom: 0;
-  right: 0;*/
-}

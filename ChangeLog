@@ -1302,3 +1302,7 @@
 
 * Wed Sep 03 21:45:04 2003, pabs <pabs@pablotron.org>
   * raggle: force web server if we're missing ncurses
+
+* Wed Sep 03 22:09:16 2003, pabs <pabs@pablotron.org>
+  * extras/web_ui/inc/*.css: render properly in IE, remove extra
+    style entries

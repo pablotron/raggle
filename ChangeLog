@@ -438,6 +438,8 @@
   * raggle: fix lock_title? bug
   * raggle: pruned default feed list to 10 items
     
+* Sun Jun 22 04:19:53 2003, richlowe <richlowe@richlowe.net>
+  * raggle.1: List of keybindings for use within raggle.
 
 
 

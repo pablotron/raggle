@@ -80,6 +80,7 @@ require 'net/http'
 require 'pstore'
 require 'thread'
 require 'time'
+require 'rubygems'
 
 #########################
 # load external modules #
@@ -3636,13 +3637,13 @@ ENDUSAGE
           when :db
             # build query
             cols, args = [], []
-            { :title_field  => title,
-              :url_field    => url,
-              :tag_field    => tags,
-              :desc_field   => ext,
+            { :title  => title,
+              :url    => url,
+              :tags   => tags,
+              :desc   => ext,
             }.each_pair do |col_key, val|
-              if bmb[col_key]
-                cols << bmb[col_key]
+              if bmb[:fields][col_key]
+                cols << bmb[:fields][col_key]
                 args << val
               end
             end
@@ -3651,7 +3652,7 @@ ENDUSAGE
               db, quote_meth = nil, nil
 
               # database-specific connection stuff
-              case :dbtype
+              case bmb[:dbtype]
               when :mysql
                 unless $HAVE_LIB['mysql']
                   raise $config['msg_bm_db_missing'] % 'Mysql'
@@ -3659,7 +3660,7 @@ ENDUSAGE
 
                 # connect to database, set quote method
                 db = Mysql::connect(bmb[:host], bmb[:user], bmb[:pass])
-                db.select_db(bmb[:db_name])
+                db.select_db(bmb[:dbname])
                 quote_meth = Mysql::method(:escape_string)
               when :sqlite
                 unless $HAVE_LIB['sqlite']
@@ -3667,7 +3668,8 @@ ENDUSAGE
                 end
 
                 # connect to database, set quote method
-                db = SQLite::Database.new(bmb[:path])
+                path = Engine::expand_str(bmb[:path])
+                db = SQLite::Database.new(path)
                 quote_meth = SQLite::Database.method(:quote)
               else
                 # unknown database type
@@ -5405,6 +5407,7 @@ $config = {
   'msg_bm_bad_type'       => _('Bad bookmark type: %s'),
   'msg_bm_bad_db_type'    => _('Unknown database type: %s'),
   'msg_bm_db_err'         => _('Database Error: %s'),
+  'msg_bm_db_missing'     => _('Missing Database Engine: %s'),
   'msg_bm_del_err'        => _('Delicious Error: %s'),
   'msg_bm_del_saving'     => _('Saving Bookmark to Delicious...'),
   'msg_bm_del_missing'    => _('Error: Rubilicious not installed.'),
@@ -5783,10 +5786,18 @@ $config = {
   # how bookmarks are saved when you press 'B' in the
   # Ncurses interface
   'bookmark' => [
+    # basic CSV bookmark file
+    { :type => :csv_file,
+      :path => '${config_dir}/bookmarks.csv', 
+
+      # don't prompt for descriptions (default: false)
+      :no_desc => true,
+    },
+
+    # save bookmarks to delicious
+    # note: requires rubilicious library, and account on
+    # delicious (see http:/del.icio.us/)
 # 
-#     # save bookmarks to delicious
-#     # note: requires rubilicious library, and account on
-#     # delicious (see http:/del.icio.us/)
 #     { :type => :delicious,
 #        
 #       # required settings
@@ -5803,12 +5814,64 @@ $config = {
 #     },
 # 
   
-    # basic CSV bookmark file
-    { :type => :csv_file,
-      :path => '${config_dir}/bookmarks.csv', 
+    # save bookmarks to sqlite
+    # note: requires the sqlite-ruby library, and the bookmark
+    # database must exist, with the appropriate table
+    { :type   => :db,
+      :dbtype => :sqlite,
+    
+      # path to database file
+      # note: database file MUST already exist!
+      :path   => '${config_dir}/bookmarks.db',
 
+      # name of table to save bookmarks into
+      # note: this table MUST already exist!
+      :table  => 'raggle_bookmarks',
+
+      # list of fields (note: you can omit any of these)
+      :fields => {
+        :title  => 'title',
+        :desc   => 'description',
+        :url    => 'url',
+        :tags   => 'tags',
+      },
+
+      # optional settings
       # don't prompt for descriptions (default: false)
-      :no_desc => true,
+      # :no_desc => false,
+      # don't prompt for tags (default: false)
+      # :no_tag => false,
+    },
+
+    # save bookmarks to mysql
+    # note: requires the sqlite-ruby library, and the bookmark
+    # database must exist, with the appropriate table
+    { :type   => :db,
+      :dbtype => :mysql,
+    
+      # db server, username, password, and name of database to use
+      :host   => 'vault',
+      :user   => 'pabs',
+      :pass   => 'p3p51',
+      :dbname => 'pablotron',
+
+      # name of table to save bookmarks into
+      # note: this table MUST already exist!
+      :table  => 'raggle_bookmarks',
+
+      # list of fields (note: you can omit any of these)
+      :fields => {
+        :title  => 'title',
+        :desc   => 'description',
+        :url    => 'url',
+        :tags   => 'tags',
+      },
+
+      # optional settings
+      # don't prompt for descriptions (default: false)
+      # :no_desc => false,
+      # don't prompt for tags (default: false)
+      # :no_tag => false,
     },
   ],
 

@@ -2464,3 +2464,9 @@ _Cvs
     sorting bug
   * raggle: add support for sqlite and mysql bookmark db backends
   * README: add note about sqlite and mysql bookmark db backends
+
+* Sun Mar 20 23:41:34 2005, pabs <pabs@pablotron.org>
+  * raggle: ironed out kinks in sqlite and mysql stuff, they both
+    work as advertised now
+  * added extras/sql/mysql.sql (sample schema for bookmarks table)
+  * added extras/sql/sqlite.sql (sample schema for bookmarks table)

@@ -735,6 +735,9 @@
   * raggle: fixed nil.unescape_html bug reported by Ville Aine
     (vaine@cs.helsinki.fi)
 
+* Thu Jun 26 20:08:18 2003, pabs <pabs@pablotron.org>
+  * raggle: applied command-line option handling code cleanup from
+    Ville Aine (vaine@cs.helsinki.fi).
 
 
 

@@ -1399,20 +1399,20 @@ end
 #
 # handle command-line options
 # 
-def handle_Command_line(opts)
+def handle_command_line(opts)
   ret = { 'mode' => 'view' }
 
   gopts = GetoptLong.new(
-    ['-a', '--add',        '--add-feed',        GetoptLong::NO_ARGUMENT],
-    ['-e', '--edit',       '--edit-feed',       GetoptLong::REQUIRED_ARGUMENT],
-    ['-d', '--delete',     '--delete-feed',     GetoptLong::REQUIRED_ARGUMENT],
-    ['-i', '--invalidate', '--invalidate-feed', GetoptLong::REQUIRED_ARGUMENT],
-    ['-c', '--config',     '--config-file',     GetoptLong::REQUIRED_ARGUMENT],
-    ['-l', '--list',                            GetoptLong::NO_ARGUMENT],
-    ['-t', '--title',                           GetoptLong::REQUIRED_ARGUMENT],
-    ['-u', '--url',                             GetoptLong::REQUIRED_ARGUMENT],
-    ['-r', '--refresh',                         GetoptLong::REQUIRED_ARGUMENT],
-    ['-v', '--version',                         GetoptLong::NO_ARGUMENT],
+    ['--add', '-a',        '--add-feed',        GetoptLong::NO_ARGUMENT],
+    ['--edit', '-e',       '--edit-feed',       GetoptLong::REQUIRED_ARGUMENT],
+    ['--delete', '-d',     '--delete-feed',     GetoptLong::REQUIRED_ARGUMENT],
+    ['--invalidate', '-i', '--invalidate-feed', GetoptLong::REQUIRED_ARGUMENT],
+    ['--config', '-c',     '--config-file',     GetoptLong::REQUIRED_ARGUMENT],
+    ['--list', '-l',                            GetoptLong::NO_ARGUMENT],
+    ['--title', '-t',                           GetoptLong::REQUIRED_ARGUMENT],
+    ['--url', '-u',                             GetoptLong::REQUIRED_ARGUMENT],
+    ['--refresh', '-r',                         GetoptLong::REQUIRED_ARGUMENT],
+    ['--version', '-v',                         GetoptLong::NO_ARGUMENT],
     ['--purge',                                 GetoptLong::NO_ARGUMENT],
     ['--sort', '--sort-feeds',                  GetoptLong::NO_ARGUMENT],
     ['--lock-title',                            GetoptLong::NO_ARGUMENT],
@@ -1421,34 +1421,34 @@ def handle_Command_line(opts)
     ['--unsave-items',                          GetoptLong::NO_ARGUMENT],
     ['--verbose',                               GetoptLong::NO_ARGUMENT],
     ['--diag',                                  GetoptLong::NO_ARGUMENT],
-    ['-h', '--help', '--usage',                 GetoptLong::NO_ARGUMENT]
+    ['--help', '-h', '--usage',                 GetoptLong::NO_ARGUMENT]
   )
 
   begin
     gopts.each do |opt, arg|
       case opt
-        when '-a', '--add', '--add-feed'
+        when '--add'
           ret['mode'] = 'add'
-        when '-e', '--edit', '--edit-feed'
+        when '--edit'
           ret['mode'] = 'edit'
           ret['id'] = arg.to_i
-        when '-d', '--delete', '--delete-feed'
+        when'--delete'
           ret['mode'] = 'delete'
           ret['id'] = arg.to_i
-        when '-i', '--invalidate', '--invalidate-feed'
+        when '--invalidate'
           ret['mode'] = 'invalidate'
           ret['id'] = arg.to_i
-        when '-c', '--config', '--config-file'
+        when '--config'
           $config['config_path'] = arg
-        when '-l', '--list'
+        when '--list'
           ret['mode'] = 'list'
-        when '-t', '--title'
+        when '--title'
           ret['title'] = arg
-        when '-u', '--url'
+        when '--url'
           ret['url'] = arg
-        when '-r', '--refresh'
+        when '--refresh'
           ret['refresh'] = arg.to_i
-        when '-v', '--version'
+        when '--version'
           puts "Raggle v#$VERSION"
           exit 0
         when '--purge'
@@ -1661,7 +1661,7 @@ def main
   expand_config
 
   # parse command-line options
-  opts = handle_Command_line ARGV
+  opts = handle_command_line ARGV
   
   # if $HOME/.raggle doesn't exist, then create it
   Dir::mkdir $config['config_dir'] unless test ?d , $config['config_dir']

@@ -12,7 +12,7 @@ Raggle TODO
 [*] scrolling in Description window
 [ ] fix blocking for feed grabbing (grab feeds in parallel?)
 [*] better theme format
-[ ] Convert manpage (raggle.1) to -ms
+[*] Convert manpage (raggle.1) to -ms
 [ ] Window resizing.
     Take a copy of ['theme']['window'], so we can resize without
     messing up the initial sizes (they need to be changed so
@@ -53,7 +53,7 @@ Raggle TODO
       not doing it.
 [-] extended RSS support (1.0 modules, including Dublin Core and
     Syndication support, etc)
-[-] Check that the feedlist and feedcache are valid, after saving
+[*] Check that the feedlist and feedcache are valid, after saving
     them. Write to another file, and check it, then move it into place
 [ ] select and follow links in description window (suggested by Omnic)
 [-] add, remove, edit feeds inside Raggle
@@ -67,6 +67,9 @@ Raggle TODO
 [*] feed groups
 [ ] clean separation of Ncurses and WEBrick interfaces (maybe an
     Interfaces module).  Don't require Ncurses if WEBrick is
-    installed.
+    installed. 
+    ( I would prefer if what you mean is "If Ncurses isn't installed
+    and webrick is, start the web interface by default" that there be
+    a big obvious message say what is happening and why -- richlowe 2003-09-25)
 [ ] Thread#abort_on_exception for feed grabbing thread! (suggested by
     Harry Ohlsen <harryo@qiqsolutions.com>).

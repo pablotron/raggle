@@ -2987,6 +2987,12 @@ def main
                 log.puts "Feed \"#{feed['title']}\" hasn't changed."
               end
               
+              # if this is the currently selected feed, then re-select it
+              # so it's contents are updated
+              if $config['feeds'][$a_feed]['url'] == feed['url']
+                $wins[get_win_id('feed')].select_win_item
+              end
+
               # redraw feed / item windows
               $update_wins = true
             }

@@ -62,7 +62,7 @@ Bugs
     setting the environment variables correctly before invoking Raggle)
 [*] occasionally __ITEM_ID__ isn't expanded in the feed item list in the
     web interface
-[ ] when the active feed is updated it doesn't refresh the item window
+[*] when the active feed is updated it doesn't refresh the item window
 [ ] inconsistent theme color specification (some items take multiple
     attributes, some don't). reported by Phil Gregory
     <phil@mithrandir.aperiodic.net>

@@ -1384,4 +1384,10 @@
     <karld@ugcs.caltech.edu)
 
 * Tue Sep 09 16:32:12 2003, pabs <pabs@pablotron.org>
-  * raggle attribute bug report above to proper source
+  * raggle: attribute bug report above to proper source
+
+* Tue Sep 09 16:43:19 2003, pabs <pabs@pablotron.org>
+  * raggle: if current feed is selected, refresh item window (this
+    might be kind of annoying if you're reading the feed, since it would 
+    lose your place.  thoughts anyone?)
+  * BUGS: mark aformentioned bug off the list o' bugs

@@ -2409,3 +2409,7 @@ _Cvs
   * raggle.pod: added 0.4 to HISTORY
   * raggle.1: regenerated from pod
   * raggle.1: removed perl5.8.4 string
+
+* Tue Mar 15 20:28:51 2005, pabs <pabs@pablotron.org>
+  * raggle: updated default feeds (fixed freshmeat and alternet, removed
+    www. sillyness)

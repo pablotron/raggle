@@ -97,3 +97,4 @@ Raggle TODO
     outstanding resize problem, etc... prompted by email from Geoffrey G
     Plitt <ggp@andrew.cmu.edu>)
 [ ] make Raggle work with Ruby Curses API (heap's suggestion)
+[ ] create a Gem for Raggle (http://rubygems.rubyforge.org/wiki/wiki.pl?CreateAGemInTenMinutes)

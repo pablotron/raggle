@@ -1855,3 +1855,6 @@
 * Sat Apr 17 12:22:28 2004, pabs <pabs@pablotron.org>
   * raggle: hopefully fix feed reap error reported by Grant Bowman 
     <grantbow@grantbow.com> via the Debian Bug Tracking system
+
+* Mon Apr 19 10:49:15 2004, pabs <pabs@pablotron.org>
+  * TODO: added gem suggestion from ruby-talk

@@ -98,3 +98,7 @@ Raggle TODO
     Plitt <ggp@andrew.cmu.edu>)
 [ ] make Raggle work with Ruby Curses API (heap's suggestion)
 [ ] create a Gem for Raggle (http://rubygems.rubyforge.org/wiki/wiki.pl?CreateAGemInTenMinutes)
+[ ] confirm delete feed (suggested by Peter Kleiweg <kleiweg@let.rug.nl>)
+[ ] automatic new item pseudo-feed (suggested by ")
+[ ] automatically opening the desc links in your browser via the 
+    number keys (suggested by ")

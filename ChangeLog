@@ -1579,3 +1579,6 @@
 
 * Tue Sep 23 23:33:39 2003, pabs <pabs@pablotron.org>
   * raggle: added find_win32_proxy (check registry for proxy)
+
+* Tue Sep 23 23:43:52 2003, pabs <pabs@pablotron.org>
+  * raggle: added debugging for win32 registry proxy stuff

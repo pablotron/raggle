@@ -934,3 +934,6 @@
 * Thu Jul 10 05:02:37 2003, pabs <pabs@pablotron.org>
   * raggle: do refresh check on opml import and with --add (patch from
     Ville Aine).
+
+* Thu Jul 10 05:03:24 2003, pabs <pabs@pablotron.org>
+  * AUTHORS: update ville's entry to reflect new patches

@@ -6,7 +6,7 @@ DATADIR=${PREFIX}/share/raggle
 DATA=themes
 DOCS=doc/* AUTHORS BUGS COPYING ChangeLog README
 
-install:
+install :
 	cp raggle ${BINDIR} && \
 	if [ ! -d "${DOCDIR}" ]; then \
 		mkdir ${DOCDIR}; \
@@ -17,3 +17,7 @@ install:
 	cp raggle.1 ${MANDIR} && \
 	cp -r ${DOCS} ${DOCDIR} && \
 	cp -r ${DATA} ${DATADIR}
+
+man :
+	pod2man --release 0.2 --center "User Commands Manual" \
+	    --official raggle.pod > raggle.1.new

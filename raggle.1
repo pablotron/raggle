@@ -316,7 +316,7 @@ Redraw the screen
 .El
 .Sh EXAMPLES
 Add a feed called "Bar" updating every 2 hours
-.Dl $ raggle --add -t "Bar" -u "http://foo.com/bar.rss" --r 120
+.Dl $ raggle --add -t "Bar" -u "http://foo.com/bar.rss" -r 120
 .Pp
 Change the refresh time of the "Bar" feed to update every hour
 (assuming it is feed #1)
@@ -343,7 +343,6 @@ Export all feeds to foo.opml
 Import feeds from foo.opml, so that their refresh time is set
 to 90 minutes.
 .Dl $ raggle --import-opml foo.opml --refresh 90
-.Bd -literal
 .Sh BUGS
 .\" XXX Keep in sync with raggle/BUGS (but prettify)
 .Bl -bullet -width xx

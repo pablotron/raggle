@@ -912,5 +912,15 @@
           bug I fixed a few days ago
 	
 
+* Wed Jul  9 05:09:07 2003, richlowe <richlowe@richlowe.net>
+  * raggle.1: Fix a bug in the examples.
+  * raggle.pod: Re-write the manpage in POD, thus getting a far more
+                portable man page, the intent is that raggle.1 will be the
+		output from running pod2man on this file, and that anyone
+		changing raggle.pod will run 'make man' and commit both
+		files.  Currently 'make man' creates raggle.1.new until
+		I'm convinced of the suitability of POD.
+  * Makefile: Add a 'man' target to create raggle.1 (raggle.1.new, right
+              now) from the POD source in raggle.pod
 
 

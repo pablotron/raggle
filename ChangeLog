@@ -2310,3 +2310,6 @@
 
 * Wed Feb 02 16:58:00 2005, redshift <redshift@halffull.org>
   * raggle: fixed bug with image reflist - missing 'title' could crash
+
+* Tue Feb 08 09:46:00 2005, redshift <redshift@halffull.org>
+  * raggle: added do_beep patch, default off

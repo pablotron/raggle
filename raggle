@@ -841,7 +841,7 @@ module Raggle
         #puts "SOURCE: ", source
         attributes = {}
         source.scan(ATTRIBUTE_LIST_RE) do |name, value, unquoted_value|
-    attributes[name] = value || unquoted_value || ''
+          attributes[name] = value || unquoted_value || ''
         end
         attributes
       end
@@ -4512,6 +4512,11 @@ ENDUSAGE
         else
           feed['items'] = new_items
         end
+
+        if $config['do_beep']
+          print "\a"
+        end
+        
         Thread::critical = false
       else
         feed['updated'] = t.to_i
@@ -5007,6 +5012,9 @@ $config = {
   # browser options
   'browser'               => Raggle::Path::find_browser,
   'browser_cmd'           => ['${browser}', '%s'],
+
+  # beep on new articles?
+  'do_beep'               => false,
 
   # Force raggle to accept shell metacharacters in urls.
   'force_url_meta'        => false,

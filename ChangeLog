@@ -237,3 +237,16 @@
 * Thu Jun 19 17:46:43 EDT 2003, richlowe <richlowe@richlowe.net>
   * raggle: Make Window#activate punt in feeds with no items.
 
+* Fri Jun 20 01:44:26 2003, pabs <pabs@pablotron.org>
+  * raggle: added 'lock_feed_title' option: lock all feed titles to
+    the value you enter (or the value pulled originally)
+  * raggle: reset item offset when selecting new feed
+  * raggle: added '--sort-feeds' command-line option: sort feed list
+    alphabetically (case-insensitive)
+  * raggle: added '--lock-title' command-line option: use it with --edit
+    to lock the title of a specific feed (as opposed to the
+    'lock_feed_title' config option above, which locks _all_ feed 
+    titles.
+  * raggle: added '--unlock-title' command-line option; it does the
+    opposite of '--lock-title'
+  * raggle: added brief descriptions to methods missing them

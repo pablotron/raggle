@@ -152,6 +152,10 @@ $config = {
   'browser'               => find_browser,
   'browser_cmd'           => '${browser} %s',
 
+  # lock feed names (don't update feed title from feed)
+  # (you can lock individual feed titles with the --lock-title command)
+  'lock_feed_title'       => false,
+
   # color palette (referenced by themes)
   'color_palette'         => [
     [  1, Ncurses::COLOR_WHITE,    Ncurses::COLOR_BLACK   ],
@@ -1147,6 +1151,7 @@ def select_feed(id)
 
   # clear item window
   item_id = get_win_id 'item'
+  $wins[item_id].offset = 0
   $wins[item_id].active_item = 0
   $wins[item_id].items.clear
 
@@ -1465,6 +1470,14 @@ def handle_Command_line(opts)
     when '--version'
       puts "Raggle v#$VERSION"
       exit 0
+    when '--sort'
+      ret['mode'] = 'sort'
+    when '--sort-feeds'
+      ret['mode'] = 'sort'
+    when '--lock-title'
+      ret['lock_title?'] = true
+    when '--unlock-title'
+      ret['lock_title?'] = false
     when '--verbose'
       $config['verbose'] = true
     when '-h'
@@ -1497,6 +1510,9 @@ def handle_Command_line(opts)
   ret
 end
 
+#
+# print a list of feeds to stdout
+#
 def list_feeds
   i = -1
   if $config['verbose']
@@ -1512,6 +1528,9 @@ def list_feeds
   end
 end
 
+#
+# add a new feed
+#
 def add_feed(opts)
   refresh_interval_check opts['refresh'] unless opts['force']
   $config[$SRC] << {
@@ -1525,10 +1544,16 @@ def add_feed(opts)
   }
 end
 
+# 
+# delete a feed by id
+#
 def delete_feed(id)
   die "Unknown feed id #{id}." unless $config[$SRC].delete_at(id)
 end
 
+# 
+# sanity check on feed refresh interval
+#
 def refresh_interval_check(interval)
   if interval > 0 && interval < $config['feed_refresh_warn']
     err = <<ENDWARNING
@@ -1541,14 +1566,20 @@ ENDWARNING
   end
 end
 
+#
+# edit an existing feed
+#
 def edit_feed(id, opts)
   refresh_interval_check opts['refresh'] if !opts['force'] && 
                                              opts.has_key?('refresh')
-  %w{title url refresh}.each { |key|
+  %w{title url refresh lock_title?}.each { |key|
     $config[$SRC][id][key] = opts[key] if opts.has_key? key
   }
 end
 
+# 
+# create a lock file for raggle
+#
 def create_cache_lock
   path = $config['cache_lock_path']
   
@@ -1575,6 +1606,9 @@ def create_cache_lock
   end
 end
 
+#
+# destroy raggle lock file
+#
 def destroy_cache_lock
   path = $config['cache_lock_path']
 
@@ -1595,6 +1629,15 @@ def destroy_cache_lock
   unless File::unlink(path)
     $stderr.puts "WARNING: Couldn't unlock \"#{path}\"."
   end
+end
+
+#
+# Sort feeds by title (case-insensitive).
+#
+def sort_feeds
+  $config[$SRC] = $config[$SRC].sort { |a, b|
+    a['title'].downcase <=> b['title'].downcase
+  }
 end
 
 #######################################################################
@@ -1642,6 +1685,10 @@ when 'edit'
   edit_feed opts['id'].to_i, opts
   save_feed_list
   exit 0
+when 'sort'
+  sort_feeds
+  save_feed_list
+  exit 0
 end
 
 # load feed cache
@@ -1685,7 +1732,8 @@ feed_thread = Thread.new {
         end
 
         # update feed attributes
-        feed['title'] = chan.title
+        feed['title'] = chan.title unless $config['lock_feed_title'] ||
+                                          feed['lock_title?'] = true
         feed['site'] = chan.link
         feed['updated'] = t.to_i
 

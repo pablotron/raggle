@@ -7,9 +7,8 @@
 #    Richard Lowe <richlowe@richlowe.net>                             #
 #                                                                     #
 #                                                                     #
-# Please see the Raggle page at                                       #
-# http://www.pablotron.org/software/raggle/ for the latest version of #
-# this software.                                                      #
+# Please see the Raggle page at http://www.raggle.org/ for the latest #
+# version of this software.                                           #
 #                                                                     #
 #                                                                     #
 # Copyright (C) 2003 Paul Duncan, and various contributors.           #
@@ -2369,7 +2368,7 @@ $config = {
     # theme information
     'name'          => 'Default Theme',
     'author'        => 'Paul Duncan <pabs@pablotron.org>',
-    'url'           => 'http://www.pablotron.org/software/raggle/',
+    'url'           => 'http://www.raggle.org/',
 
     # window order (order for window changes, etc)
     'window_order'  => ['feed', 'item', 'desc'],
@@ -2451,8 +2450,8 @@ $config = {
 
   'default_feeds' => [
     { 'title'     => ' Raggle', # add a space so sorting puts it at top
-      'url'       => "http://www.pablotron.org/software/raggle/help-#{$VERSION}.xml",
-      'site'      => 'http://www.pablotron.org/software/raggle/',
+      'url'       => "http://www.raggle.org/files/help-#{$VERSION}.xml",
+      'site'      => 'http://www.raggle.org/',
       'refresh'   => -1,
       'updated'   => 1056271511,
       'desc'      => 'Welcome to Raggle!
@@ -2468,7 +2467,7 @@ Description window and press Enter.
 ',
       'items'     => [
         { 'title' => 'Introduction',
-          'url'   => 'http://www.pablotron.org/software/raggle/',
+          'url'   => 'http://www.raggle.org/',
           'date'  => 1056271511,
           'read?' => false,
           'desc'  => 'Welcome to Raggle!
@@ -2478,7 +2477,7 @@ free software; please see the file COPYING for licensing and warranty
 information.
 ', },
         { 'title' => 'License',
-          'url'   => 'http://www.pablotron.org/software/raggle/',
+          'url'   => 'http://www.raggle.org/',
           'date'  => 1056271511,
           'read?' => false,
           'desc'  => 'Copyright (C) 2003
@@ -2504,7 +2503,7 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           ', },
         { 'title' => 'Keyboard',
-          'url'   => 'http://www.pablotron.org/software/raggle/',
+          'url'   => 'http://www.raggle.org/',
           'date'  => 1056271511,
           'read?' => false,
           'desc'  => '- Tab, <-, -> : Window navigation   .
@@ -2522,7 +2521,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 .
 ', },
         { 'title' => 'Reading Feeds',
-          'url'   => 'http://www.pablotron.org/software/raggle/',
+          'url'   => 'http://www.raggle.org/',
           'date'  => 1056271511,
           'read?' => false,
           'desc'  => 'To read a given feed,
@@ -2539,7 +2538,7 @@ different window navigation modes available, see the \'focus\' option for
 additional information.
 ', },
         { 'title' => 'Adding Feeds',
-          'url'   => 'http://www.pablotron.org/software/raggle/',
+          'url'   => 'http://www.raggle.org/',
           'date'  => 1056271511,
           'read?' => false,
           'desc'  => 'To add a new RSS feed to Raggle,
@@ -2555,7 +2554,7 @@ Note: The title will be overwritten by the feed unless you lock the
 title using the --lock-title command-line option.
 ', },
         { 'title' => 'Configuration Files',
-          'url'   => 'http://www.pablotron.org/software/raggle/',
+          'url'   => 'http://www.raggle.org/',
           'date'  => 1056271511,
           'read?' => false,
           'desc'  => \
@@ -2568,7 +2567,7 @@ title using the --lock-title command-line option.
  files are deleted, or if they don\'t exist.
 ', },
         { 'title' => 'Reporting Bugs',
-          'url'   => 'http://www.pablotron.org/software/raggle/',
+          'url'   => 'http://www.raggle.org/',
           'date'  => 1056271511,
           'read?' => false,
           'desc'  => 'Please make sure you are

@@ -171,5 +171,6 @@
   * raggle: fixed bug add feed bug reported by Richard Lowe
     <richlowe@richlowe.net>
   * raggle: added 'unescape_html' option (decode html escape sequences
-    in feed item descriptions)
+    in feed item descriptions) to fix another bug reported by Richard
+    Lowe <richlowe@richlowe.net>
   * raggle: renamed 'strip_html' option to 'strip_html_tags'

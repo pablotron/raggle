@@ -873,14 +873,14 @@ class TextWindow < Window
       # draw date string
       # @win.color_set @colors['date'], nil
       draw(d_str, 7, y, 'date', true, false)
-      y += 1
+      y += 2
     end
     if item['title']
       str = item['title'].strip_tags if $config['strip_html_tags']
       str = str.unescape_html if $config['unescape_html']
       # Offset + 1, so we scroll on the *first* press
       draw(str, 1, y, 'text', true, true, @offset + 1)
-      y += (reflow_string(str).lines - (@offset + 1))
+      y += (reflow_string(str).lines - @offset)
     end
 
     # *Much* faster than a total clear each time it scrolls.
@@ -1109,7 +1109,6 @@ def select_feed(id)
   $wins[item_id].items.clear
 
   $wins[get_win_id('desc')].offset = 0
-  $config['feeds'].describe($a_feed)
   
   # unused.. remove it?
   fmt = $config['item_date_format']
@@ -1166,6 +1165,8 @@ def select_feed(id)
   $wins[item_id].win.clear
   $wins[item_id].draw_items
 
+  $config['feeds'].describe($a_feed)
+  
   # activate item window
   set_active_win(item_id) if $config['focus'] == 'select'
 end

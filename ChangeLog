@@ -629,4 +629,9 @@
   * raggle (Window#draw_text): Only draw the parts of the text we'll be
                                able to see (speed win)
 
+* Tue Jun 24 11:37:28 2003, richlowe <richlowe@richlowe.net>
+  * raggle: The clearrange clearing was clearing a line too high, with
+            humourous results, fix.
+
+
 

@@ -1100,7 +1100,7 @@ module Feed
     def fix_character_encoding(element)
       tmp = ''
       element.get_text.write(REXML::Output.new(tmp, $config['character_encoding']))
-      tmp
+      tmp.unescape_html
     end
   end
 end

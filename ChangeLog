@@ -731,6 +731,9 @@
   * raggle: remove unnecessary String#dup calls from reflow_string
     methods (String#reflow already returns a dupped string)
 
+* Thu Jun 26 14:29:10 2003, pabs <pabs@pablotron.org>
+  * raggle: fixed nil.unescape_html bug reported by Ville Aine
+    (vaine@cs.helsinki.fi)
 
 
 

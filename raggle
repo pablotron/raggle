@@ -889,7 +889,8 @@ class TextWindow < Window
     end
     if item['title']
       y += 2
-      str = item['title'].strip_tags if $config['strip_html_tags']
+      str = item['title'] || ''
+      str = str.strip_tags if $config['strip_html_tags']
       str = str.unescape_html if $config['unescape_html']
       # Offset + 1, so we scroll on the *first* press
       draw(str, 1, y, 'text', true, true, @offset + 1)

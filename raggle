@@ -478,7 +478,7 @@ module HTML
       # If there are links, insert the them here
       unless @links.empty?
 	@lines << ''
-	@lines << 'LINKS:'
+	@lines << $config['msg_links']
 	padding = @links.size / 10 + 1
 	@links.each_with_index do |link, index|
 	  @lines << "%#{padding}d. %s" % [index + 1, link]
@@ -2507,6 +2507,7 @@ $config = {
   'msg_save_theme'        => 'Raggle: Saving theme...',
   'msg_thanks'            => 'Thanks for using Raggle!',
   'msg_term_resize'       => 'Terminal Resize: ',
+  'msg_links'             => 'Links:',
 
   # menu bar color
   'menu_bar_cols'         => 24,

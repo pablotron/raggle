@@ -497,6 +497,11 @@
   * README: Fix spelling in comment, hilite -> highlight, see ispell
             comment above. (String will be fixed in code after release)
 
+* Mon Jun 23 04:37:14 2003, richlowe <richlowe@richlowe.net>
+  * TODO, BUGS: Mention that I have patches for description scrolling
+  * raggle.1: Sync with BUGS
+
+
 
 
 

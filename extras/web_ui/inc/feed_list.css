@@ -63,11 +63,13 @@ p {
 .feed-count-unread-even {
   padding: 2px;
   font-weight: bold;
+  text-align: right;
 }
 
 .feed-count-unread-odd {
   padding: 2px;
   font-weight: bold;
+  text-align: right;
 }
 
 .feed-title-unread-even {
@@ -93,10 +95,12 @@ p {
 
 .feed-count-read-even {
   padding: 2px;
+  text-align: right;
 }
 
 .feed-count-read-odd {
   padding: 2px;
+  text-align: right;
 }
 
 .feed-title-read-even {

@@ -1186,3 +1186,8 @@
 
 * Mon Aug 25 16:44:50 2003, pabs <pabs@pablotron.org>
   * raggle.pod: add --add to manpage (reported by sfire||mouse)
+
+* Mon Aug 25 17:01:26 2003, pabs <pabs@pablotron.org>
+  * extras/web_ui/inc/desc.css: removed extra junk
+  * extras/web_ui/inc/feed_list.css: ditto
+  * extras/web_ui/inc/titlebar.css: ditto

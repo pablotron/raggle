@@ -1080,3 +1080,7 @@
 
 * Sun Aug 17 10:54:29 2003, pabs <pabs@pablotron.org>
   * raggle: disable manual update in default config (silly me)
+
+* Sun Aug 17 10:56:30 2003, pabs <pabs@pablotron.org>
+  * doc/default_config.rb: update from raggle app
+

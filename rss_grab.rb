@@ -45,8 +45,6 @@ rescue
   $HAVE_SSL = false
 end
 
-# FeedItem struct definition
-FeedItem = Struct.new :title, :link, :desc
 
 # check command-line options
 unless ARGV.size > 0
@@ -54,72 +52,106 @@ unless ARGV.size > 0
   exit -1
 end
 
-#
-# Return the contents of a URL
-#
-def get_url(url)
-  port = 80
-  use_ssl = false
+module Feed
+  # Feed::Item struct definition
+  Item = Struct.new :title, :link, :desc
 
-  if url =~ /^https:/
-    raise 'HTTPS support requires OpenSSL-Ruby' unless $HAVE_SSL
-    use_ssl = true
+  #
+  # Return the contents of a URL
+  #
+  def Feed::get_url(url)
+    port = 80
+    use_ssl = false
+
+    if url =~ /^https:/
+      raise 'HTTPS support requires OpenSSL-Ruby' unless $HAVE_SSL
+      use_ssl = true
+    end
+
+    # strip 'http://' prefix from URL
+    url.gsub!(/^\w+?:\/\//, '') if url =~ /^\w+?:\/\//
+
+    # get host and path portions of url
+    raise "Couldn't parse URL: \"#{url}\"" unless url =~ /^(.+?)\/(.+)$/
+    host, path = $1, $2
+
+    # check for port in url
+    if host =~ /:(\d+)$/
+      port = $1 
+      host.gsub!(/:(\d+)$/, '')
+    end
+
+    # init http connection
+    http = Net::HTTP.start(host, port)
+    http.use_ssl = use_ssl if $HAVE_SSL
+    raise "Couldn't connect to host \"#{host}:#{port}\"" unless http
+
+    # get result
+    ret = ''
+    begin
+      http.get('/' << path) { |line| ret << line }
+    rescue 
+      raise "HTTP Error: #$!"
+    end
+
+    # close HTTP connection
+    # Note: if we don't specify this, then the connection is pooled for the
+    # HTTP/1.1 spec (do we prefer that kind of behavior?  maybe I should make in
+    # an option)
+    http.finish
+
+    # return URL content
+    ret
   end
 
-  # strip 'http://' prefix from URL
-  url.gsub!(/^\w+?:\/\//, '') if url =~ /^\w+?:\/\//
+  class Channel
+    attr_accessor :title, :link, :desc, :lang, :items
 
-  # get host and path portions of url
-  raise "Couldn't parse URL: \"#{url}\"" unless url =~ /^(.+?)\/(.+)$/
-  host, path = $1, $2
+    def initialize(url)
+      parse_rss_url url
+    end
+      
+    # 
+    # Parse an RSS URL and return a FeedChannel object (which contains,
+    # among other things, an array of feed_item structs)
+    #
+    def parse_rss_url(url)
+      begin
+        content = Feed::get_url url
+      rescue
+        raise "Couldn't get URL \"#{url}\": #$!."
+      end
 
-  # check for port in url
-  if host =~ /:(\d+)$/
-    port = $1 
-    host.gsub!(/:(\d+)$/, '')
+      # parse URL content
+      doc = REXML::Document.new content
+
+      # get channel info
+      e = nil
+      @title = e.text if e = doc.root.elements['//channel/title']
+      @link = e.text if e = doc.root.elements['//channel/link']
+      @desc = e.text if e = doc.root.elements['//channel/description']
+      @lang = e.text if e = doc.root.elements['//channel/language']
+  
+      # build list of feed items
+      @items = []
+      doc.root.elements.each('//item') { |e| 
+        @items << Feed::Item.new(e.elements['title'].text,
+                                 e.elements['link'].text,
+                                 e.elements['description'].text)
+      }
+    end
   end
-
-  # init http connection
-  http = Net::HTTP.start(host, port)
-  http.use_ssl = use_ssl if $HAVE_SSL
-  raise "Couldn't connect to host \"#{host}:#{port}\"" unless http
-
-  # get result
-  ret = ''
-  begin
-    http.get('/' << path) { |line| ret << line }
-  rescue 
-    raise "HTTP Error: #$!"
-  end
-
-  # close HTTP connection
-  # Note: if we don't specify this, then the connection is pooled for the
-  # HTTP/1.1 spec (do we prefer that kind of behavior?  maybe I should make in
-  # an option)
-  http.finish
-
-  # return URL content
-  ret
 end
 
 # get URL specified on the command-line
-url = ARGV.shift
-begin
-  content = get_url url
-rescue
-  raise "Couldn't get url \"#{url}\": #$!."
-end
+chan = Feed::Channel.new ARGV.shift
 
-# parse URL content
-doc = REXML::Document.new content
-
-# build list of feed items
-feed_items = []
-doc.root.elements.each('//item') { |e| 
-  feed_items << FeedItem.new(e.elements['title'].text,
-                             e.elements['link'].text,
-                             e.elements['description'].text)
-}
+puts 'Channel Information:', 
+     "  Title: #{chan.title}",
+     "  Link:  #{chan.link}",
+     "  Desc:  #{chan.desc}",
+     "  Lang:  #{chan.lang}",
+     ''
 
 # iterate through and print each feed item
-feed_items.each { |item| puts item.title << ': ' << item.link }
+chan.items.each { |item| puts item.title << ': ' << item.link }

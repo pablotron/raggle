@@ -1,20 +1,30 @@
 #!/usr/bin/env ruby
 
+# Raggle version
 $VERSION = '0.1.0'
-
-# load ncurses
-require 'ncurses'
-require 'yaml'
 
 # change to 'feeds' for live feeds
 $SRC = 'feeds'
 # $SRC = 'debug_feeds'
+
+# load required modules
+require 'ncurses'
+require 'yaml'
+require 'rexml/document'
+require 'net/http'
+begin 
+  require 'net/https'
+  $HAVE_SSL = true
+rescue
+  $HAVE_SSL = false
+end
 
 # default config
 $config = {
   'config_dir'            => ENV['HOME'] << '/.raggle',
   'config_path'           => '${config_dir}/config.rb',
   'feed_cache_path'       => '${config_dir}/feed_cache.yaml',
+  'grab_log_path'         => '${config_dir}/grab.log',
 
   # feed cache handling
   'load_feed_cache'       => true,
@@ -41,6 +51,9 @@ $config = {
 
   # input select timeout (in seconds)
   'input_select_timeout'  => 5.0,
+
+  # feed sleep interval (in seconds)
+  'feed_sleep_interval'   => 60,
 
   # color palette (referenced by window attributes)
   'color_palette'         => [
@@ -201,7 +214,7 @@ ragglebug@pablotron.org.
       'url'       => 'http://www.alternet.org/rss/rss.xml',
       'site'      => 'http://www.alternet.org/',
       'desc'      => 'Alternative News and Information.',
-      'refresh'   => -1,
+      'refresh'   => 30,
       'updated'   => 1055113783,
       'items'     => [ ],
     },
@@ -317,34 +330,97 @@ writer).
   ],
 }
 
-# 
-# expand path macros in $config
-#
-def expand_config
-  $config.each { |key, val| 
-    next unless val.class == String && val =~ /\${(.+?)}/
-    orig_val = val.dup
-    val.gsub!(/\${(.+?)}/, $config[$1])
-    # puts "\"#{orig_val}\" expands to \"#{val}\""
-  }
+module Feed
+  # Feed::Item struct definition
+  Item = Struct.new :title, :link, :desc
+
+  #
+  # Return the contents of a URL
+  #
+  def Feed::get_url(url)
+    port = 80
+    use_ssl = false
+
+    if url =~ /^https:/
+      raise 'HTTPS support requires OpenSSL-Ruby' unless $HAVE_SSL
+      use_ssl = true
+    end
+
+    # strip 'http://' prefix from URL
+    url.gsub!(/^\w+?:\/\//, '') if url =~ /^\w+?:\/\//
+
+    # get host and path portions of url
+    raise "Couldn't parse URL: \"#{url}\"" unless url =~ /^(.+?)\/(.+)$/
+    host, path = $1, $2
+
+    # check for port in url
+    if host =~ /:(\d+)$/
+      port = $1 
+      host.gsub!(/:(\d+)$/, '')
+    end
+
+    # init http connection
+    http = Net::HTTP.start(host, port)
+    http.use_ssl = use_ssl if $HAVE_SSL
+    raise "Couldn't connect to host \"#{host}:#{port}\"" unless http
+
+    # get result
+    ret = ''
+    begin
+      http.get('/' << path) { |line| ret << line }
+    rescue 
+      raise "HTTP Error: #$!"
+    end
+
+    # close HTTP connection
+    # Note: if we don't specify this, then the connection is pooled for the
+    # HTTP/1.1 spec (do we prefer that kind of behavior?  maybe I should make in
+    # an option)
+    http.finish
+
+    # return URL content
+    ret
+  end
+
+  class Channel
+    attr_accessor :title, :link, :desc, :lang, :items
+
+    def initialize(url)
+      parse_rss_url url
+    end
+      
+    # 
+    # Parse an RSS URL and return a FeedChannel object (which contains,
+    # among other things, an array of feed_item structs)
+    #
+    def parse_rss_url(url)
+      begin
+        content = Feed::get_url url
+      rescue
+        raise "Couldn't get URL \"#{url}\": #$!."
+      end
+
+      # parse URL content
+      doc = REXML::Document.new content
+
+      # get channel info
+      e = nil
+      @title = e.text if e = doc.root.elements['//channel/title']
+      @link = e.text if e = doc.root.elements['//channel/link']
+      @desc = e.text if e = doc.root.elements['//channel/description']
+      @lang = e.text if e = doc.root.elements['//channel/language']
+  
+      # build list of feed items
+      @items = []
+      doc.root.elements.each('//item') { |e| 
+        @items << Feed::Item.new(e.elements['title'].text,
+                                 e.elements['link'].text,
+                                 e.elements['description'].text)
+      }
+    end
+  end
 end
 
-expand_config
-
-# parse command-line options
-# TODO
-
-# if $HOME/.raggle doesn't exist, then create it
-Dir::mkdir $config['config_dir'] unless test ?d , $config['config_dir']
-
-# load user config ($HOME/.raggle/config.rb)
-load $config['config_path'], false if test ?e, $config['config_path']
-expand_config
-
-# load feed cache
-if $config['load_feed_cache'] && test(?e, $config['feed_cache_path'])
-  $config[$SRC] = YAML::load(File::open($config['feed_cache_path']))
-end
 
 class Window
   attr_accessor :win, :win_type, :title, :key, :colors, :active, :items, :active_item
@@ -526,6 +602,19 @@ def get_win_id(str)
   -1
 end
 
+
+# 
+# expand path macros in $config
+#
+def expand_config
+  $config.each { |key, val| 
+    next unless val.class == String && val =~ /\${(.+?)}/
+    orig_val = val.dup
+    val.gsub!(/\${(.+?)}/, $config[$1])
+    # puts "\"#{orig_val}\" expands to \"#{val}\""
+  }
+end
+
 #
 # set active feed by id
 #
@@ -604,19 +693,94 @@ def select_item(id)
                              !$config['no_desc_auto_focus']
 end
 
+#
+# save feed cache 
+#
 def save_feed_cache
   File.open($config['feed_cache_path'], 'w') { |f|
     f.puts $config[$SRC].to_yaml
   }
 end
 
+#######################################################################
+# End Shenanigans, Begin Actual Code                                  #
+#######################################################################
+
+# expand the default config hash
+expand_config
+
+# parse command-line options
+# TODO
+
+# if $HOME/.raggle doesn't exist, then create it
+Dir::mkdir $config['config_dir'] unless test ?d , $config['config_dir']
+
+# load user config ($HOME/.raggle/config.rb)
+load $config['config_path'], false if test ?e, $config['config_path']
+expand_config
+
+# load feed cache
+if $config['load_feed_cache'] && test(?e, $config['feed_cache_path'])
+  $config[$SRC] = YAML::load(File::open($config['feed_cache_path']))
+end
+
 # start feed grabbing thread
 feed_thread = Thread.new {
-  File.open('asdf.txt', 'a') { |f|
+  File.open($config['grab_log_path'], 'a') { |log|
+    log.puts "#{Time.now}: Starting grab log."
     loop {
-      f.puts 'asdf: ' << Time.now.to_s
-      f.flush
-      sleep 2
+      $config[$SRC].each { |feed|
+        t = Time.now
+
+        log.puts "#{Time.now}: Checking feed \"#{feed['title']}\""
+        next unless feed['refresh'] > 0 && 
+                    feed['updated'] + (feed['refresh'] * 60) < t.to_i
+
+        # update statusbar and grab log
+        log.puts "#{t}: Updating feed \"#{feed['title']}\" from \"#{feed['url']}\""
+        # set_status "Updating \"#{feed['title']}\"..."
+
+        # TODO: save old items
+        # old_items = feed['items']
+        
+        # get channel
+        begin
+          chan = Feed::Channel.new(feed['url'])
+        rescue
+          # set_status "Error updating \"#{feed['title']}\"."
+          log.puts "#{t}: Error: #$!"
+          next
+        end
+
+        # update feed attributes
+        feed['title'] = chan.title
+        feed['site'] = chan.link
+        feed['updated'] = t.to_i
+
+        # clear feed list
+        feed['items'].clear
+
+        # insert new items
+        chan.items.each { |item|
+          feed['items'] << {
+            'title' => item.title,
+            'date'  => 'TODO',
+            'url'   => item.link,
+            'desc'  => item.desc,
+            'read?' => false,
+          }
+        }
+
+        # redraw feed window
+        id = get_win_id 'feed'
+        $wins[id].draw_items
+      }
+
+      # finish log entries
+      interval = $config['feed_sleep_interval']
+      log.puts "#{Time.now}: Done checking.  Sleeping for #{interval}s."
+      log.flush
+      sleep interval
     }
   }
 }

@@ -66,3 +66,14 @@
 * Sun Jun 08 22:11:35 2003, pabs <pabs@pablotron.org>
   * README: added brief introduction, requirements, etc
   * added AUTHORS
+
+* Mon Jun 09 02:32:39 2003, pabs <pabs@pablotron.org>
+  * added TODO
+  * raggle: code cleanup (moved all methods and code after config hash
+    and Window class definition)
+  * rss_grab.rb: made code much nicer looking (and OOP)
+  * raggle: merged in code from rss_grab.rb
+  * raggle: initial code for feed thread
+
+* Mon Jun 09 03:28:20 2003, pabs <pabs@pablotron.org>
+  * raggle: actually parses feeds now :D

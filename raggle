@@ -279,6 +279,10 @@ module Key
     $done = true
   end
 
+  def Key::gui_add_feed
+    ncurses_add_feed
+  end
+
   def Key::next_window
     set_active_win(($a_win + 1) % $wins.size)
   end
@@ -2436,6 +2440,33 @@ def add_feed(opts)
 end
 
 #
+# add a new feed from ncurses
+# 
+def ncurses_add_feed
+  w, e_msg = $config['w'], $config['msg_add_feed']
+
+  # print entry message
+  msg = e_msg + (' ' * (w - e_msg.length - 1))
+  Ncurses::stdscr.color_set $config['theme']['status_bar_cols'], nil
+  Ncurses::mvprintw $config['h'], 0, msg.escape_format
+
+  # get string
+  str = ''
+  Ncurses::echo if $config['use_noecho']
+  Ncurses::mvprintw $config['h'], e_msg.size + 1, ''
+  Ncurses::getstr(str)
+  Ncurses::noecho if $config['use_noecho']
+
+  Ncurses::refresh
+
+  # if it's not nil, then add it to our list
+  if str && str.length > 0
+    add_feed({ 'url' => str })
+    populate_feed_win
+  end
+end
+
+#
 # purge extra feeds in cache
 #
 def purge_feed_cache
@@ -3067,6 +3098,7 @@ $config = {
   'msg_thanks'            => 'Thanks for using Raggle!',
   'msg_term_resize'       => 'Terminal Resize: ',
   'msg_links'             => 'Links:',
+  'msg_add_feed'          => 'Enter URL:',
 
   # menu bar color
   'menu_bar_cols'         => 24,
@@ -3191,6 +3223,7 @@ $config = {
     ?n                  => proc { |win, key| select_next_unread },
 
     ?U                  => proc { |win, key| Key::manual_update },
+    ?a                  => proc { |win, key| Key::gui_add_feed },
   },
 
   # color palette (referenced by themes)

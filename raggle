@@ -467,7 +467,7 @@ class FeedList
 
   def describe(id)
     # clear desc window
-    win = $wins[get_win_id 'desc']
+    win = $wins[get_win_id('desc')]
     win.clear
     
     win.items = [ ] # This should only ever have one entry
@@ -1308,7 +1308,7 @@ end
 # populate feed window
 # 
 def populate_feed_win 
-  win = $wins[get_win_id 'feed']
+  win = $wins[get_win_id('feed')]
 
   win.items.clear
   
@@ -1336,8 +1336,8 @@ end
 def select_item(id)
   $a_item = id
 
-  desc_win = $wins[get_win_id 'desc']
-  item_win = $wins[get_win_id 'item']
+  desc_win = $wins[get_win_id('desc')]
+  item_win = $wins[get_win_id('item')]
 
   # clear description window
   desc_win.active_item = 0
@@ -1366,15 +1366,15 @@ def select_item(id)
   desc_win.draw_items
 
   # activate description window
-  set_active_win(get_win_id 'desc') if $config['focus'] == 'select' and
-                                      !$config['no_desc_auto_focus']
+  set_active_win(get_win_id('desc')) if $config['focus'] == 'select' and
+                                       !$config['no_desc_auto_focus']
 end
 
 #
 # mark all items in feed as read
 # 
 def mark_items_as_read
-  win = $wins[get_win_id 'item']
+  win = $wins[get_win_id('item')]
   # mark item as read
   win.items.each { |item| item['read?'] = true }
   $config['feeds'].get($a_feed)['items'].each { |item| item['read?'] = true }
@@ -1387,7 +1387,7 @@ end
 # select the next unread item
 # 
 def select_next_unread
-  win = $wins[get_win_id 'item']
+  win = $wins[get_win_id('item')]
 
   ($a_item + 1).upto(win.items.size - 1) { |i|
     if win.items[i]['read?'] == false
@@ -1400,7 +1400,7 @@ def select_next_unread
 end
 
 def select_prev_unread
-  win = $wins[get_win_id 'item']
+  win = $wins[get_win_id('item')]
 
   ($a_item - 1).downto(0) { |i|
     if win.items[i]['read?'] == false
@@ -1425,7 +1425,7 @@ def load_feed_cache
   }
   populate_feed_win
   select_feed 0
-  set_active_win get_win_id 'feed'
+  set_active_win get_win_id('feed')
   set_status "Loading feed cache... done"
 end
 
@@ -1782,7 +1782,7 @@ def resize_term
 
   # resize each window
   $config['theme']['window_order'].each { |key|
-    win = $wins[get_win_id key]
+    win = $wins[get_win_id(key)]
 
     # determine new coordinates
     coords = $config['theme']['win_' << key]['coords'].dup
@@ -2263,7 +2263,7 @@ $config = {
 
 
     # Literal control L is horrid -- richlowe 2003-06-26
-    ?                 => proc { |win, key| resize_term },
+    ?\                 => proc { |win, key| resize_term },
     Ncurses::KEY_RESIZE => proc { |win, key| resize_term },
 
     ?s                  => proc { |win, key| Key::sort_feeds },

@@ -679,7 +679,7 @@
 
 * Wed Jun 25 12:25:45 2003, pabs <pabs@pablotron.org>
   * raggle: set_status() shouldn't die on a nil message (reported
-    by Brian Almeida (bma@tynian.net).
+    by Brian Almeida (bma@tynian.net)).
 
 * Wed Jun 25 16:33:40 2003, pabs <pabs@pablotron.org>
   * raggle: fix off by one error in feed list size check in 
@@ -901,5 +901,16 @@
   * raggle: Change the regular expressions involving escaped forward
     slashes '\/', to use %r!! so we don't have the ugly escapes.  I find
     this more readable.
+
+* Wed Jul  9 03:49:15 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Fix various parenthesis warnings, and one actual syntax error
+            (I knew that ^L would come back and bite me in the ass),
+	    raggle now runs under ruby1.8-preview3 (the first 1.8 preview
+	    to include syck/YAML and REXML (according to ruby-lang.org))
+  * README: Update to note that 1.8.0-preview3 works.
+  * BUGS: Mark the "Doesn't work under 1.8" bug as fixed, also the format
+          bug I fixed a few days ago
+	
+
 
 

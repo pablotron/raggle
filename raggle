@@ -406,9 +406,26 @@ module Key
     ncurses_find_entry(win)
   end
 
+  #
+  # toggle view (html) source mode
+  #
   def Key::view_source
+    # toggle global
     $view_source = !$view_source
-    $wins[$a_win].select_win_item if $a_win != get_win_id('desc')
+    win = $wins[$a_win]
+
+    if $a_win == get_win_id('desc')
+      if win.items 
+        # clear formatted content to force refresh
+        # (evil, but it works ;D)
+        win.items[0]['fmt_content'] = nil
+        win.draw_items
+      end
+    else
+      # if we're not in the desc window, just reselect the current
+      # item to force a refresh
+      win.select_win_item 
+    end
   end
 end
 

@@ -1475,3 +1475,7 @@
   * raggle: used cached results in scroll_down/up; rendering speedup
   * raggle: only clearrange in desc window when necessary, this
     removes flicker
+
+* Mon Sep 15 16:59:40 2003, pabs <pabs@pablotron.org>
+  * raggle: make view source toggle work ind escription window as
+    well

@@ -38,7 +38,7 @@
 #######################################################################
 
 # Raggle version
-$VERSION = '0.3.0'
+$VERSION = '0.3.0-test'
 
 # As early as possible, ^C and ^\ are common, and dumping a trace is ugly
 # On the other hand, dumping trace is very useful when running tests, therefore
@@ -3975,7 +3975,7 @@ $config = {
 
   'default_feeds' => [
     { 'title'     => '  Raggle Help', # add a space so sorting puts it at top
-      'url'       => "http://www.raggle.org/files/help-#{$VERSION}.xml",
+      'url'       => "http://www.raggle.org/rss/help/",
       'site'      => 'http://www.raggle.org/',
       'refresh'   => 240,
       'updated'   => -1,

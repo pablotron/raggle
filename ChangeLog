@@ -1695,3 +1695,10 @@
 
 * Thu Nov 06 22:10:50 2003, pabs <pabs@pablotron.org>
   * BUGS: add a few more outstanding bugs
+
+* Fri Nov 07 15:21:41 2003, pabs <pabs@pablotron.org>
+  * raggle: switch help url to raggle.org/rss/help/, use 
+    user-agent to determine version (this might be problematic later
+    on, but at least we don't have to contsantly switch help
+    files in the config any more).
+  * README: add a few more alternate aggregators

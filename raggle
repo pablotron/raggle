@@ -1088,10 +1088,10 @@ module Feed
     
     # initialize http connection
     http = Net::HTTP::new(host, port, proxy['host'], proxy['port'])
-    if $HAVE_LIB['ssl']
+    if $HAVE_LIB['ssl'] && use_ssl
       http.use_ssl = use_ssl
     end
-    # http.open_timeout = $config['http_open_timeout'] || 30
+    http.open_timeout = $config['http_open_timeout'] || 30
     # http.read_timeout = $config['http_read_timeout'] || 120
     http.start
     raise "Couldn't connect to host \"#{host}:#{port}\"" unless http
@@ -3310,8 +3310,14 @@ def main
                 $update_wins = true
               }
               thread = threads[the_feed['url']]
-              thread.join if thread && thread.alive? && !thread.stop? && 
-                             !$config['grab_in_parallel']
+              if thread && thread.status == 'run' &&
+                 !$config['grab_in_parallel']
+                # thread.join            
+              end
+              until Thread::list.size < ($config['max_threads'] || 6)
+                $log.puts 'waiting for threads'
+                sleep 5
+              end
             }
           rescue
             log.puts 'Feed Error: ' << $!.to_s

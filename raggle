@@ -303,17 +303,17 @@ class FeedList
   end
   
   def get(id)
-    raise "FeedList#get: Feed not found: #{id}" unless @feeds.size >= id
+    die "Invalid feed id: #{id}" unless id < @feeds.size
     @feeds[id]
   end
   
   def delete(id)
-    raise "FeedList#delete: Feed not found: #{id}" unless @feeds.size >= id
+    die "Invalid feed id: #{id}" unless id < @feeds.size
     @feeds.delete_at(id)
   end
 
   def invalidate(id)
-    raise "FeedList#delete: Feed not found: #{id}" unless @feeds.size >= id
+    die "Invalid feed id: #{id}" unless id < @feeds.size
     @feeds[id]['updated'] = 0
   end
 
@@ -339,7 +339,7 @@ class FeedList
   end
 
   def edit(id, opts)
-    raise "FeedList#edit: Feed not found: #{id}" unless @feeds.size >= id
+    die "Invalid feed id: #{id}" unless id < @feeds.size
     refresh_interval_check opts['refresh'] if !opts['force'] &&
                                               opts.has_key?('refresh')
     ourl = $config['feeds'].get(id)['url']

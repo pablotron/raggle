@@ -681,6 +681,12 @@
   * raggle: set_status() shouldn't die on a nil message (reported
     by Brian Almeida (bma@tynian.net).
 
+* Wed Jun 25 16:33:40 2003, pabs <pabs@pablotron.org>
+  * raggle: fix off by one error in feed list size check in 
+    FeedList#get, FeedList#delete, FeedList#invalidate, and
+    FeedList#edit.  Reported by Ville Aine (vaine@cs.helsinki.fi).
+  * raggle: above methods should be using die, not raise.
+
 
 
 

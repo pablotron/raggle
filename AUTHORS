@@ -6,3 +6,5 @@ Richard Lowe <richlowe@richlowe.net>
 
 Ville Aine <vaine@cs.helsinki.fi>
 * patch to fix Home and End key bindings.
+* patch to fix off by one error in FeedList#get, FeedList#delete, 
+  FeedList#invalidate, and FeedLIst#edit

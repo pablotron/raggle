@@ -6,7 +6,8 @@ Raggle TODO
 [ ] modularize code to make it suitable for reuse
 [ ] finish inline documentation
 [x] command-line options
-[ ] feed grab save existing items
+[x] feed grab save existing items
 [x] speed up feed cache loading
 [x] theme shouldn't save hard-coded window coordinates
 [ ] scrolling in Description window
+[ ] fix blocking for feed grabbing (grab feeds in parallel?)

@@ -1967,3 +1967,8 @@
       def Engine::call_hook(hook, *args)
         $config['hooks'][hook].call(*args)
       end
+
+* Sun Jul 11 06:27:37 2004, pabs <pabs@pablotron.org>
+  * raggle: moved Raggle::Key module to Raggle::Interfaces::NcursesInterface
+    module
+  * raggle: first pass at renaming all methods to fit new module layout

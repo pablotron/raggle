@@ -59,7 +59,7 @@ if __FILE__ == $0
     # trap('TERM') { puts 'Term'; exit -1 } # don't trap -TERM
 
     # HUP invalidates all feeds and forces a refresh immediately
-    trap('HUP') { invalidate_feed(-1); $feed_thread.run }
+    trap('HUP') { Engine::invalidate_feed(-1); $feed_thread.run }
 
     # trap ALRM so it doesn't kill the process, but it will interrupt
     # the feed grabbing sleep
@@ -338,186 +338,6 @@ module Raggle
                    ret['no_proxy'].find { |i| /#{i}/ =~ host }
 
       ret
-    end
-  end
-
-  module Key
-    def Key::scroll_up
-      $wins[$a_win].scroll_up
-    end
-
-    def Key::scroll_down
-      $wins[$a_win].scroll_down
-    end
-
-    def Key::scroll_top
-      $wins[$a_win].scroll_top
-    end
-
-    def Key::scroll_bottom
-      $wins[$a_win].scroll_bottom
-    end
-
-    def Key::scroll_up_page
-      $wins[$a_win].scroll_up_page
-    end
-
-    def Key::scroll_down_page
-      $wins[$a_win].scroll_down_page
-    end
-
-    def Key::quit
-      $done = true
-    end
-
-    def Key::gui_add_feed
-      ncurses_add_feed
-    end
-
-    def Key::next_window
-      set_active_win(($a_win + 1) % $wins.size)
-    end
-
-    def Key::prev_window
-      set_active_win((($a_win - 1 < 0) ? $wins.size : $a_win) - 1)
-    end
-
-    def Key::select_item
-      $wins[$a_win].select_win_item
-    end
-
-    def Key::move_item_up
-      win = $wins[get_win_id('feed')]
-      $a_feed = $config['feeds'].move_up(win.active_item)
-      win.move_item_up
-    end
-
-    def Key::move_item_down
-      win = $wins[get_win_id('feed')]
-      $a_feed = $config['feeds'].move_down(win.active_item)
-      win.move_item_down
-    end
-
-    def Key::delete
-      if $config['feeds'].size > 0
-        win = $wins[get_win_id('feed')]
-        $config['feeds'].delete(win.active_item)
-        win.delete_item
-        win.active_item = (win.active_item > 0) ? win.active_item - 1 : 0
-        win.draw_items
-        win.clearrange(win.items.size + 1, win.dimensions[1] - 2)
-      end
-    end
-
-    def Key::invalidate_feed
-      id = $wins[get_win_id('feed')].active_item
-      name = $config['feeds'].get(id)['title']
-      $config['feeds'].invalidate(id)
-      set_status " Forcing update for \"#{name}\""
-    end
-
-    def Key::sort_feeds
-      win = $wins[get_win_id('feed')]
-
-      # get old active window
-      a_win = $a_win
-
-      # sort list, repopulate window
-      $config['feeds'].sort
-      populate_feed_win
-      
-      # select first feed, redraw feed window
-      win.active_item = 0
-      win.draw_items
-      win.select_win_item
-
-      # reselect previous window
-      set_active_win a_win
-    end
-    
-    def Key::open_link
-      win = $wins[get_win_id('desc')]
-      win.select_win_item
-    end
-
-    def Key::manual_update
-      $feed_thread.run
-    end
-
-    def Key::find_entry(win)
-      ncurses_find_entry(win)
-    end
-
-    #
-    # toggle view (html) source mode
-    #
-    def Key::view_source
-      # toggle global
-      $view_source = !$view_source
-      win = $wins[$a_win]
-
-      if $a_win == get_win_id('desc')
-        if win.items 
-          # clear formatted content to force refresh
-          # (evil, but it works ;D)
-          win.items[0]['fmt_content'] = nil
-          win.draw_items
-        end
-      else
-        # if we're not in the desc window, just reselect the current
-        # item to force a refresh
-        win.select_win_item 
-      end
-    end
-
-    def Key::build_cat_title(cat, count, width)
-      ret, count_str = "#{cat}  ", "(#{count})"
-      ret << ' ' * (width - ret.size - count_str.size) << count_str
-    end
-
-    def Key::gui_cat_list
-      id = get_win_id('cat')
-      if id == -1
-        cats = $config['feeds'].categories
-
-        # determine window width/height
-        w = $config['w'] - 40
-        h = $config['h'] - 5 
-        h = cats.size + 3 if h > cats.size + 3
-
-        # create window and add it to window list
-        $wins << win = ListWindow::new({
-          'title'   => $config['msg_cat_title'],
-          'key'     => 'cat',
-          'coords'  => [20, 3, w, h],
-          'colors'  => $wins[get_win_id('item')].colors,
-        })
-
-        # build item list
-        win.items << { 
-          'title' => build_cat_title('All', $config['feeds'].size, w - 3),
-          'cat'   => 'All'
-        }
-
-        # iterate and append
-        cats.each_with_index do |c, i| 
-          win.items << {
-            'title' => build_cat_title(c.title, c.count, w - 3), 
-            'cat'   => c.title 
-          }
-          win.activate(i + 1) if $category == c.title
-        end
-
-        # add window to window list and draw item list
-        win.draw_items
-      end
-
-      # activate category window
-      set_active_win(get_win_id('cat'))
-    end
-
-    def Key::gui_find_feed
-      ncurses_find_feeds if $HAVE_LIB['xmlrpc']
     end
   end
 
@@ -1424,6 +1244,188 @@ ENDWARNING
 
   module Interfaces
     module NcursesInterface
+      module Key
+        def Key::scroll_up
+          $wins[$a_win].scroll_up
+        end
+
+        def Key::scroll_down
+          $wins[$a_win].scroll_down
+        end
+
+        def Key::scroll_top
+          $wins[$a_win].scroll_top
+        end
+
+        def Key::scroll_bottom
+          $wins[$a_win].scroll_bottom
+        end
+
+        def Key::scroll_up_page
+          $wins[$a_win].scroll_up_page
+        end
+
+        def Key::scroll_down_page
+          $wins[$a_win].scroll_down_page
+        end
+
+        def Key::quit
+          $done = true
+        end
+
+        def Key::gui_add_feed
+          NcursesInterface::add_feed
+        end
+
+        def Key::next_window
+          win_id = ($a_win + 1) % $wins.size
+          NcursesInterface::set_active_win(win_id)
+        end
+
+        def Key::prev_window
+          win_id = (($a_win - 1 < 0) ? $wins.size : $a_win) - 1
+          NcursesInterface::set_active_win(win_id)
+        end
+
+        def Key::select_item
+          $wins[$a_win].select_win_item
+        end
+
+        def Key::move_item_up
+          win = $wins[NcursesInterface::get_win_id('feed')]
+          $a_feed = $config['feeds'].move_up(win.active_item)
+          win.move_item_up
+        end
+
+        def Key::move_item_down
+          win = $wins[NcursesInterface::get_win_id('feed')]
+          $a_feed = $config['feeds'].move_down(win.active_item)
+          win.move_item_down
+        end
+
+        def Key::delete
+          if $config['feeds'].size > 0
+            win = $wins[get_win_id('feed')]
+            $config['feeds'].delete(win.active_item)
+            win.delete_item
+            win.active_item = (win.active_item > 0) ? win.active_item - 1 : 0
+            win.draw_items
+            win.clearrange(win.items.size + 1, win.dimensions[1] - 2)
+          end
+        end
+
+        def Key::invalidate_feed
+          id = $wins[get_win_id('feed')].active_item
+          name = $config['feeds'].get(id)['title']
+          $config['feeds'].invalidate(id)
+          NcursesInterface::set_status " Forcing update for \"#{name}\""
+        end
+
+        def Key::sort_feeds
+          win = $wins[get_win_id('feed')]
+
+          # get old active window
+          a_win = $a_win
+
+          # sort list, repopulate window
+          $config['feeds'].sort
+          NcursesInterface::populate_feed_win
+          
+          # select first feed, redraw feed window
+          win.active_item = 0
+          win.draw_items
+          win.select_win_item
+
+          # reselect previous window
+          NcursesInterface::set_active_win(a_win)
+        end
+        
+        def Key::open_link
+          win = $wins[NcursesInterface::get_win_id('desc')]
+          win.select_win_item
+        end
+
+        def Key::manual_update
+          $feed_thread.run
+        end
+
+        def Key::find_entry(win)
+          NcursesInterface::find_entry(win)
+        end
+
+        #
+        # toggle view (html) source mode
+        #
+        def Key::view_source
+          # toggle global
+          $view_source = !$view_source
+          win = $wins[$a_win]
+
+          if $a_win == get_win_id('desc')
+            if win.items 
+              # clear formatted content to force refresh
+              # (evil, but it works ;D)
+              win.items[0]['fmt_content'] = nil
+              win.draw_items
+            end
+          else
+            # if we're not in the desc window, just reselect the current
+            # item to force a refresh
+            win.select_win_item 
+          end
+        end
+
+        def Key::build_cat_title(cat, count, width)
+          ret, count_str = "#{cat}  ", "(#{count})"
+          ret << ' ' * (width - ret.size - count_str.size) << count_str
+        end
+
+        def Key::gui_cat_list
+          id = get_win_id('cat')
+          if id == -1
+            cats = $config['feeds'].categories
+
+            # determine window width/height
+            w = $config['w'] - 40
+            h = $config['h'] - 5 
+            h = cats.size + 3 if h > cats.size + 3
+
+            # create window and add it to window list
+            $wins << win = NcursesInterface::ListWindow::new({
+              'title'   => $config['msg_cat_title'],
+              'key'     => 'cat',
+              'coords'  => [20, 3, w, h],
+              'colors'  => $wins[get_win_id('item')].colors,
+            })
+
+            # build item list
+            win.items << { 
+              'title' => build_cat_title('All', $config['feeds'].size, w - 3),
+              'cat'   => 'All'
+            }
+
+            # iterate and append
+            cats.each_with_index do |c, i| 
+              win.items << {
+                'title' => build_cat_title(c.title, c.count, w - 3), 
+                'cat'   => c.title 
+              }
+              win.activate(i + 1) if $category == c.title
+            end
+
+            # add window to window list and draw item list
+            win.draw_items
+          end
+
+          # activate category window
+          NcursesInterface::set_active_win(get_win_id('cat'))
+        end
+
+        def Key::gui_find_feed
+          NcursesInterface::find_feeds if $HAVE_LIB['xmlrpc']
+        end
+      end
+
       class Window
         attr_accessor :win, :title, :key, :colors, :active, :items, :active_item, :offset
 
@@ -1556,17 +1558,17 @@ ENDWARNING
         def select_win_item
           if @items && @items.size > 0 && @items[@active_item]
             if @items[@active_item].has_key? 'feed'
-              select_feed @items[@active_item]['feed']
+              NcursesInterface::select_feed @items[@active_item]['feed']
             elsif @items[@active_item].has_key? 'item'
-              select_item @items[@active_item]['item']
+              NcursesInterface::select_item @items[@active_item]['item']
             elsif @items[@active_item].has_key? 'cat'
-              select_cat @items[@active_item]['cat']
+              NcursesInterface::select_cat @items[@active_item]['cat']
             elsif @items[@active_item].has_key? 'url'
               # are we opening new screen windows?
               use_screen = $config['use_screen'] && in_screen?
 
               # drop out of curses mode
-              save_screen unless use_screen
+              NcursesInterface::save_screen unless use_screen
 
               # get browser command
               cmd = $config['browser_cmd'].map do |cmd_part|
@@ -1597,7 +1599,7 @@ ENDWARNING
               system(*cmd)
         
               # reset screen
-              restore_screen unless use_screen
+              NcursesInterface::restore_screen unless use_screen
             end
           end
         end
@@ -1661,7 +1663,7 @@ ENDWARNING
           
           status = ' ' << @items[@active_item]['title']
           status = status.split(/\s+/).join(' ')
-          set_status status
+          NcursesInterface::set_status status
 
           select_win_item if $config['focus'] == 'auto' && @key != 'cat'
         end
@@ -1770,14 +1772,14 @@ ENDWARNING
 
         def delete_item
           @items.delete_at(@active_item)
-          populate_feed_win
+          NcursesInterface::populate_feed_win
         end
       end
 
       class TextWindow < Window
         def reflow_string(str)
           w = dimensions[0]
-          $view_source ? str.reflow(w - 4) : HTML.render_html(str, w - 4)
+          $view_source ? str.reflow(w - 4) : Raggle::HTML::render_html(str, w - 4)
         end
              
         def draw_items
@@ -1929,7 +1931,7 @@ ENDWARNING
 
         def delete_item
           @items.delete_at(@active_item)
-          populate_feed_win
+          NcursesInterface::populate_feed_win
         end
 
         def resize_width
@@ -1958,7 +1960,7 @@ ENDWARNING
 
         def delete_item
           @items.delete_at(@active_item)
-          populate_feed_win
+          NcursesInterface::populate_feed_win
         end
 
         def resize_width
@@ -2066,27 +2068,27 @@ ENDWARNING
 
           case mode
             when 'sort'
-              sort_feeds
+              Engine::sort_feeds
             when 'invalidate_all'
-              invalidate_feed(-1)
+              Engine::invalidate_feed(-1)
               $feed_thread.run
             when 'add'
               url = $1 if req.query_string =~ /url=(.*)$/
-              add_feed({ 'url' => url })
+              Engine::add_feed({ 'url' => url })
               $feed_thread.run if $config['update_after_add']
             when 'delete'
               if req.query_string =~ /id=(\d+)/
                 id = $1.to_i
-                delete_feed(id)
+                Engine::delete_feed(id)
               end
             when 'invalidate'
               if req.query_string =~ /id=(\d+)/
                 id = $1.to_i
-                invalidate_feed(id)
+                Engine::invalidate_feed(id)
                 $feed_thread.run 
               end
             when 'save_feed_list'
-              save_feed_list
+              Engine::save_feed_list
           end
             
           # build feed list title
@@ -2282,7 +2284,7 @@ ENDWARNING
       end
     end
 
-    module DrbInterface
+    module DRbServerInterface
       class DRbInterface
         def config(key)
           $config[key]
@@ -2325,7 +2327,7 @@ ENDWARNING
         attr_accessor :opts, :interface
         def initialize(opts)
           @opts = opts
-          @interface = Raggle::Interfaces::DrbInterface::DRbInterface.new
+          @interface = DRbInterface.new
         end
 
         def start
@@ -2389,7 +2391,7 @@ ENDWARNING
       #
       # get window id by key
       #
-      def get_win_id(str)
+      def NcursesInterface::get_win_id(str)
         $wins.each_index { |i| return i if $wins[i].key == str }
         -1
       end
@@ -2400,7 +2402,7 @@ ENDWARNING
     # 
     # expand path macros in $config
     #
-    def expand_config
+    def Engine::expand_config
       $config.each { |key, val| 
         next unless val.class == String && val =~ /\$\{(.+?)\}/
         orig_val = val.dup
@@ -2415,7 +2417,7 @@ ENDWARNING
       #
       # set active feed by id
       #
-      def select_feed(id)
+      def NcursesInterface::select_feed(id)
         $a_feed = id
         $a_item = 0
       
@@ -2493,7 +2495,7 @@ ENDWARNING
       #
       # populate feed window
       # 
-      def populate_feed_win 
+      def NcursesInterface::populate_feed_win 
         win = $wins[get_win_id('feed')]
       
         win.items.clear
@@ -2529,7 +2531,7 @@ ENDWARNING
       #
       # set active item by id
       #
-      def select_item(id)
+      def NcursesInterface::select_item(id)
         $a_item = id
       
         desc_win = $wins[get_win_id('desc')]
@@ -2587,7 +2589,7 @@ ENDWARNING
         }
       
         # redraw feed window
-        populate_feed_win
+        NcursesInterface::populate_feed_win
       
         # redraw description window
         desc_win.offset = 0
@@ -2597,36 +2599,36 @@ ENDWARNING
         if (($config['focus'] == 'select' ||
              $config['focus'] == 'select_first') &&
             !$config['no_desc_auto_focus'])
-          set_active_win(get_win_id('desc'))
+          NcursesInterface::set_active_win(get_win_id('desc'))
         end
       end
       
-      def select_cat(str)
+      def NcursesInterface::select_cat(str)
         $category = str
       
         # rebuild feed window
-        populate_feed_win
+        NcursesInterface::populate_feed_win
       
         # select feed window and select top feed
-        w_id = get_win_id('feed')
-        set_active_win(w_id)
+        w_id = NcursesInterface::get_win_id('feed')
+        NcursesInterface::set_active_win(w_id)
         $wins[w_id].activate 0
         
         # delete category window
-        id = get_win_id('cat')
+        id = NcursesInterface::get_win_id('cat')
         $wins.delete_at(id)
       end
       
       #
       # mark all items in feed as read
       # 
-      def mark_items_as_read
-        win = $wins[get_win_id('item')]
+      def NcursesInterface::mark_items_as_read
+        win = $wins[NcursesInterface::get_win_id('item')]
         # mark item as read
         win.items.each { |item| item['read?'] = true }
         $config['feeds'].get($a_feed)['items'].each { |item| item['read?'] = true }
       
-        populate_feed_win
+        NcursesInterface::populate_feed_win
         win.draw_items
       end
       
@@ -2639,7 +2641,7 @@ ENDWARNING
       # can be either +DIRECTION_FORWARD+
       # or +DIRECTION_BACKWARD+
       #
-      def select_unread_item(direction)
+      def NcursesInterface::select_unread_item(direction)
         win = $wins[get_win_id('item')]
         size = win.items.size
       
@@ -2648,7 +2650,7 @@ ENDWARNING
         i = ($a_item + direction) % size
         while i != $a_item
           if win.items[i]['read?'] == false
-            select_item i
+            NcursesInterface::select_item i
             win.activate i
             win.draw_items
             return
@@ -2661,15 +2663,15 @@ ENDWARNING
       #
       # select next unread item
       #
-      def select_next_unread
-        select_unread_item DIRECTION_FORWARD
+      def NcursesInterface::select_next_unread
+        select_unread_item NcursesInterface::DIRECTION_FORWARD
       end
       
       #
       # select previous unread item
       #
       def select_prev_unread
-        select_unread_item DIRECTION_BACKWARD
+        select_unread_item NcursesInterface::DIRECTION_BACKWARD
       end
     end
   end
@@ -2678,8 +2680,8 @@ ENDWARNING
     #
     # load feed cache
     #
-    def load_feed_cache
-      set_status "Loading feed cache..."
+    def Engine::load_feed_cache
+      NcursesInterface::set_status "Loading feed cache..."
       store = PStore::new $config['feed_cache_path']
       store.transaction { |s|
         $config['feeds'].each { |feed|
@@ -2688,18 +2690,18 @@ ENDWARNING
       }
     
       unless $config['run_http_server'] || $config['run_drb_server']
-        populate_feed_win
-        select_feed 0
-        set_active_win get_win_id('feed')
+        NcursesInterface::populate_feed_win
+        NcursesInterface::select_feed 0
+        NcursesInterface::set_active_win(NcursesInterface::get_win_id('feed'))
       end
     
-      set_status "Loading feed cache... done"
+      NcursesInterface::set_status "Loading feed cache... done"
     end
     
     #
     # save feed cache 
     #
-    def save_feed_cache
+    def Engine::save_feed_cache
       store = PStore::new $config['feed_cache_path']
       store.transaction { |s|
         $config['feeds'].each { |feed| s[feed['url']] = feed['items'] }
@@ -2709,7 +2711,7 @@ ENDWARNING
     #
     # save feed list 
     #
-    def save_feed_list
+    def Engine::save_feed_list
       path = $config['feed_list_path']
       new_path = path + '~'
     
@@ -2741,24 +2743,25 @@ ENDWARNING
       #
       # save theme
       #
-      def save_theme
+      def NcursesInterface::save_theme
         File::open($config['theme_path'], 'w') { |f|
           $stdout.puts $config['msg_save_theme']
           $stdout.flush
           f.puts $config['theme'].to_yaml
         }
       end
+
       #
       # handle mouse events
       #
-      def handle_mouse(ev) 
+      def NcursesInterface::handle_mouse(ev) 
         puts 'mouse'
       end
     end
   end
 
   module CLI
-    def print_usage
+    def CLI::print_usage
       puts <<ENDUSAGE
 Raggle - A Console RSS feed aggregator, written in Ruby.
 Version #$VERSION, by Paul Duncan <pabs@pablotron.org>, 
@@ -2845,7 +2848,7 @@ ENDUSAGE
     #
     # handle command-line options
     # 
-    def handle_command_line(opts)
+    def CLI::handle_command_line(opts)
       ret = { 'mode' => 'view' }
     
       gopts = GetoptLong.new(
@@ -2953,7 +2956,7 @@ ENDUSAGE
               ret['mode'] = 'find_feeds'
               ret['find_str'] = arg
             when '-h', '--help', '--usage'
-              print_usage
+              CLI::print_usage
           end
         end
       rescue GetoptLong::InvalidOption 
@@ -2983,7 +2986,7 @@ ENDUSAGE
     #
     # print a list of feeds to stdout
     #
-    def list_feeds
+    def CLI::list_feeds
       i = -1
       if $config['verbose']
         puts 'ID, Title, URL, Refresh'
@@ -3006,7 +3009,7 @@ ENDUSAGE
     #
     # add a new feed
     #
-    def add_feed(opts)
+    def Engine::add_feed(opts)
       %w{title refresh}.each { |i| opts[i] ||= $config["default_feed_#{i}"] }
       $config['feeds'].add(opts['title'], opts['url'], opts['refresh'],
                            opts['lock_title?'], opts['save_items?'],
@@ -3024,7 +3027,7 @@ ENDUSAGE
       #
       # add a new feed from ncurses
       # 
-      def ncurses_add_feed
+      def NcursesInterface::add_feed
         w, e_msg = $config['w'], $config['msg_add_feed']
       
         # print entry message
@@ -3044,13 +3047,13 @@ ENDUSAGE
         # if it's not nil, then add it to our list
         if str && str.length > 0
           add_feed({ 'url' => str })
-          populate_feed_win
+          NcursesInterface::populate_feed_win
         end
           
         # redraw status bar
         $new_status = $status
         $status = msg
-        set_status($new_status)
+        NcursesInterface::set_status($new_status)
       
         # force update now
         $feed_thread.run if $config['update_after_add']
@@ -3059,7 +3062,7 @@ ENDUSAGE
       #
       # search for feeds, return array of hashes w/ results
       #
-      def find_feeds(str)
+      def NcursesInterface::find_feeds(str)
         syn = Raggle::Syndic8.new
       
         syn.keys -= ['siteurl']
@@ -3090,7 +3093,7 @@ ENDUSAGE
   end
 
   module CLI
-    def cli_find_feeds(str)
+    def CLI::find_feeds(str)
       results = find_feeds(str)
       results.each_with_index do |feed, i|
         puts "% 2d. %s - %s" % [i + 1, feed['sitename'], feed['dataurl']]
@@ -3103,7 +3106,7 @@ ENDUSAGE
       #
       # search for feeds from ncurses
       # 
-      def ncurses_find_feeds
+      def NcursesInterface::find_feeds
         w, e_msg = $config['w'], $config['msg_find_feed']
       
         # print entry message
@@ -3123,8 +3126,8 @@ ENDUSAGE
         # if it's not nil, then add it to our list
         if str && str.length > 0
           th = Thread.new do
-            results = find_feeds(str)
-            id = get_win_id('find')
+            results = Engine::find_feeds(str)
+            id = NcursesInterface::get_win_id('find')
       
             if id == -1
               # determine window height
@@ -3133,7 +3136,7 @@ ENDUSAGE
               h = results.size + 3 if h > results.size + 3
       
               # create window and add it to window list
-              $wins << win = ListWindow::new({
+              $wins << win = NcursesInterface::ListWindow::new({
                 'title'   => $config['msg_find_title'] % [str],
                 'key'     => 'find',
                 'coords'  => [5, 3, w, h],
@@ -3159,7 +3162,7 @@ ENDUSAGE
             win.draw_items
       
             # activate category window
-            set_active_win(get_win_id('find'))
+            NcursesInterface::set_active_win(get_win_id('find'))
           end
           th.priority = $config['thread_priority_find']
         end
@@ -3167,7 +3170,7 @@ ENDUSAGE
         # redraw status bar
         $new_status = $status
         $status = msg
-        set_status($new_status)
+        NcursesInterface::set_status($new_status)
       
         # force update now
         $feed_thread.run if $config['update_after_add']
@@ -3176,7 +3179,7 @@ ENDUSAGE
       #
       # find entry in window
       # 
-      def ncurses_find_entry(win, direction = 1)
+      def NcursesInterface::find_entry(win, direction = 1)
         if win && win.items && win.items.size > 0
           w, e_msg = $config['w'], $config['msg_find_feed']
       
@@ -3209,7 +3212,7 @@ ENDUSAGE
               end
             }
             
-            # wrap search  (should this be an option?)
+            # wrap search (should this be an option?)
             if new_index < 0
               0.upto(win.active_item - 1) { |i|
                 if win.items[i]['title'] =~ regex
@@ -3226,7 +3229,7 @@ ENDUSAGE
           # redraw status bar
           $new_status = $status
           $status = msg
-          set_status($new_status)
+          NcursesInterface::set_status($new_status)
         end
       end
     end
@@ -3236,7 +3239,7 @@ ENDUSAGE
     #
     # purge extra feeds in cache
     #
-    def purge_feed_cache
+    def Engine::purge_feed_cache
       urls = {}
       $config['feeds'].each { |feed| urls[feed['url']] = true }
       PStore::new($config['feed_cache_path']) { |cache|
@@ -3252,35 +3255,35 @@ ENDUSAGE
     # 
     # delete a feed by id
     #
-    def delete_feed(id)
+    def Engine::delete_feed(id)
       $config['feeds'].delete(id)
     end
     
     #
     # Invalidate a feed by id
     #
-    def invalidate_feed(id)
+    def Engine::invalidate_feed(id)
       $config['feeds'].invalidate(id)
     end
     
     #
     # Sort feeds 
     #
-    def sort_feeds
+    def Engine::sort_feeds
       $config['feeds'].sort
     end
 
     #
     # edit an existing feed
     #
-    def edit_feed(id, opts)
+    def Engine::edit_feed(id, opts)
       $config['feeds'].edit(id, opts)
     end
     
     # 
     # create a lock file for raggle
     #
-    def create_cache_lock
+    def Engine::create_cache_lock
       path = $config['cache_lock_path']
       
       # open cache lock for writing
@@ -3309,7 +3312,7 @@ ENDUSAGE
     #
     # destroy raggle lock file
     #
-    def destroy_cache_lock
+    def Engine::destroy_cache_lock
       path = $config['cache_lock_path']
     
       # unlock cache lock
@@ -3335,7 +3338,7 @@ ENDUSAGE
 
   module Interfaces
     module NcursesInterface
-      def resize_term
+      def NcursesInterface::resize_term
         # get screen coordinates
         h = []; w = []
         Ncurses::getmaxyx Ncurses::stdscr, h, w
@@ -3368,7 +3371,7 @@ ENDUSAGE
       #
       # save screen mode, drop out of ncurses
       #
-      def save_screen
+      def NcursesInterface::save_screen
         Ncurses::def_prog_mode
         Ncurses::endwin
       end
@@ -3376,7 +3379,7 @@ ENDUSAGE
       #
       # restore saved screen settings
       #
-      def restore_screen
+      def NcursesInterface::restore_screen
         Ncurses::reset_prog_mode
         Ncurses::refresh
         # Ncurses::getch
@@ -3385,16 +3388,16 @@ ENDUSAGE
       #
       # drop to sub-shell
       #
-      def drop_to_shell
-        save_screen
+      def NcursesInterface::drop_to_shell
+        NcursesInterface::save_screen
         system ENV['SHELL']
-        restore_screen
+        NcursesInterface::restore_screen
       end
       
       ##
       # Ugly
       # -- richlowe 2003-07-01
-      def setup_win
+      def NcursesInterface::setup_win
             # initialize screen & keyboard
           Ncurses::initscr
           Ncurses::raw if $config['use_raw_mode']
@@ -3423,7 +3426,7 @@ ENDUSAGE
           
           # draw status bar
           $new_status = ''
-          set_status $config['msg_welcome']
+          NcursesInterface::set_status $config['msg_welcome']
           
           # create windows
           $a_win = 0
@@ -3431,26 +3434,26 @@ ENDUSAGE
           $config['theme']['window_order'].each { |i|
             case i
               when /feed/
-                cl = ListWindow
+                cl = NcursesInterface::ListWindow
               when /item/
-                cl = ListWindow
+                cl = NcursesInterface::ListWindow
               when /desc/
-                cl = TextWindow
+                cl = NcursesInterface::TextWindow
             else
               raise "Unknown window #{i}"
             end
             $wins << cl.new($config['theme']["win_#{i}"])
             # $wins[-1].draw LONG_STRING
           }
-          set_active_win(0)
+          NcursesInterface::set_active_win(0)
           
           $a_feed, $a_item = 0, 0
           
           # populate feed window
-          populate_feed_win
+          NcursesInterface::populate_feed_win
           
-          select_feed(0)
-          set_active_win(0)
+          NcursesInterface::select_feed(0)
+          NcursesInterface::set_active_win(0)
       end
     end
   end
@@ -3459,7 +3462,7 @@ ENDUSAGE
     #
     # grab individual feed Ccalled by feed grabbing thread)
     #
-    def grab_feed(feed)
+    def Engine::grab_feed(feed)
       t = Time.now
       
       # set the name and priority of the current thread
@@ -3572,10 +3575,10 @@ end
 
 def main
   # expand the default config hash
-  expand_config
+  Engine::expand_config
 
   # parse command-line options
-  opts = handle_command_line ARGV
+  opts = CLI::handle_command_line ARGV
   
   # if $HOME/.raggle doesn't exist, then create it
   Dir::mkdir $config['config_dir'] unless test ?d , $config['config_dir']
@@ -3593,7 +3596,7 @@ def main
   $config = default_config
   $config.update user_config
   
-  expand_config
+  Engine::expand_config
   
   # load feed list
   puts $config['msg_load_list'] if opts['mode'] == 'view'
@@ -3611,36 +3614,36 @@ def main
   end
   
   # create cache lock
-  create_cache_lock if $config['use_cache_lock']
+  Engine::create_cache_lock if $config['use_cache_lock']
   
   # handle command-line options
   $config['raggle_mode'] = opts['mode']
   case opts['mode']
   when 'list'
-    list_feeds
+    CLI::list_feeds
     exit 0
   when 'add'
-    add_feed opts
-    save_feed_list
+    Engine::add_feed opts
+    Engine::save_feed_list
     exit 0
   when 'delete'
-    delete_feed opts['id']
-    save_feed_list
+    Engine::delete_feed opts['id']
+    Engine::save_feed_list
     exit 0
   when 'invalidate'
-    invalidate_feed opts['id']
-    save_feed_list
+    Engine::invalidate_feed opts['id']
+    Engine::save_feed_list
     exit 0
   when 'edit'
-    edit_feed opts['id'], opts
-    save_feed_list
+    Engine::edit_feed opts['id'], opts
+    Engine::save_feed_list
     exit 0
   when 'sort'
-    sort_feeds
-    save_feed_list
+    Engine::sort_feeds
+    Engine::save_feed_list
     exit 0
   when 'purge'
-    purge_feed_cache
+    Engine::purge_feed_cache
     exit 0
   when 'import_opml'
     OPML::import opts['opml_file'], opts['refresh'], opts['lock_title?'], opts['save_items'],
@@ -3651,7 +3654,7 @@ def main
     OPML::export opts['opml_file']
     exit 0
   when 'find_feeds'
-    cli_find_feeds(opts['find_str'])
+    CLI::find_feeds(opts['find_str'])
     exit 0
   end
   
@@ -3669,11 +3672,12 @@ def main
 
   # Draw windows and such.
   # (unless we're running as a daemon)
-  setup_win unless $config['run_http_server'] || $config['run_drb_server']
+  NcursesInterface::setup_win unless $config['run_http_server'] ||
+                                     $config['run_drb_server']
   
   # load feed cache
-  load_feed_cache if $config['load_feed_cache'] &&
-    test(?e, $config['feed_cache_path'])
+  Engine::load_feed_cache if $config['load_feed_cache'] &&
+                             test(?e, $config['feed_cache_path'])
   
   # set up Net::HTTP module
   Net::HTTP.version_1_1
@@ -3690,16 +3694,16 @@ def main
         if !first_iteration || $config['update_on_startup']
           begin
             threads = []
-            $config['feeds'].each { |the_feed|
-              threads << Thread::new(the_feed) { |feed| grab_feed(feed) }
+            $config['feeds'].each do |the_feed|
+              threads << Thread::new(the_feed) { |f| Engine::grab_feed(f) }
               until Thread::list.size < ($config['max_threads'] || 60)
                 $log.puts 'DEBUG: Waiting for threads'
                 sleep 5
               end
-            }
+            end
 
             # wait for outstanding feed grabbing threads to finish
-            threads.each { |th| 
+            threads.each do |th| 
               begin
                 if th && th.status && th.alive?
                   th_title = th['feed'] ? th['feed']['title'] : th
@@ -3710,7 +3714,7 @@ def main
                 $log.puts "Feed Thread Reap Error: \"#$!\"."
                 next
               end
-            }
+            end
           rescue
             log.puts 'Feed Error: ' << $!.to_s
           end
@@ -3725,11 +3729,11 @@ def main
           log.puts "#{Time.now}: Done checking."
           Thread::stop
         else
-          Thread::list.each { |th|
+          Thread::list.each do |th|
             if th && th.status && th.alive? && th['feed']
               $log.puts "DEBUG: thread list: #{th['feed']['title']}"
             end
-          }
+          end
           log.puts "#{Time.now}: Done checking.  Sleeping for #{interval}s."
           sleep interval
         end
@@ -3745,13 +3749,13 @@ def main
 
     # start HTTP server thread
     $http_thread = Thread.new {
-      $http_server = Raggle::HTTPServer::new($config['http_server'])
+      $http_server = Raggle::Interfaces::HTTPServerInterface::new($config['http_server'])
       $http_server.start
     }
   elsif $HAVE_LIB['drb'] && $config['run_drb_server']
     # start DRb server thread
     $drb_thread = Thread::new {
-      $drb_server = Raggle::DRbServer::new($config['drb_server'])
+      $drb_server = Raggle::Interfaces::DRbServerInterface::DRbServer::new($config['drb_server'])
     }
   end
 
@@ -3793,11 +3797,11 @@ def main
         # refresh window contents if there's been a feed update
         if $update_wins
           $update_wins = false
-          populate_feed_win
+          NcursesInterface::populate_feed_win
           # wins.each { |win| win.draw_items }
         end
         
-        set_status $new_status if $new_status != $status
+        NcursesInterface::set_status $new_status if $new_status != $status
       end
     end
     
@@ -3809,9 +3813,9 @@ def main
     $feed_thread.exit if $feed_thread.alive?
 
     # save feed cache, feed list, and theme
-    save_feed_cache if $config['save_feed_cache']
-    save_feed_list if $config['save_feed_list']
-    save_theme if $config['save_theme']
+    Engine::save_feed_cache if $config['save_feed_cache']
+    Engine::save_feed_list if $config['save_feed_list']
+    NcursesInterface::save_theme if $config['save_theme']
   ensure
     unless $done # if done is set then we're exiting cleanly
       # clean up either screen or HTTP server on exit
@@ -3825,14 +3829,15 @@ def main
       
       # save feed cache, feed list, and theme (if requested)
       if $config['save_on_crash']
-        save_feed_cache if $config['save_feed_cache']
-        save_feed_list if $config['save_feed_list']
-        save_theme if $config['save_theme']
+        Engine::save_feed_cache if $config['save_feed_cache']
+        Engine::save_feed_list if $config['save_feed_list']
+        NcursesInterface::save_theme if $config['save_theme']
       end
     end
       
     # unlock everything
-    destroy_cache_lock if $config['use_cache_lock'] && $config['cache_lock']
+    Engine::destroy_cache_lock if $config['use_cache_lock'] &&
+                                  $config['cache_lock']
     
     $stdout.puts $config['msg_thanks']
   end

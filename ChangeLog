@@ -1168,3 +1168,6 @@
 * Fri Aug 22 21:35:44 2003, pabs <pabs@pablotron.org>
   * raggle: make encoding fall back to iso-8859-1 if it's not defined
     in the $config
+
+* Fri Aug 22 21:56:00 2003, pabs <pabs@pablotron.org>
+  * MANIFEST: updated

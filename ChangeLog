@@ -2076,11 +2076,11 @@
 
 * Fri Nov 19 18:05:34 2004, pabs <pabs@pablotron.org>
   * raggle: added keybindings for g and G (suggested by Nick Welch
-	<mack@incise.org>)
-  * raggle: applied patch from Thomas Kirchner
-  <tjkirch@rochester.rr.com> to fix several get_win_id messups, and also
-  reselect the currnt window item when deleting feeds (to prevent
-  stale data in the feeds window)
+    <mack@incise.org>)
+  * raggle: applied patch from Thomas Kirchner <redshift@halffull.org>
+    to fix several get_win_id messups, and also
+    reselect the currnt window item when deleting feeds (to prevent
+    stale data in the feeds window)
 
 * Fri Nov 19 18:31:51 2004, pabs <pabs@pablotron.org>
   * raggle: check for ENV['RAGGLE_WEB_DATA'] in find_web_ui_root
@@ -2089,19 +2089,35 @@
 * Wed Dec 01 00:35:38 2004, pabs <pabs@pablotron.org>
   * raggle: applied patch from Thomas Kirchner <redshift@halffull.org>,
     which does the following:
-    * corrected feed deletion to update window
-    * made select_win_item update the status bar when needed, this has the
-        nice effect of updating status when switching windows
-    * fixed typo that caused find_feeds to be totally broken (that one
-        character took me about an hour.  It was sad.)
-    * minorly refactored find_feeds and fixed the usage of an existing window
-    * put # of matches for find_feeds results in title, rather than as a
-        pseudo-item
-    * fixed feed_entry message display
-    * consolidated Engine module listings
-    * added vim modeline for convenience :)
+  * raggle: corrected feed deletion to update window
+  * raggle: made select_win_item update the status bar when needed, this has
+    the nice effect of updating status when switching windows
+  * raggle: fixed typo that caused find_feeds to be totally broken (that one
+    character took me about an hour.  It was sad.)
+  * raggle: minorly refactored find_feeds and fixed the usage of an existing
+    window
+  * raggle: put # of matches for find_feeds results in title, rather than as a
+    pseudo-item
+  * raggle: fixed feed_entry message display
+  * raggle: consolidated Engine module listings
+  * raggle: added vim modeline for convenience :)
   * AUTHORS: updated Thomas Kirchner's entry
 
 * Fri Dec 03 07:41:12 2004, pabs <pabs@pablotron.org>
   * BUGS: updated with bugs from Manpreet Singh
   * TODO: updated with ideas from Manpreet Singh
+
+* Mon Dec 06 16:37:00 2004, redshift <redshift@halffull.org>
+  * raggle: fixed sorting of feeds with empty titles or titles surrounded by
+    spaces
+  * raggle: added a manual feed/config saving key, by default capital S
+  * raggle: corrected saving of item/description window positions when changing
+    windows, unless specifically changing feed or item it will save what
+    you were looking at                                                 
+  * raggle: implemented periodic (5 min default) saving of feeds/config in a new
+    thread (default priority 0) (side effect = save_{config,theme,feed_list}
+    gained optional parameter saying whether raggle is quitting, controls   
+    stdout vs. status bar, etc.)                                         
+  * raggle: added checking for duplicate feeds - no need to waste bandwidth
+    (Engine::add_feed returns whether it was successful)         
+  * raggle: fixed a few typos/miscellaneous cleanup

@@ -1576,3 +1576,6 @@
 * Tue Sep 23 22:51:34 2003, pabs <pabs@pablotron.org>
   * extras/win32/raggle_client.html: lower refresh to 2 seconds
   * extras/win32/raggle_server.bat: launch client page automatically
+
+* Tue Sep 23 23:33:39 2003, pabs <pabs@pablotron.org>
+  * raggle: added find_win32_proxy (check registry for proxy)

@@ -116,6 +116,9 @@ ENDERR
   exit -1
 end
 
+# load win32/registry as well in windows
+require 'win32/registry' if RUBY_PLATFORM =~ /win32/i
+
 ###################
 # utility methods #
 ###################
@@ -184,11 +187,40 @@ def in_screen?
 end
 
 #
+# find a proxy in windows by checking the registry
+#
+def find_win32_proxy
+  ret = {}
+  Win32::Registry::open(
+    Win32::Registry::HKEY_CURRENT_USER,
+    'Software\Microsoft\Windows\CurrentVersion\Internet Settings'
+  ) do |reg|
+    # check and see if proxy is enabled
+    if reg.read('ProxyEnable')[1] != 0
+      # get server and port
+      type, data = reg.read('ProxyServer')
+      data =~ /^([^:])+:(.+)$/
+      ret['host'] = $1
+      ret['port'] = $2
+
+      # get overrides
+      type, data = reg.read('ProxyOverride')
+      ret['no_proxy'] = data.gsub(/;/, ',') if data && data.length > 0
+    end
+  end
+  
+  ret
+end
+
+#
 # get the proxy host and port from $config['proxy'], or
 # ENV['http_proxy'] / ENV['no_proxy'] if $config['proxy'] isn't set
 #
 def find_proxy(host)
   ret = nil
+
+  # if we're in windows, check the registry as well
+  ret = find_win32_proxy if RUBY_PLATFORM =~ /win32/
 
   # get proxy settings from $config, and if they're not there, then
   # check ENV

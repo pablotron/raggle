@@ -1449,3 +1449,12 @@
   * raggle: allow multiple categories for a feed
   * raggle: add several new default feeds (yahoo! news, tom, brian)
   * raggle: add categories for all default feeds
+
+* Sun Sep 14 15:25:14 2003, pabs <pabs@pablotron.org>
+  * raggle: better relative URL repair (optional, controlled via
+    $config['repair_relative_urls'])
+  * raggle: prefer link to guid again (until we fix the xpath for guid,
+    which needs tocheck the isPermaLink attribute of the element before
+    relying on it)
+  * raggle: strip leading and trailing whitespace from item titles
+

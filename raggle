@@ -1213,13 +1213,6 @@ module Feed
         content.gsub!(/<!ENTITY %.*?>/m, '') if \
           $config['strip_external_entities'] && content =~ /<!ENTITY %.*?>/m
 
-        # get host portion of original 
-        host_url = url.gsub(/^((?:\w+):\/\/)?([^\/]+)\/.*$/, '\1\2')
-
-        # fix host-relative, absolute path URLs
-        content = content.gsub(/href=['"]\/([^'"]+?)['"]/,
-                               "href='#{host_url}/\\1'")
-
         # parse URL content
         doc = REXML::Document.new content
 
@@ -2138,7 +2131,7 @@ def select_feed(id)
       if item['date'] =~ /^\d+$/ && item['date'].to_i > 0
         d_str = Time.at(item['date'].to_i).strftime(fmt)
       end
-      title = "#{item['title']} (#{d_str})"
+      title = item['title'] ? "#{item['title'].strip} (#{d_str})" : d_str
     elsif item['title'] !~ /^\s*$/ 
       title = item['title'] ? item['title'].strip : ''
     elsif item['desc'] !~ /^\s*$/ 
@@ -2234,15 +2227,44 @@ def select_item(id)
   # redraw item window items (to mark selected item as read)
   item_win.draw_items
 
-  desc_win.offset = 0
+  # get feed
+  feed = $config['feeds'].get($a_feed)
+
+  # fix host-relative URLs
+  item_content = $config['feeds'].get($a_feed)['items'][id]['desc']
+  if $config['repair_relative_urls']
+    # get host portion of original URL
+    host_url = feed['url']
+    host_url = host_url.gsub(/^((?:\w+):\/\/)?([^\/]+)(\/.*)?$/, '\1\2')
+
+    item_content = item_content.gsub(/href\s*=\s*["']([^'"]+?)['"]/m) {
+      m = $1.dup
+      new_url = case m
+        when (/^(\w+):\/\//)
+          m
+        else
+          [host_url, m].join('/')
+      end
+      "href='#{new_url}'"
+    }
+
+    # fix host-relative item URL
+    item_url = feed['items'][id]['url'].dup
+    item_url = case item_url
+      when (/(\w+):\/\//)
+        item_url
+      else
+        [host_url, item_url].join('/')
+    end
+  end
   
   # load item
   desc_win.items << {
-    'title'       => $config['feeds'].get($a_feed)['items'][id]['desc'],
-    'real_title'  => $config['feeds'].get($a_feed)['items'][id]['title'],
-    'url'         => $config['feeds'].get($a_feed)['items'][id]['url'],
-    'date'        => $config['feeds'].get($a_feed)['items'][id]['date'],
-    'read?'       => $config['feeds'].get($a_feed)['items'][id]['read?'],
+    'title'       => item_content,
+    'real_title'  => feed['items'][id]['title'],
+    'url'         => item_url,
+    'date'        => feed['items'][id]['date'],
+    'read?'       => feed['items'][id]['read?'],
   }
 
   # redraw feed window
@@ -3405,6 +3427,9 @@ $config = {
   # strip html from item contents?
   'strip_html_tags'       => false,
 
+  # repair relative URLs in feed items?
+  'repair_relative_urls'  => true,
+
   # decode html escape sequences?
   'unescape_html'         => true,
 
@@ -3462,8 +3487,8 @@ $config = {
       'description',
     ],
     'link'  => [
-      'guid',
       'link',
+      'guid', # (this needs tob e guid/attribute, isPermaLink=true)
     ],
     'date'  => [
       'date',

@@ -2330,3 +2330,6 @@
 * Sun Mar 13 04:22:49 2005, pabs <pabs@pablotron.org>
   * raggle: add note about using URI#merge (to fix host-relative URLs in
     content)
+
+* Sun Mar 13 04:37:02 2005, pabs <pabs@pablotron.org>
+  * raggle: commit fully-working transitional feeds.yaml code

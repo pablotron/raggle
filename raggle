@@ -4041,13 +4041,20 @@ ENDUSAGE
       # load feed list
       puts $config['msg_load_list'] if opts['mode'] == 'view'
       if $config['load_feed_list'] && test(?e, $config['feed_list_path'])
-        # load feed list, strip out ruby/object prefix
-        # (this lets us load pre-0.4.0 feed lists)
-        feeds_str = File.read($config['feed_list_path']).gsub(/^--- !ruby\/object:.*$/, '')
+        # load feed list
+        feeds_str = File.read($config['feed_list_path'])
+
+        # if it's a pre-0.4.0 feed list, then strip out the ruby/object
+        # nonsense and shift all lines over
+        if feeds_str =~ /^--- !ruby\/object:/
+          feeds_str = feeds_str.select { |line| 
+            line !~ /^(feeds:|--- !ruby\/object:)/ 
+          }.map { |line| line.gsub(/^  /, '') }.join
+        end
 
         # make sure the feed list exists, deserialize our feed list
         $config['feeds'] ||= Raggle::Feed::List.new
-        $config['feeds'].feeds = YAML::load(feed_list_str)
+        $config['feeds'].feeds = YAML::load(feeds_str)
       end
 
       # if there is no feed list, then load the default one

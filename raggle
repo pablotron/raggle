@@ -3474,12 +3474,12 @@ ENDUSAGE
       
             # build item list
             win.items.clear
+            win.items << { 'title' => $config['msg_find_desc'] }
             results.each do |feed| 
               title = [feed['sitename'],
                        feed['description'], 
                        feed['dataurl']
                       ].join ' - '
-              win.items << { 'title' => $config['msg_find_desc'] }
               win.items << { 'title' => title, 'find' => feed['dataurl'], :otitle => feed['sitename'] }
             end
       

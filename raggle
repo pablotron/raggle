@@ -3683,7 +3683,7 @@ ENDUSAGE
       }
       # do not add duplicate feeds
       unless matching_feed
-        %w{title refresh}.each { |i| opts[i] ||= $config["default_feed_#{i}"] }
+        %w{title refresh priority}.each { |i| opts[i] ||= $config["default_feed_#{i}"] }
         $config['feeds'].add(opts['title'], opts['url'], opts['refresh'],
                              opts['lock_title?'], opts['save_items?'],
                              '', '', [], nil, nil, opts['force'], opts['priority'])

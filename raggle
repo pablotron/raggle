@@ -303,17 +303,17 @@ class FeedList
   end
   
   def get(id)
-    die "Invalid feed id: #{id}" unless id < @feeds.size
+    raise "Invalid feed id: #{id}" unless id < @feeds.size
     @feeds[id]
   end
   
   def delete(id)
-    die "Invalid feed id: #{id}" unless id < @feeds.size
+    raise "Invalid feed id: #{id}" unless id < @feeds.size
     @feeds.delete_at(id)
   end
 
   def invalidate(id)
-    die "Invalid feed id: #{id}" unless id < @feeds.size
+    raise "Invalid feed id: #{id}" unless id < @feeds.size
     @feeds[id]['updated'] = 0
   end
 
@@ -1418,7 +1418,7 @@ def handle_Command_line(opts)
     ['--save-items',                            GetoptLong::NO_ARGUMENT],
     ['--unsave-items',                          GetoptLong::NO_ARGUMENT],
     ['--verbose',                               GetoptLong::NO_ARGUMENT],
-    ['--debug',                                 GetoptLong::NO_ARGUMENT],
+    ['--diag',                                 GetoptLong::NO_ARGUMENT],
     ['-h', '--help', '--usage',                 GetoptLong::NO_ARGUMENT]
   )
 
@@ -2437,7 +2437,7 @@ rescue => err
       puts frame
     end
   else
-    puts err.message
+    die "Eeeek" # die tacks on $! for us, so we don't have to.
   end
 end
 

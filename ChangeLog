@@ -701,6 +701,13 @@
   * raggle.1: Document --diag
   * raggle.1: Document --config and --config-file, how did I miss these?
 
+* Thu Jun 26 02:19:30 2003, richlowe <richlowe@richlowe.net>
+  * raggle: I changed the case in handle_Command_line, but not the
+            Getopt.  I'm a tool, this fixes the last commit.
+  * raggle: Die in the top level exception handler, don't just dump the
+            message.
+	
+
 
 
 

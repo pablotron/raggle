@@ -72,7 +72,7 @@ module Feed
     url.gsub!(/^\w+?:\/\//, '') if url =~ /^\w+?:\/\//
 
     # get host and path portions of url
-    raise "Couldn't parse URL: \"#{url}\"" unless url =~ /^(.+?)\/(.+)$/
+    raise "Couldn't parse URL: \"#{url}\"" unless url =~ /^(.+?)\/(.*)$/
     host, path = $1, $2
 
     # check for port in url
@@ -87,11 +87,18 @@ module Feed
     raise "Couldn't connect to host \"#{host}:#{port}\"" unless http
 
     # get result
-    ret = ''
+    resp, ret = nil, ''
     begin
-      http.get('/' << path) { |line| ret << line }
+      resp, ret = http.get('/' << path)
     rescue 
-      raise "HTTP Error: #$!"
+      resp = $!.response
+
+      # handle redirect
+      if resp.code =~ /3\d{2}/
+        ret = get_url resp['Location']
+      else
+        raise "HTTP Error: #$!"
+      end
     end
 
     # close HTTP connection

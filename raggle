@@ -19,7 +19,44 @@ rescue
   $HAVE_SSL = false
 end
 
-# default config
+###################
+# utility methods #
+###################
+
+#
+# I like die
+#
+def die(str)
+  $stderr.puts 'FATAL: ' << str
+  exit -1
+end
+
+#
+# find an application in your $PATH
+#
+def find_app(app)
+  ENV['PATH'].split(/:/).find { |path| test ?x, "#{path}/#{app}" }
+end
+
+#
+# Find browser
+#
+def find_browser
+  ret = ENV['RAGGLE_BROWSER']
+  ret = ENV['BROWSER']
+  ret = 'links' if !ret && test(?e, find_app('links'))
+  ret = 'lynx' if !ret && test(?e, find_app('lynx'))
+
+  # die if we couldn't find a browser
+  die "Couldn't find suitable browser.  Is $BROWSER set?" unless ret
+
+  # return browser
+  ret
+end
+
+##################
+# default config #
+##################
 $config = {
   'config_dir'            => ENV['HOME'] << '/.raggle',
   'config_path'           => '${config_dir}/config.rb',
@@ -42,6 +79,10 @@ $config = {
   'msg_welcome'           => " Welcome to Raggle #{$VERSION}.",
   'msg_exit'              => "| Press ESC or Q to exit ",
   'msg_close'             => '[X] ',
+  'msg_load_config'       => 'Raggle: Loading config...',
+  'msg_load_feeds'        => 'Raggle: Loading feed cache...',
+  'msg_save_feeds'        => 'Raggle: Saving feed cache...',
+  'msg_thanks'            => 'Thanks for using Raggle!',
 
   # menu bar color
   'menu_bar_cols'         => 24,
@@ -57,6 +98,9 @@ $config = {
 
   # strip html from item contents?
   'strip_html'            => true,
+
+  # browser
+  'browser'               => find_browser,
 
   # color palette (referenced by window attributes)
   'color_palette'         => [
@@ -87,7 +131,7 @@ $config = {
   'win_feed'      => {
     'key'         => 'feed',
     'title'       => 'Feeds',
-    'coords'      => [0, 0, 20, -1],
+    'coords'      => [0, 0, 25, -1],
     'type'        => 'list',
     'colors'      => { 
       'title'     => 1,
@@ -103,7 +147,7 @@ $config = {
   'win_item'      => {
     'key'         => 'item',
     'title'       => 'Items',
-    'coords'      => [20, 0, -1, 20],
+    'coords'      => [25, 0, -1, 15],
     'type'        => 'list',
     'colors'      => {
       'title'     => 1,
@@ -119,7 +163,7 @@ $config = {
   'win_desc'      => {
     'key'         => 'desc',
     'title'       => 'Description',
-    'coords'      => [20, 20, -1, -1],
+    'coords'      => [25, 15, -1, -1],
     'type'        => 'text',
     'colors'      => {
       'title'     => 1,
@@ -221,11 +265,227 @@ ragglebug@pablotron.org.
       'updated'   => 1055113783,
       'items'     => [ ],
     },
+    { 'title'     => 'Anandtech (NiF)',
+      'url'       => 'http://www.newsisfree.com/HPE/xml/feeds/61/161.xml',
+      'site'      => 'http://www.anandtech.com/',
+      'desc'      => 'Anandtech',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'Consensus at Lawyerpoint',
+      'url'       => 'http://bpdg.blogs.eff.org/index.rdf',
+      'site'      => 'http://www.eff.org/',
+      'desc'      => 'Consensus at Lawyerpoint',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'Creative Commons',
+      'url'       => 'http://creativecommons.org/weblog/rss',
+      'site'      => 'http://creativecommons.org/',
+      'desc'      => 'Creative Commons',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'Daily Daemon News',
+      'url'       => 'http://daily.daemonnews.org/ddn.rdf.php3',
+      'site'      => 'http://daemonnews.org/',
+      'desc'      => 'Daily Daemon News',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'Digital Theatre',
+      'url'       => 'http://www.dtheatre.com/backend.php?xml=yes',
+      'site'      => 'http://www.dtheatre.com/',
+      'desc'      => 'Digital Theatre',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'EFF News (NiF)',
+      'url'       => 'http://www.newsisfree.com/HPE/xml/feeds/22/3222.xml',
+      'site'      => 'http://www.eff.org/',
+      'desc'      => 'EFF News.',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'Exploding Cigar',
+      'url'       => 'http://www.explodingcigar.com/backend.xml',
+      'site'      => 'http://www.explodingcigar.com/',
+      'desc'      => 'Exploding Cigar',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'FlipCode (NiF)',
+      'url'       => 'http://www.newsisfree.com/HPE/xml/feeds/08/208.xml',
+      'site'      => 'http://www.flipcode.org/',
+      'desc'      => 'FlipCode.',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'FreshMeat',
+      'url'       => 'http://themes.freshmeat.net/backend/fm-newsletter.rdf',
+      'site'      => 'http://www.freshmeat.net/',
+      'desc'      => 'FreshMeat.',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'KernelTrap',
+      'url'       => 'http://kerneltrap.org/module.php?mod=node&op=feed',
+      'site'      => 'http://www.kerneltrap.org/',
+      'desc'      => 'KernelTrap',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'Kuro5hin',
+      'url'       => 'http://www.kuro5hin.org/backend.rdf',
+      'site'      => 'http://www.kuro5hin.org/',
+      'desc'      => 'Kuro5hin',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'Leoville',
+      'url'       => 'http://www.leoville.com/mt/index.xml',
+      'site'      => 'http://www.leoville.com/',
+      'desc'      => 'Leoville',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'Linux Magazine',
+      'url'       => 'http://www.linux-mag.com/lm.rss',
+      'site'      => 'http://www.linux-mag.com/',
+      'desc'      => 'Linux Magazine',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'Linux Weekly News',
+      'url'       => 'http://www.lwn.net/headlines/rss',
+      'site'      => 'http://www.lwn.net/',
+      'desc'      => 'Linux Weekly News',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'MetaFilter',
+      'url'       => 'http://xml.metafilter.com/rss.xml',
+      'site'      => 'http://www.metafilter.com/',
+      'desc'      => 'MetaFilter',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'MovieComments',
+      'url'       => 'http://www.moviecomments.com/recentrev_rss.php',
+      'site'      => 'http://www.moviecomments.com/',
+      'desc'      => 'MovieComments',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'MTV News (NiF)',
+      'url'       => 'http://www.newsisfree.com/HPE/xml/feeds/92/1792.xml',
+      'site'      => 'http://www.mtv.com/',
+      'desc'      => 'MTV News (NiF)',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'O\'Reilly Network',
+      'url'       => 'http://www.oreillynet.com/cs/xml/query/q/295?x-ver=1.0',
+      'site'      => 'http://www.oreillynet.com/',
+      'desc'      => 'O\'Reilly Network',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
     { 'title'     => 'Open Sounds',
       'url'       => 'http://www.opensounds.net/backend.php',
       'site'      => 'http://www.opensounds.net/',
       'desc'      => 'John Maguire.',
       'refresh'   => 60,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'PHP Journal',
+      'url'       => 'http://www.phpj.com/backend.php',
+      'site'      => 'http://www.phpj.com/',
+      'desc'      => 'PHP Journal',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'Pigdog Journal',
+      'url'       => 'http://www.pigdog.org/pigdog.rdf',
+      'site'      => 'http://www.pigdog.org/',
+      'desc'      => 'Pigdog Journal',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'Political Wire',
+      'url'       => 'http://politicalwire.com/headlines.xml',
+      'site'      => 'http://politicalwire.com/',
+      'desc'      => 'Political Wire',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'Slashdot',
+      'url'       => 'http://slashdot.org/slashdot.rss',
+      'site'      => 'http://www.slashdot.org/',
+      'desc'      => 'Slashdot',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'This Modern World',
+      'url'       => 'http://www.thismodernworld.com/index.rdf',
+      'site'      => 'http://www.thismodernworld.com/',
+      'desc'      => 'This Modern World',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'Universal Rule',
+      'url'       => 'http://radio.weblogs.com/0112083/rss.xml',
+      'site'      => 'http://radio.weblogs.com/0112083/',
+      'desc'      => 'Universal Rule',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'use Perl',
+      'url'       => 'http://use.perl.org/useperl.rdf',
+      'site'      => 'http://use.perl.org/',
+      'desc'      => 'Universal Rule',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'W3C',
+      'url'       => 'http://www.w3.org/2000/08/w3c-synd/home.rss',
+      'site'      => 'http://www.w3.org/',
+      'desc'      => 'W3C',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'Webmonkey',
+      'url'       => 'http://radio.weblogs.com/0112083/rss.xml',
+      'site'      => 'http://radio.weblogs.com/0112083/',
+      'desc'      => 'Webmonkey',
+      'refresh'   => 30,
       'updated'   => 1055113783,
       'items'     => [ ],
     },
@@ -235,6 +495,7 @@ ragglebug@pablotron.org.
   'use_raw_mode'  => true,
   'use_noecho'    => true,
 
+  # debugging feeds (these will be removed at some point)
   'debug_feeds'   => [
     { 'title'     => 'Raggle',
       'url'       => 'http://www.pablotron.org/software/raggle/help.rss',
@@ -361,7 +622,7 @@ module Feed
     url.gsub!(/^\w+?:\/\//, '') if url =~ /^\w+?:\/\//
 
     # get host and path portions of url
-    raise "Couldn't parse URL: \"#{url}\"" unless url =~ /^(.+?)\/(.+)$/
+    raise "Couldn't parse URL: \"#{url}\"" unless url =~ /^(.+?)\/(.*)$/
     host, path = $1, $2
 
     # check for port in url
@@ -376,11 +637,18 @@ module Feed
     raise "Couldn't connect to host \"#{host}:#{port}\"" unless http
 
     # get result
-    ret = ''
+    resp, ret = nil, ''
     begin
-      http.get('/' << path) { |line| ret << line }
+      resp, ret = http.get('/' << path)
     rescue 
-      raise "HTTP Error: #$!"
+      resp = $!.response
+
+      # handle redirects
+      if resp.code =~ /3\d{2}/
+        ret = get_url resp['Location']
+      else
+        raise "HTTP Error: #$!"
+      end
     end
 
     # close HTTP connection
@@ -555,8 +823,11 @@ class Window
       elsif @items[@active_item].has_key? 'item'
         select_item @items[@active_item]['item']
       elsif @items[@active_item].has_key? 'url'
-        # exec ['Eterm', '-e', 'links', 
-        #       @items[@active_item]['url']] if fork == 0
+        Ncurses::def_prog_mode
+        Ncurses::endwin
+        system "links '#{@items[@active_item]['url']}'"
+        Ncurses::reset_prog_mode
+        Ncurses::refresh
       end
     end
   end
@@ -604,9 +875,15 @@ end
 # set status bar message
 #
 def set_status(str)
-  str += ' ' * ($config['w'] / 2 - str.length)
-  e_msg = $config['msg_exit']
-  e_msg = ' ' * ($config['w'] / 2 - e_msg.length) + e_msg
+  w, e_msg = $config['w'], $config['msg_exit']
+  $status, $new_status = str, str
+
+  # fix message length
+  if str.length > (w - e_msg.length)
+    str = str.slice(0, w - e_msg.length)
+  else
+    str += ' ' * (w - e_msg.length - str.length)
+  end
   msg = str << e_msg
 
   Ncurses::wcolor_set Ncurses::stdscr, $config['status_bar_cols'], nil
@@ -695,6 +972,29 @@ def select_feed(id)
 end
 
 #
+# populate feed window
+# 
+def populate_feed_win 
+  id = get_win_id 'feed'
+
+  $wins[id].items.clear
+
+  $config[$SRC].each_with_index { |feed, i|
+    # count unread items
+    unread_count = 0
+    feed['items'].each { |item| unread_count += 1 unless item['read?'] }
+
+    # build title
+    title = feed['title'] + " (#{unread_count}/#{feed['items'].size})"
+    $wins[id].items << {
+      'title' => title,
+      'feed'  => i,
+    }
+  }
+  $wins[id].draw_items
+end
+
+#
 # set active item by id
 #
 def select_item(id)
@@ -715,6 +1015,9 @@ def select_item(id)
     'date'  => $config[$SRC][$a_feed]['items'][id]['date'],
   }
 
+  # redraw feed window
+  populate_feed_win
+
   # redraw description window
   $wins[desc_id].win.clear
   $wins[desc_id].draw_items
@@ -729,6 +1032,8 @@ end
 #
 def save_feed_cache
   File.open($config['feed_cache_path'], 'w') { |f|
+    $stdout.puts $config['msg_save_feeds']
+    $stdout.flush
     f.puts $config[$SRC].to_yaml
   }
 end
@@ -747,10 +1052,12 @@ expand_config
 Dir::mkdir $config['config_dir'] unless test ?d , $config['config_dir']
 
 # load user config ($HOME/.raggle/config.rb)
+puts $config['msg_load_config']
 load $config['config_path'], false if test ?e, $config['config_path']
 expand_config
 
 # load feed cache
+puts $config['msg_load_feeds']
 if $config['load_feed_cache'] && test(?e, $config['feed_cache_path'])
   $config[$SRC] = YAML::load(File::open($config['feed_cache_path']))
 end
@@ -763,11 +1070,13 @@ feed_thread = Thread.new {
       $config[$SRC].each { |feed|
         t = Time.now
 
+        $new_status = " Checking feed \"#{feed['title']}\"..."
         log.puts "#{Time.now}: Checking feed \"#{feed['title']}\""
         next unless feed['refresh'] > 0 && 
                     feed['updated'] + (feed['refresh'] * 60) < t.to_i
 
         # update statusbar and grab log
+        $new_status = " Updating feed \"#{feed['title']}\"..."
         log.puts "#{t}: Updating feed \"#{feed['title']}\" from \"#{feed['url']}\""
         # set_status "Updating \"#{feed['title']}\"..."
 
@@ -808,6 +1117,7 @@ feed_thread = Thread.new {
 
       # finish log entries
       interval = $config['feed_sleep_interval']
+      $new_status = $config['msg_welcome']
       log.puts "#{Time.now}: Done checking.  Sleeping for #{interval}s."
       log.flush
       sleep interval
@@ -842,6 +1152,7 @@ begin
   # Ncurses::refresh
 
   # draw status bar
+  $new_status = ''
   set_status $config['msg_welcome']
   
   # create windows
@@ -856,20 +1167,7 @@ begin
   $a_feed, $a_item = 0, 0
   
   # populate feed window
-  id = get_win_id 'feed'
-  $config[$SRC].each_with_index { |feed, i|
-    # count unread items
-    unread_count = 0
-    feed['items'].each { |item| unread_count += 1 unless item['read?'] }
-
-    # build title
-    title = feed['title'] + " (#{unread_count}/#{feed['items'].size})"
-    $wins[id].items << {
-      'title' => title,
-      'feed'  => i,
-    }
-  }
-  $wins[id].draw_items
+  populate_feed_win
   
   select_feed(0)
   set_active_win(0)
@@ -906,8 +1204,11 @@ begin
     # refresh window contents if there's been a feed update
     if $update_wins
       $update_wins = false
-      wins.each { |win| win.draw_items }
+      populate_feed_win
+      # wins.each { |win| win.draw_items }
     end
+
+    set_status $new_status if $new_status != $status
   end
 ensure
   # clean up screen on exit
@@ -918,4 +1219,6 @@ ensure
 
   # save feed cache
   save_feed_cache if $config['save_feed_cache']
+
+  $stdout.puts $config['msg_thanks']
 end

@@ -86,3 +86,23 @@
   * raggle: Don't print date if it's not specified
   * raggle: fixed window redraw from update thread (maybe?)
 
+* Sat Jun 14 21:29:31 2003, pabs <pabs@pablotron.org>
+  * raggle: added die()
+  * raggle: added find_browser() (checks ENV['BROWSER'], falls back to 
+    links, then lynx)
+  * raggle: added 'browser' option
+  * raggle: added 'msg_load_config' option
+  * raggle: added 'msg_load_feeds' option
+  * raggle: added 'msg_save_feeds' option
+  * raggle: added 'msg_thanks' option
+  * raggle: slightly wider feed window
+  * raggle: slightly shorter item window
+  * raggle: added a ton of default feeds (i may tone this down a little)
+  * raggle: load browser (seems to crash on return.. dunno why)
+  * raggle: saner set_status()
+  * raggle: added populate_feed_window()
+  * raggle: feed thread updates status 
+  * rss_grab.rb: added redirect support
+  * rss_grab.rb: handles urls ending in '/'
+  * raggle: added redirect support
+  * raggle: handles urls ending in '/'

@@ -1135,11 +1135,11 @@ class Window
   # refresh window title and border (but not the contents)
   # 
   def refresh(refresh_contents = false)
-    win.color_set @colors[@active ? 'a_box' : 'box'], nil
-    Ncurses::box win, 0, 0
-    win.color_set @colors[@active ? 'a_title' : 'title'], nil
-    Ncurses::mvwprintw win, 0, 1, " #{@title.escape_format} "
-    win.color_set @colors['text'], nil
+    @win.color_set @colors[@active ? 'a_box' : 'box'], nil
+    Ncurses::box @win, 0, 0
+    @win.color_set @colors[@active ? 'a_title' : 'title'], nil
+    Ncurses::mvwprintw @win, 0, 1, " #{@title.escape_format} "
+    @win.color_set @colors['text'], nil
     Ncurses::wrefresh @win
   end
 

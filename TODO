@@ -12,5 +12,13 @@ Raggle TODO
 [ ] scrolling in Description window
 [ ] fix blocking for feed grabbing (grab feeds in parallel?)
 [ ] Convert manpage (raggle.1) to -ms
-[ ] Add window resizing (needs the theme/window shit to be overhawled,
-    at a guess)
+[ ] Window resizing.
+    Take a copy of ['theme']['window'], so we can resize without
+    messing up the initial sizes (they need to be changed so
+    resize_term knows what to do (not really, but still).
+    We need to know *where* the windows are.
+    For instance, in the default config, narrowing "Feeds" means
+    widening the other two windows, and such.  This is all possible,
+    right now.  But takes surgery, which can wait until morning, if
+    you read this more than a week after I commit it, email me and
+    tell me to at the very least ammend this, to say why it's taken so long

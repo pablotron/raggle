@@ -938,6 +938,15 @@ class TextWindow < Window
     draw_items
   end
 
+  def scroll_bottom
+    nil
+  end
+
+  def scroll_top
+    @offset = 0
+    draw_items
+  end
+
   def move_item_down
     if @active_item < @items.size - 1 
       nitem = @items[@active_item + 1]

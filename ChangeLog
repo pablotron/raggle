@@ -668,6 +668,11 @@
            feed that has never been updated (and thus feed['updated']
 	   being nil), reported by Brian Almeida (bma@tynian.net).
 
+* Tue Jun 24 23:24:13 2003, richlowe <richlowe@richlowe.net>
+  * raggle (TextWindow): Implement #scroll_top and #scroll_bottom, for
+            HOME/END bindings.  scroll_bottom is just a stub right now,
+	    until I come up with the correct way to do it.
+
 
 
 

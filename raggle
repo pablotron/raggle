@@ -932,14 +932,23 @@ class TextWindow < Window
 
   def scroll_down
     # This is a *terrible* way to figure out how many lines of text we'll end
-    # up with..
+    # up with.., XXX put me somewhere better.
     s = reflow_string(@items[0]['title']).lines
     @offset += 1 if @offset < s - 1
     draw_items
   end
 
   def scroll_bottom
-    nil
+    # This is a *terrible* way to figure out how many lines of text we'll end
+    # up with.., XXX put me somewhere better.
+    h,s = dimensions[1], 0
+
+    %w{real_title url date}.each do |key|
+      s += 1 if @items[0].has_key?(key)
+    end
+    s += reflow_string(@items[0]['title']).lines + 1
+    @offset = s - (h - 2)
+    draw_items
   end
 
   def scroll_top

@@ -673,6 +673,11 @@
             HOME/END bindings.  scroll_bottom is just a stub right now,
 	    until I come up with the correct way to do it.
 
+* Tue Jun 24 23:35:17 2003, richlowe <richlowe@richlowe.net>
+  * raggle (TextWindow#scroll_bottom): Implement, Home and End keys now
+           work in TextWindow's too.
+
+
 
 
 

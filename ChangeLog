@@ -1834,3 +1834,7 @@
 * Mon Mar 22 11:17:52 2004, pabs <pabs@pablotron.org>
   * raggle: finish command-line feed search
   * raggle: ncurses_find_feed -> ncurses_find_feeds
+
+* Tue Mar 30 10:04:54 2004, pabs <pabs@pablotron.org>
+  * raggle: categories window now displays number of feeds with
+    each category

@@ -464,12 +464,18 @@ module Key
     end
   end
 
+  def Key::build_cat_title(cat, count, width)
+    ret, count_str = "#{cat}  ", "(#{count})"
+    ret << ' ' * (width - ret.size - count_str.size) << count_str
+  end
+
   def Key::gui_cat_list
     id = get_win_id('cat')
     if id == -1
       cats = $config['feeds'].categories
 
-      # determine window height
+      # determine window width/height
+      w = $config['w'] - 40
       h = $config['h'] - 5 
       h = cats.size + 3 if h > cats.size + 3
 
@@ -477,15 +483,23 @@ module Key
       $wins << win = ListWindow::new({
         'title'   => $config['msg_cat_title'],
         'key'     => 'cat',
-        'coords'  => [20, 3, $config['w'] - 40, h],
+        'coords'  => [20, 3, w, h],
         'colors'  => $wins[get_win_id('item')].colors,
       })
 
       # build item list
-      win.items << { 'title' => 'All', 'cat' => 'All' }
+      win.items << { 
+        'title' => build_cat_title('All', $config['feeds'].size, w - 3),
+        'cat'   => 'All'
+      }
+
+      # iterate and append
       cats.each_with_index do |c, i| 
-        win.items << { 'title' => c, 'cat' => c }
-        win.activate(i + 1) if $category == c
+        win.items << {
+          'title' => build_cat_title(c.title, c.count, w - 3), 
+          'cat'   => c.title 
+        }
+        win.activate(i + 1) if $category == c.title
       end
 
       # add window to window list and draw item list
@@ -516,9 +530,9 @@ module HTML
   class TagSet
     class Tag
       def initialize
-	@context = nil
-	@start_actions = []
-	@end_actions = []
+        @context = nil
+        @start_actions = []
+        @end_actions = []
       end
 
       attr_accessor :context
@@ -526,11 +540,11 @@ module HTML
       attr_reader :end_actions
 
       def start_actions=(*actions)
-	@start_actions = actions.flatten
+        @start_actions = actions.flatten
       end
 
       def end_actions=(*actions)
-	@end_actions = actions.flatten
+        @end_actions = actions.flatten
       end
     end
     
@@ -542,7 +556,7 @@ module HTML
     def define_tag(*names)
       yield tag_spec = Tag.new
       names.each do |name|
-	yield @tags[name] = tag_spec
+        yield @tags[name] = tag_spec
       end
     end
 
@@ -601,7 +615,7 @@ module HTML
     def call_actions(tag, phase, *params)
       actions = phase == :start ? tag.start_actions : tag.end_actions
       actions.each do |action|
-	self.send("action_#{action}", *params)
+        self.send("action_#{action}", *params)
       end
     end
     
@@ -611,7 +625,7 @@ module HTML
     # tag::     tag from tag set
     def context_enter(context, tag)
       if tag.context
-	context << tag.context
+        context << tag.context
       end
     end
     
@@ -621,7 +635,7 @@ module HTML
     # tag::     tag from tag set
     def context_exit(context, tag)
       if tag.context
-	context.pop
+        context.pop
       end
     end
     
@@ -634,12 +648,12 @@ module HTML
     def reflow_text(text)
       cur_line = @lines.pop || ''
       text.split(/\s+/).each do |word|
-	if cur_line.length + word.length > @width
-	  @lines << cur_line
-	  cur_line = ""
-	end
-	cur_line << " " unless cur_line.empty? || cur_line[-1] == ?\ # fix emacs
-	cur_line << word.chomp
+        if cur_line.length + word.length > @width
+          @lines << cur_line
+          cur_line = ""
+        end
+        cur_line << " " unless cur_line.empty? || cur_line[-1] == ?\ # fix emacs
+        cur_line << word.chomp
       end
       @lines << cur_line
     end
@@ -917,15 +931,20 @@ class FeedList
   end
 
   def categories
+    category = Struct::new(:title, :count)
     cats = {}
     @feeds.each { |feed|
       if feed['category']
         feed['category'].split(/\s*,\s*/).each { |cat|
-          cats[cat.downcase] = cat
+          if cats.has_key? cat.downcase
+            cats[cat.downcase].count += 1
+          else
+            cats[cat.downcase] = category.new(cat, 1)
+          end
         }
       end
     }
-    cats.values.compact.sort
+    cats.values.sort { |a, b| a.title <=> b.title }
   end
 
   def category(cat = 'all')
@@ -2232,10 +2251,10 @@ module Raggle
             ((cat =~ /\ball\b/i) ? ' selected="1"' : '') <<
             ">All</option>\n"
 
-      $config['feeds'].categories.each { |opt| 
-        ret << "  <option value='#{opt}'" <<
-               ((cat =~ /\b#{opt}\b/i) ? ' selected="1"' : '') <<
-               ">#{opt}</option>\n"
+      $config['feeds'].categories.each { |cat| 
+        ret << "  <option value='#{cat.title}'" <<
+               ((cat =~ /\b#{cat.title}\b/i) ? ' selected="1"' : '') <<
+               ">#{cat.title}</option>\n"
       }
       ret << "</select>\n"
 

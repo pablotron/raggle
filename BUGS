@@ -11,8 +11,8 @@ Bugs
     clearly shows that it leaves us as a FeedList, stores as a
     FeedList and comes back as a Hash. (This *was* a bug in syck, ruby
     1.8.0-preview 3, the first to include YAML in the base, works just fine)
-[ ] Code *very* untidy in places.
-[ ] Man page is worthlessly incomplete
+[ ] Code untidy in places.
+[*] Man page is worthlessly incomplete
 [*] It's possible that sometimes the inline documentation ("Raggle"
     feed) items aren't created from the default list (We can't even
     decide if this is really happenening or not. NOTABUG, removal of

@@ -1044,3 +1044,18 @@
 * Sun Aug 17 07:43:18 2003, pabs <pabs@pablotron.org>
   * raggle: added $config['update_on_startup']: do we update the feed
     list automatically on startup?
+
+* Sun Aug 17 07:45:27 2003, pabs <pabs@pablotron.org>
+  * raggle: minor cleanups
+  * raggle: added $config['url_handlers']; raggle can handle 
+    file: and exec: prefixed URLs as well. the syntax for file URLs is 
+    the same as HTTP URLs, and it returns the file modification time as
+    the last_modified (caching) information.  the exec: prefixed URLs
+    look basically like this:
+      'exec:cat /home/pabs/doc/test_rss_file.xml'
+    also, we might consider restricting the refresh interval to HTTP
+    URLs, since it doesn't make sense to have to force a two hour update
+    on a file URL.  something to think about
+  * raggle: fixed adding new entries with just the URL (itw asn't setting
+    the title or the default refresh)
+

@@ -854,6 +854,36 @@ module Feed
   # Return the contents of a URL
   #
   def Feed::get_url(url, last_modified = nil)
+    ret = [nil, nil]
+
+    if url =~ /^(\w+?):/
+      key = $1.downcase
+      if $config['url_handlers'][key]
+        ret = $config['url_handlers'][key].call(url, last_modified)
+      else
+        if $config['strict_url_handling']
+          raise "Missing handler for URL \"#{url}\"."
+        else
+          key = $config['default_url_handler']
+          ret = $config['url_handlers'][key].call(url, last_modified)
+        end
+      end
+    else
+      if $config['strict_url_handling']
+        raise "Malformed URL: #{url}"
+      else
+        key = $config['default_url_handler']
+        ret = $config['url_handlers'][key].call(url, last_modified)
+      end
+    end
+
+    ret
+  end
+
+  #
+  # Return the contents of a HTTP URL
+  #
+  def Feed::get_http_url(url, last_modified = nil)
     port = 80
     use_ssl = false
 
@@ -896,7 +926,7 @@ module Feed
           ret = [nil, last_modified]
         else
           # it's changed, get it again
-          ret = get_url(url, nil)
+          ret = get_http_url(url, nil)
         end
       else
         # no cache, just get the result
@@ -909,7 +939,7 @@ module Feed
 
       # handle redirects
       if resp.code =~ /3\d{2}/
-        ret = get_url(resp['location'], last_modified)
+        ret = get_http_url(resp['location'], last_modified)
       else
         raise "HTTP Error: #$!"
       end
@@ -921,6 +951,72 @@ module Feed
       http.finish 
     end
 
+
+    # return URL content and last-modified header
+    ret
+  end
+
+  #
+  # Return the contents of a file URL
+  #
+  def Feed::get_file_url(url, last_modified = nil)
+    ret = [nil, nil]
+
+    # work with a copy of the url
+    path = url.dup
+
+    # strip 'file:' prefix from URL
+    path.gsub!(/^\w+?:/, '') if path =~ /^\w+?:/
+
+    if stat = File::stat(path)
+      stat_mtime = stat.mtime.to_s
+      
+      if last_modified
+        # check last-modified header first
+        if last_modified == stat_mtime
+          # it's the same as the old content
+          ret = [nil, last_modified]
+        else
+          # it's changed, get it again
+          ret = get_file_url(url, nil)
+        end
+      else
+        # no cache, just get the result
+        if file = File::open(path)
+          ret = [file.read, stat_mtime]
+          file.close
+        else
+          raise "Couldn't open file URL: #$!"
+        end
+      end
+    else
+      raise "File URL Error: #$!"
+    end
+
+    # return URL content and last-modified header
+    ret
+  end
+
+  #
+  # Return the contents of an exec URL
+  #
+  def Feed::get_exec_url(url, last_modified = nil)
+    ret = [nil, nil]
+
+    # work with a copy of the url
+    cmd = url.dup
+
+    # strip 'exec:' prefix from URL
+    cmd.gsub!(/^[^:]+?:/, '') if cmd =~ /^[^:]+?:/
+
+    # no cache, just get the result
+    begin 
+      pipe = IO::popen(cmd, 'r')
+      ret = [pipe.read, nil]
+      pipe.close
+    rescue
+      raise "Couldn't read exec URL: #$!"
+    end
 
     # return URL content and last-modified header
     ret
@@ -2604,17 +2700,37 @@ $config = {
   # send the http headers?
   'use_http_headers'      => true,
 
+  # URL handlers
+  'url_handlers'          => {
+    'http'      => proc { |url, last_mod| Feed::get_http_url(url, last_mod) },
+    'https'     => proc { |url, last_mod| Feed::get_http_url(url, last_mod) },
+    'file'      => proc { |url, last_mod| Feed::get_file_url(url, last_mod) },
+    'exec'      => proc { |url, last_mod| Feed::get_exec_url(url, last_mod) },
+  },
+
+  # Raise an exception (which generally means crash) if the URL type is
+  # unknown.  You probably DON'T want to enable this.  If disabled, then
+  # fall back to the default_url_handler for unknown URL types.
+  'strict_url_handling'    => false,
+
+  # if strict_url_handling is disabled, then fall back to this type 
+  # when the URL handler is unknown.
+  #
+  # WARNING: DO NOT CHANGE THIS TO 'exec' OR 'file'. DOING SO HAS
+  # POTENTIALLY SERIOUS SECURITY RAMIFICATIONS.
+  #
+  'default_url_handler'   => 'http',
+
   # default http headers
   'http_headers'  => {
     'Accept'              => 'text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,*/*;q=0.1',
-    # yes Richard, there's a reason the following line looks so
+    # yes Richard, there is a reason the following line looks so
     # ugly. -- Paul
     'Accept-Charset'      => if REXML::constants.include?('Encoding')
       (REXML::Encoding::ENCODING_CLAIMS.values.sort + ['*;q=0.1']).join(',')
     else
       'ISO-8859-1,UTF-8;q=0.7,*;q=0.7'
     end,
-    # 'User-Agent'          => "Raggle/#$VERSION (#{PLATFORM}; Ruby/#{VERSION}; REXML/#{REXML::Version}; YAML/#{YAML::VERSION})",
     'User-Agent'          => "Raggle/#$VERSION (#{PLATFORM}; Ruby/#{VERSION})",
   },
 
@@ -2670,8 +2786,8 @@ $config = {
   'feed_refresh_warn'     => 60,
 
   # default feed name and refresh rate
-  'feed_default_title'    => 'Unnamed Feed',
-  'feed_default_refresh'  => 120,
+  'default_feed_title'    => 'Unnamed Feed',
+  'default_feed_refresh'  => 120,
 
   # open new screen window for browser?
   'use_screen'            => true,

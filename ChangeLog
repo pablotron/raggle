@@ -332,6 +332,12 @@
   * raggle: remove feed indirection through $SRC, there's no reason
 	    to use debug feeds anymore.
 
+* Sat Jun 21 13:21:10 2003, pabs <pabs@pablotron.org>
+  * raggle: handle nil item titles sanely
+  * raggle: check for --save-items and --lock-title in -e handleer
+    before dying
+  * TODO: minor updates
+
 
 	
 

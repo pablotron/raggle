@@ -788,7 +788,7 @@ def select_feed(id)
       d_str = Time.at(item['date'].to_i).strftime(fmt) if item['date'].to_i > 0
       title = "#{item['title']} (#{d_str})"
     elsif item['title'] !~ /^\s*$/ 
-      title = item['title'].strip
+      title = item['title'] ? item['title'].strip : ''
     elsif item['desc'] !~ /^\s*$/ 
       # fall back on cleaned up and truncated description if we're
       # missing a title
@@ -1136,8 +1136,9 @@ def handle_Command_line(opts)
       end
     }
   elsif ret['mode'] == 'edit'
-    unless ret['title'] || ret['url'] || ret['refresh']
-      die "You need '--title', '--url', or '--refresh'."
+    unless ret['title'] || ret['url'] || ret['refresh'] ||
+           ret.has_key?('lock_title?') || ret.has_key?('save_items?')
+      die "Please specify a feed change to make."
     end
   end
 

@@ -1702,3 +1702,6 @@
     on, but at least we don't have to contsantly switch help
     files in the config any more).
   * README: add a few more alternate aggregators
+
+* Fri Nov 07 15:23:13 2003, pabs <pabs@pablotron.org>
+  * raggle: don't require ruby1.8

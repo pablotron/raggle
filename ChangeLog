@@ -2349,3 +2349,7 @@ _Cvs
 * Sun Mar 13 17:36:00 2005, pabs <pabs@pablotron.org>
   * raggle: mark feeds as updated even if they have an error (we don't
     want to poll sites constantly)
+
+* Mon Mar 14 16:16:59 2005, pabs <pabs@pablotron.org>
+  * raggle: remove www. from raggle sites
+  * raggle: fix terminal resizing (yes, i'm fucking serious!)

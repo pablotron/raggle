@@ -74,6 +74,7 @@ end
 require 'getoptlong'
 require 'net/http'
 require 'pstore'
+require 'thread'
 
 #########################
 # load external modules #
@@ -3417,6 +3418,8 @@ ENDUSAGE
       end
 
       def NcursesInterface::resize_term
+        # force refresh (to get new screen coords)
+        Ncurses::refresh
         # get screen coordinates
         h = []; w = []
         Ncurses::getmaxyx Ncurses::stdscr, h, w
@@ -3443,7 +3446,7 @@ ENDUSAGE
         set_status " #{$config['msg_term_resize']}#{w[0]}x#{h[0]}"
       
         # refresh full screen
-        Ncurses::refresh
+        # Ncurses::refresh
       end
       
       #
@@ -3476,6 +3479,22 @@ ENDUSAGE
       # Ugly
       # -- richlowe 2003-07-01
       def NcursesInterface::init
+        # immediately set up resize queue and resize thread
+        $resize_queue ||= Queue.new
+        $resize_thread ||= Thread.new($resize_queue) { |q| 
+          loop {
+            q.pop
+            Ncurses::endwin
+            # Ncurses::refresh
+            # Ncurses::initscr
+            NcursesInterface::resize_term
+            $update_wins = true
+          }
+        }
+
+        # trap window change events
+        trap('WINCH') { $resize_queue << '1' }
+
         # initialize screen & keyboard
         Ncurses::initscr
         Ncurses::raw if $config['use_raw_mode']
@@ -3543,7 +3562,7 @@ ENDUSAGE
           if r && r.size > 0
             c = Ncurses::getch
             $config['keys'][c].call($wins[$a_win],c) \
-              if $config['keys'].has_key? c
+              if c != Ncurses::KEY_RESIZE && $config['keys'].has_key?(c) 
           end
           
           # refresh window contents if there's been a feed update
@@ -5181,7 +5200,6 @@ $config = {
 
     # Literal control L is horrid -- richlowe 2003-06-26
     ?\                => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::resize_term} ),
-    Ncurses::KEY_RESIZE => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::resize_term} ),
 
     ?s                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::sort_feeds} ),
 
@@ -5459,7 +5477,7 @@ $config = {
     },
     { 'title'     => 'Raggle: News',
       'url'       => 'http://raggle.org/rss/',
-      'site'      => 'http://www.raggle.org/',
+      'site'      => 'http://raggle.org/',
       'desc'      => 'Raggle News',
       'refresh'   => 120,
       'updated'   => 0,

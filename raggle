@@ -757,10 +757,16 @@ module OPML
     feed_list = $config['feeds']
 
     begin
-      file = (file_name == '-') ? $stdin : File::open(file_name)
+      contents = if file_name =~ /:\/\//
+        Feed::get_url(file_name)[0]
+      else
+        file = (file_name == '-') ? $stdin : File::open(file_name)
+        raise "Couldn't open input file \"#{file_name}\"." unless file
+        file.read
+      end
 
-      if file
-        doc = REXML::Document.new(file)
+      if contents && contents.size > 0
+        doc = REXML::Document.new(contents)
         doc.root.elements.each('//outline') do |outline|
           title = outline.attributes['title']
           url = outline.attributes['xmlUrl']
@@ -776,7 +782,7 @@ module OPML
                         site, desc, [], nil, nil, force)
         end
       else
-        raise "Couldn't open input file \"#{file_name}\"."
+        raise "Empty input file \"#{file_name}\"."
       end
     rescue REXML::ParseException
       die "Parsing #{file_name} failed: #{$!.message}"

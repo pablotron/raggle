@@ -439,8 +439,13 @@
   * raggle: pruned default feed list to 10 items
     
 * Sun Jun 22 04:19:53 2003, richlowe <richlowe@richlowe.net>
-  * raggle.1: List of keybindings for use within raggle.
+  * raggle.1: Add KEYS section to manpage documenting keybindings.
 
+* Sun Jun 22 04:31:18 2003, richlowe <richlowe@richlowe.net>
+  * raggle.1: Add an EXAMPLES section to the manpage giving examples of
+              common usage (I hope) and (hopefully) offsetting the woeful
+	      quality of the rest of the page.
+  * raggle.1: Add a license (copy/paste/sed from the executable)
 
 
 

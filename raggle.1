@@ -1,3 +1,29 @@
+.\"
+.\" Copyright (c) 2003 Paul Duncan, Richard Lowe, and various
+.\" contributors.
+.\"
+.\" Permission is hereby granted, free of charge, to any person         
+.\" obtaining a copy of this software and associated documentation      
+.\" files (the "Software"), to deal in the Software without             
+.\" restriction, including without limitation the rights to use, copy,  
+.\" modify, merge, publish, distribute, sublicense, and/or sell copies  
+.\" of the Software, and to permit persons to whom the Software is      
+.\" furnished to do so, subject to the following conditions:            
+.\"                                                                     
+.\" The above copyright notice and this permission notice shall be      
+.\" included in all copies of the Software, its documentation and       
+.\" marketing & publicity materials, and acknowledgment shall be given  
+.\" in the documentation, materials and software packages that this     
+.\" Software was used.                                                  
+.\"                                                                     
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,     
+.\" EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF  
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND               
+.\" NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY    
+.\" CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF          
+.\" CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION  
+.\" WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+.\"
 .Dd Jun 20, 2003
 .Dt RAGGLE 1
 .Os
@@ -241,9 +267,32 @@ Move item down
 .It Ic Delete
 Delete item
 .El
+.Sh EXAMPLES
+Add a feed called "Bar" updating every 2 hours
+.Dl $ raggle --add -t "Bar" -u "http://foo.com/bar.rss" --r 120
+.Pp
+Change the refresh time of the "Bar" feed to update every hour
+(assuming it is feed #1)
+.Dl $ raggle --edit 1 -r 60
+.Pp
+Tell raggle not to update feed #1's title from the RSS.
+.Dl $ raggle --edit 1 --lock-title
+.Pp
+Tell raggle to keep old items associated with feed #16
+.Dl $ raggle --edit 16 --save-items
+.Pp
+Tell raggle to update the title from the RSS feed (undoing the changes
+made by
+.Fl --lock-title
+above
+.Dl $ raggle --edit 1 --unlock-title
+.Pp
+Change the URL of the 3rd feed.
+.Dl $ raggle --edit 3 --url http://www.slashdot.org/slashdot.rss
+.Bd -literal
 .Sh BUGS
 .\" XXX Keep in sync with raggle/BUGS (but prettify)
-.Bl -tag -width xxxxxxxx
+.Bl -tag -width xxxx
 .It 
 Description window can't be scrolled
 .It 

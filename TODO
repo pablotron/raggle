@@ -31,7 +31,7 @@ Raggle TODO
     first item in the feed.
 [*] OPML import/export support (http://www.opml.org/)
 [ ] RSS locator (see link from http://www.pablotron.org/?cid=1154)
-[ ] item delete, mark items as unread, stick (save, hilite?) items, etc
+[*] item delete, mark items as unread, stick (save, hilite?) items, etc
 [*] proxy support (via ENV['HTTP_PROXY'], etc?)
 [*] display / dump raw feed output
 [*] conditional HTTP GET to reduce bandwidth use and increase speed
@@ -83,7 +83,7 @@ Raggle TODO
 [*] thread pool for grabbing an arbitrary number of threads in parallel
 [ ] internationalization support (information in this mailing list post:
     http://raggle.org/pipermail/raggle-dev/2003-September/000153.html)
-[ ] fix memory hogging either (either via weakref caching of feed
+[ ] fix memory hogging (either via weakref caching of feed
     contents or only having the active feed in memory: note this
     method is easier, but relies on sane disk caching for any speed)
 [*] update keybindings documentation

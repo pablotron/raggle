@@ -961,3 +961,6 @@
 
 * Fri Aug 15 18:24:08 2003, pabs <pabs@pablotron.org>
   * raggle: move "LINKS:" text to $config['msg_links']
+
+* Fri Aug 15 18:27:10 2003, pabs <pabs@pablotron.org>
+  * added doc/theme_documentation.txt

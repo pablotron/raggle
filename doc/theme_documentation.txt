@@ -1,0 +1,115 @@
+Preliminary Theme Documentation
+===============================
+The following email is from the raggle-dev mailing list.  The thread
+describes the window layout and color information for the
+~/.raggle/theme.yaml file.
+
+
+* Ville Aine (vaine at cs.helsinki.fi) wrote:
+> On Tue, Jul 15, 2003 at 02:38:40PM -0400, Paul Duncan wrote:
+> > * Nikolai :: lone-star :: Weibull (lone-star at home.se) wrote:
+> > > On Mon, Jul 14 2003, Ville Aine wrote something resembling:
+> > > > On Mon, Jul 14, 2003 at 01:30:38PM +0200, Nikolai :: lone-star :: Weibull wrote:
+> > > > > How about using a different layout:
+> > > > >
+> > > > > +-------+-----------------+
+> > > > > |Feeds  |Items            |
+> > > > > |       |                 |
+> > > > > |       |                 |
+> > > > > +-------+-----------------+
+> > > > > |Description              |
+> > > > > |                         |
+> > > > > |                         |
+> > > > > |                         |
+> > > > > |                         |
+> > > > > +-------------------------+
+> > > >
+> > > > There already is theme like this, see themes/pane.yaml (just copy themes/pane.yaml
+> > > > to $HOME/.raggle/theme.yaml to enable it)
+> > > >
+> > > haha...oops...sorry...when i think themes i generally think colors so i
+> > > didn't figure there would be a theme that altered the
+> > > layout...thanks...great!  now i have some motivation to look in the
+> > > themes/ directory at last ;-),
+> >
+> > Do you think somethign like layout.yaml would be more intuitive?  Or,
+> > maybe there should be a colors.yaml and a layout.yaml instead of one big
+> > theme.yaml?
+>
+> I don't know about those things, but documentation would be big plug. Commenting
+> default theme would probably be enough. Atleast I would find it very useful.
+>
+> The documentation (comments) should explain atleast these things:
+> - in what units are the coordinates specified? What -1 means?
+>   How does coordintes work when the theme is used in bigger/smaller
+>   terminal window than the theme author uses?
+
+Right now in columns and rows, although I'd prefer to have it be
+something similar to window manager border formats (specifically
+Enlightenment, although other window managers have adopted this approach
+as well): each window placement element would have a relative and
+absolute component
+
+> - What does the window_order do? At the same time, you must
+>   define coordinates for the windows and window_order, so
+>   the order isn't windows' order on the screen. Perhaps
+>   it is their "tab-order"?
+
+Yes (and reverse tab order as well). 
+
+> - How are the colors specified? The range seems to
+>   indicate, that they aren't just colors, but colors
+>   and attribute. Is their format (attributes << 4) | color,
+>   like it is in VGA? What is the format of attributes?
+
+There is a color palette in the config (the one at the bottom of the
+raggle executable if ~/.raggle/config.rb doesn't exist).  The numbers in
+the theme are indices in the color palette array.
+
+>   (Hmmh, maybe they shouldn't be specified by numbers
+>    at all, but using strings like "white", "bold dark blue"?)
+
+I thought about doing that, but I didn't because colors are really a
+per-terminal client thing.  I guess that would be slightly more
+intuitive, although it would break the theme format.
+
+> - What is the meaning of 'key'-key?
+> - What are the keys used when specifying colors? The names
+>   don't carry too much information (a_title and f_title?)
+
+Generic Window Colors
+=====================
+title:   window title
+text:    default text color in window
+h_text:  hilited text in window
+box:     window bounding box
+a_title: title if window is active
+a_box:   window bounding box if window is active
+
+List Window Colors (feed and item windows)
+==========================================
+unread:  unread items
+h_unread:  hilited unread items
+
+Description Window Colors
+=========================
+url:     item url
+date:    item date
+f_title:  selected feed title
+f_update: selected feed update interval
+f_url:    selected feed url
+f_site:   selected feed site
+f_error:  feed grab error
+f_desc:   feed description text color
+
+> - ...
+>
+> (Naturally one can always just read the fine code ;)
+
+Haha ;).
+
+> --
+> Ville Aine / "if.iknisleh.sc at eniav".reverse
+--
+Paul Duncan <pabs@pablotron.org>        pabs in #gah (OPN IRC)
+http://www.pablotron.org/               OpenPGP Key ID: 0x82C29562

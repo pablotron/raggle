@@ -325,4 +325,8 @@
 * Sat Jun 21 01:46:36 EDT 2003, richlowe <richlowe@richlowe.net>
   * raggle: Add item deletion support
 
+* Sat Jun 21 01:49:09 EDT 2003, richlowe <richlowe@richlowe.net>
+ * raggle: Fix typo in return binding.
+
+
 

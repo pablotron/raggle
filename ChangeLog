@@ -224,3 +224,4 @@
 * Thu Jun 19 15:15:08 2003, pabs <pabs@pablotron.org>
   * raggle: strip leading and trailing whitespace from feed item 
     titles
+  * raggle: do the same for feeds as well :)

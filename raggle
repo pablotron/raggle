@@ -1212,7 +1212,7 @@ def populate_feed_win
     feed['items'].each { |item| unread_count += 1 unless item['read?'] }
 
     # build title
-    title = feed['title'] + " (#{unread_count}/#{feed['items'].size})"
+    title = feed['title'].strip << " (#{unread_count}/#{feed['items'].size})"
     $wins[id].items << {
       'title' => title,
       'feed'  => i,

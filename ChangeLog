@@ -379,6 +379,10 @@
 * Sun Jun 22 00:38:37 EDT 2003, richlowe <richlowe@richlowe.net>
   * raggle: Trap SIGINT and SIGQUIT early, and handle them gracefully
 
+* Sun Jun 22 00:45:25 EDT 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Don't activate (and thus swith to 'items' with the (default)
+            auto focus) the item selected after a deletion
+	
 
 
 

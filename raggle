@@ -218,10 +218,9 @@ module Key
     win = $wins[get_win_id('feed')]
     $config['feeds'].delete(win.active_item)
     win.delete_item
+    win.active_item = (win.active_item > 0) ? win.active_item - 1 : 0
     win.clear
-    win.active_item = (win.active_item > 0) ? win.active_item - 1: 0
     win.draw_items
-    win.select_win_item
   end
 
   def Key::sort_feeds
@@ -1726,6 +1725,10 @@ $config = {
     ?d                  => proc { |win, key| Key::move_item_down },
 
     Ncurses::KEY_DC     => proc { |win, key| Key::delete },
+    ##
+    # XXX: Meta can be dropped after spawned browser exits
+    # So A, B, C or D should *not* be bound until this is fixed
+    # -- richlowe 2003-06-22 (actually --pabs 2003-06-21)
     # ?D                  => proc { |win, key| Key::delete },
 
     Ncurses::KEY_RESIZE => proc { |win, key| resize_term },

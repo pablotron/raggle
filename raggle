@@ -1099,7 +1099,8 @@ module Feed
 
     def fix_character_encoding(element)
       tmp = ''
-      element.get_text.write(REXML::Output.new(tmp, $config['character_encoding']))
+      encoding = $config['character_encoding'] || 'ISO-8859-1'
+      element.get_text.write(REXML::Output.new(tmp, encoding))
       tmp.unescape_html
     end
   end

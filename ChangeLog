@@ -1164,3 +1164,7 @@
 * Sat Aug 23 02:16:51 2003, heap <vaine@cs.helsinki.fi>
   * raggle: fix for the character mangling bug broke 
     HTML rendering (oops), fixed that one.
+
+* Fri Aug 22 21:35:44 2003, pabs <pabs@pablotron.org>
+  * raggle: make encoding fall back to iso-8859-1 if it's not defined
+    in the $config

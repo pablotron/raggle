@@ -65,6 +65,7 @@ Thomas Kirchner <redshift@halffull.org>
 * duplicate feed checking
 * ability to mark items as unread
 * 'n' and 'p' feed spanning
+* '1' through '9' link opening
 * help window
 * feed priorities
 * item deletion and undeletion

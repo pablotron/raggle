@@ -145,12 +145,12 @@ def find_proxy(host)
   elsif ENV['http_proxy'] && ENV['http_proxy'] =~ /http:\/\/([^:]+):(\d+)/
     ret = { 'host' => $1, 'port' => $2 }
     no_proxy = ENV['no_proxy']
-    ret['no_proxy'] = no_proxy ? no_proxy.split(/\s*,\s*/) : []
+    ret['no_proxy'] = (no_proxy ? no_proxy.split(/\s*,\s*/) : [])
   end
 
   # return nil if host is in no_proxy list
-  ret = nil if ret['no_proxy'] && 
-               ret['no_proxy'].find { |i| /#{i}/.match(host) }
+  ret = nil if ret && ret['no_proxy'] && 
+               ret['no_proxy'].find { |i| /#{i}/ =~ host }
 
   ret
 end
@@ -876,11 +876,11 @@ module Feed
     end
 
     # start up proxy support
-    proxy = find_proxy(host) || {}
+    proxy = find_proxy(host) || { }
     
     # initialize http connection
     Net::HTTP.version_1_1
-    http = Net::HTTP::start(host, port, proxy['host'], proxy['port'])
+    http = Net::HTTP.start(host, port, proxy['host'], proxy['port'])
     http.use_ssl = use_ssl if $HAVE_SSL
     raise "Couldn't connect to host \"#{host}:#{port}\"" unless http
 
@@ -2570,7 +2570,7 @@ $config = {
   'proxy' => {
     'host'      => nil,
     'port'      => nil,
-    'no_proxy'  => [],
+    'no_proxy'  => nil,
   },
   
   # send the http headers?

@@ -1023,3 +1023,7 @@
 
 * Sat Aug 16 20:07:54 2003, pabs <pabs@pablotron.org>
   * raggle: fix 1.8 encoding bug reported by srl
+
+* Sat Aug 16 20:35:32 2003, pabs <pabs@pablotron.org>
+  * raggle: fix non-proxy HTTP grabbing (oops). also reported by srl.
+

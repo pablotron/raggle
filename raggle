@@ -70,7 +70,7 @@ end
 def die(args)
   errstr = "#$0: FATAL: #{args.join("\n")}"
   errstr << ": #$!" if $!
-  $stderr.puts errstr
+  $stderr.puts errstr.gsub(/%/, '%%')
   exit -1
 end
 

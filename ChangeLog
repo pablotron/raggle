@@ -859,6 +859,8 @@
     (and someone else maybe?)
   * raggle: make die() take multiple arguments. ala puts
 
+* Thu Jul 03 15:15:19 2003, pabs <pabs@pablotron.org>
+  * raggle: escape % in die strings
 	
 
 

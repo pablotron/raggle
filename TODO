@@ -30,3 +30,5 @@ Raggle TODO
     too (though possibly it should, but that's what this is all about).
 [*] Add an option ('force_reflow') that will forcibly wrap lines that
     would otherwise evade it (by not having spaces in it, say).
+[ ] When selecting a feed, automatically (and optionally) select the
+    first item in the feed.

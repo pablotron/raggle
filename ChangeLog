@@ -2398,3 +2398,14 @@ _Cvs
     list
   * raggle: don't auto-select in find feed window
   * doc/default_config.rb: regenerated
+
+* Tue Mar 15 20:12:47 2005, pabs <pabs@pablotron.org>
+  * Makefile: removed defaultconfig rule
+  * Makefile: updated release version for pod to 0.4
+  * raggle.pod: added --default-config to list of options
+  * raggle.pod: added --find example and --import-opml example.
+  * raggle.pod: added ENVIRONMENT section
+  * raggle.pod: updated BUGS
+  * raggle.pod: added 0.4 to HISTORY
+  * raggle.1: regenerated from pod
+  * raggle.1: removed perl5.8.4 string

@@ -129,15 +129,16 @@
 .\" ========================================================================
 .\"
 .IX Title "RAGGLE 1"
-.TH RAGGLE 1 "2004-12-31" "0.4" "User Commands Manual"
+.TH RAGGLE 1 "2005-03-15" "raggle 0.4" "Raggle Documentation"
 .SH "NAME"
-raggle \- text mode RSS aggregator
+raggle \- Console RSS aggregator.
 .SH "SYNOPSIS"
 .IX Header "SYNOPSIS"
 \&\fBraggle\fR
 [\fB\-aAhlvV\fR] 
 [\fB\-\-add\fR [\fIurl\fR]] 
 [\fB\-\-ascii\fR]
+[\fB\-\-default\-config\fR]
 [\fB\-\-diag\fR]
 [\fB\-\-force\fR] 
 [\fB\-\-help\fR] 
@@ -191,6 +192,10 @@ Use \fIfile\fR as an alternate configuration file.
 .IP "\fB\-d\fR \fIfeed\fR  \fB\-\-delete\fR \fIfeed\fR" 5
 .IX Item "-d feed  --delete feed"
 Delete \fIfeed\fR from the feed list.
+.IP "\fB\-\-default\-config\fR" 5
+.IX Item "--default-config"
+Print out the default configuration of Raggle in a format suitable for
+your config.rb file.
 .IP "\fB\-\-diag\fR" 5
 .IX Item "--diag"
 Print out full stack traces, and other diagnostic information
@@ -425,19 +430,62 @@ Export all feeds to foo.opml
 Import all feeds from foo.opml, and set their refresh time to
 90 minutes.
     $ raggle \-\-import\-opml foo.opml \-r 90
+.Sp
+Import all feeds from foo.opml, and set their refresh time to
+90 minutes.
+    $ raggle \-\-import\-opml foo.opml \-r 90
+.Sp
+Find feed matching the string \*(L"halffull\*(R"
+    $ raggle \-\-find halffull
+.SH "ENVIRONMENT"
+.IX Header "ENVIRONMENT"
+.IP "\fB\s-1BROWSER\s0\fR" 5
+.IX Item "BROWSER"
+Used to find a suitable web browser (see \fB\s-1RAGGLE_BROWSER\s0\fR).
+.IP "\fB\s-1HOME\s0\fR" 5
+.IX Item "HOME"
+Used to find the Raggle configuration directory.
+.IP "\fBhttp_proxy\fR" 5
+.IX Item "http_proxy"
+\&\s-1HTTP\s0 Proxy server, in the format "http://\fIhost\fR:\fIport\fR/".
+.IP "\fBno_proxy\fR" 5
+.IX Item "no_proxy"
+Comma-delimited list of hosts and domains to connect directly to
+(only applicable if you're using an \s-1HTTP\s0 proxy).
+.IP "\fB\s-1PATH\s0\fR" 5
+.IX Item "PATH"
+Used to find a suitable web browser (see \fB\s-1RAGGLE_BROWSER\s0\fR).
+.IP "\fB\s-1RAGGLE_BROWSER\s0\fR" 5
+.IX Item "RAGGLE_BROWSER"
+Path to the web browser Raggle should use when a feed item is 
+opened.  If \fB\s-1RAGGLE_BROWSER\s0\fR isn't set, Raggle checks 
+\&\fB\s-1BROWSER\s0\fR, then looks for common command-line browsers in \fB\s-1PATH\s0\fR.
+Note: this behavior can be overridden by setting the 'browser' 
+config directive in your Raggle configuration file.
+.IP "\fB\s-1RAGGLE_WEB_DATA\s0\fR" 5
+.IX Item "RAGGLE_WEB_DATA"
+Used to find the web interface data files.  If it's not set, 
+Raggle looks for a directory called \*(L"web_ui\*(R" in the configuration 
+directory. 
+.IP "\fB\s-1SHELL\s0\fR" 5
+.IX Item "SHELL"
+Shell to launch when invoking a sub\-shell.
+.IP "\fB\s-1WINDOW\s0\fR" 5
+.IX Item "WINDOW"
+Used to determine whether or Raggle is running in screen.
 .SH "BUGS"
 .IX Header "BUGS"
 .IP "\fB*\fR" 5
 .IX Item "*"
-The feed grabbing thread will block (and no other feeds will
-update) if the \s-1HTTP\s0 connection for a feed blocks.
+Pressing Ctrl-C while adding a feed will cause Raggle to exit 
+unexpectedly, not cancel.
 .IP "\fB*\fR" 5
 .IX Item "*"
 It's possible that feeds.yaml will be mistakenly written as an
 Array rather than a FeedList for no apparent reason.
 .IP "\fB*\fR" 5
 .IX Item "*"
-And probably many, many more; please report any you find to <\fIraggle\-dev@raggle.org\fR>
+Possibly more!  Please report any you find to <\fIraggle\-dev@raggle.org\fR>
 .SH "HISTORY"
 .IX Header "HISTORY"
 .IP "\fBraggle\fR 0.1 was released on 23 Jun, 2003" 5

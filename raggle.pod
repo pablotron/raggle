@@ -1,6 +1,6 @@
 =head1 NAME
 
-raggle - text mode RSS aggregator
+raggle - Console RSS aggregator.
 
 =head1 SYNOPSIS
 
@@ -8,6 +8,7 @@ B<raggle>
 [B<-aAhlvV>] 
 [B<--add> [I<url>]] 
 [B<--ascii>]
+[B<--default-config>]
 [B<--diag>]
 [B<--force>] 
 [B<--help>] 
@@ -68,6 +69,11 @@ Use I<file> as an alternate configuration file.
 =item B<-d> I<feed>  B<--delete> I<feed>
 
 Delete I<feed> from the feed list.
+
+=item B<--default-config>
+
+Print out the default configuration of Raggle in a format suitable for
+your config.rb file.
 
 =item B<--diag>
 
@@ -369,12 +375,64 @@ Import all feeds from foo.opml, and set their refresh time to
 90 minutes.
     $ raggle --import-opml foo.opml -r 90
 
+Import all feeds from foo.opml, and set their refresh time to
+90 minutes.
+    $ raggle --import-opml foo.opml -r 90
+
+Find feed matching the string "halffull"
+    $ raggle --find halffull
+
+=head1 ENVIRONMENT
+
+=item B<BROWSER>
+
+Used to find a suitable web browser (see B<RAGGLE_BROWSER>).
+
+=item B<HOME>
+
+Used to find the Raggle configuration directory.
+
+=item B<http_proxy>
+
+HTTP Proxy server, in the format "http://I<host>:I<port>/".
+
+=item B<no_proxy>
+
+Comma-delimited list of hosts and domains to connect directly to
+(only applicable if you're using an HTTP proxy).
+
+=item B<PATH>
+
+Used to find a suitable web browser (see B<RAGGLE_BROWSER>).
+
+=item B<RAGGLE_BROWSER>
+
+Path to the web browser Raggle should use when a feed item is 
+opened.  If B<RAGGLE_BROWSER> isn't set, Raggle checks 
+B<BROWSER>, then looks for common command-line browsers in B<PATH>.
+Note: this behavior can be overridden by setting the 'browser' 
+config directive in your Raggle configuration file.
+
+=item B<RAGGLE_WEB_DATA>
+
+Used to find the web interface data files.  If it's not set, 
+Raggle looks for a directory called "web_ui" in the configuration 
+directory. 
+
+=item B<SHELL>
+
+Shell to launch when invoking a sub-shell.
+
+=item B<WINDOW>
+
+Used to determine if Raggle is running in screen.
+
 =head1 BUGS
 
 =item B<*>
 
-The feed grabbing thread will block (and no other feeds will
-update) if the HTTP connection for a feed blocks.
+Pressing Ctrl-C while adding a feed will cause Raggle to exit 
+unexpectedly, not cancel.
 
 =item B<*>
 
@@ -383,7 +441,7 @@ Array rather than a FeedList for no apparent reason.
 
 =item B<*>
 
-And probably many, many more; please report any you find to <I<raggle-dev@raggle.org>>
+Possibly more!  Please report any you find to <I<raggle-dev@raggle.org>>
 
 =head1 HISTORY
 
@@ -395,6 +453,9 @@ B<raggle> 0.2 was released on 17 Aug, 2003
 
 =item
 B<raggle> 0.3 was released on 20 Feb, 2004
+
+=item
+B<raggle> 0.3 was released on 15 Mar, 2005
 
 =head1 AUTHORS
 

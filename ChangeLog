@@ -1659,3 +1659,6 @@
   * raggle: reenable open timeout
   * raggle: try again with use_ssl fix
   * raggle: preliminary feed grabbing thread pool implementation
+
+* Fri Sep 26 00:48:32 2003, pabs <pabs@pablotron.org>
+  * raggle: make edit accept -1 for batch operations

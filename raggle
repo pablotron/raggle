@@ -946,12 +946,24 @@ class FeedList
     die "Invalid feed id: #{id}" unless id < @feeds.size
     refresh_interval_check opts['refresh'] if !opts['force'] &&
                                               opts.has_key?('refresh')
-    ourl = $config['feeds'].get(id)['url']
-    %w{title url refresh lock_title? save_items? max_items}.each { |key|
-      $config['feeds'].get(id)[key] = opts[key] if opts.has_key? key
-    }
-    if opts.has_key?('url') and opts['url'] != ourl
-      $config['feeds'].invalidate(id)
+    if id == -1
+      0.upto($config['feeds'].size - 1) do |id|
+        ourl = $config['feeds'].get(id)['url']
+        %w{title url refresh lock_title? save_items? max_items}.each { |key|
+          $config['feeds'].get(id)[key] = opts[key] if opts.has_key? key
+        }
+        if opts.has_key?('url') and opts['url'] != ourl
+          $config['feeds'].invalidate(id)
+        end
+      end
+    else 
+      ourl = $config['feeds'].get(id)['url']
+      %w{title url refresh lock_title? save_items? max_items}.each { |key|
+        $config['feeds'].get(id)[key] = opts[key] if opts.has_key? key
+      }
+      if opts.has_key?('url') and opts['url'] != ourl
+        $config['feeds'].invalidate(id)
+      end
     end
   end
 

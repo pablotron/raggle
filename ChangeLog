@@ -1870,3 +1870,6 @@
 
 * Sun Jul 11 04:33:22 2004, pabs <pabs@pablotron.org>
   * raggle: move Key, HTML, OPML, and FeedList into Raggle module
+
+* Sun Jul 11 04:45:24 2004, pabs <pabs@pablotron.org>
+  * raggle: move FeedList module and Feed class into Raggle module

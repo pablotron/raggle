@@ -1104,321 +1104,321 @@ ENDWARNING
     end
     private :refresh_interval_check
   end
-end
 
-module Feed
-  # Feed::Item struct definition
-  Item = Struct.new :title, :link, :desc, :date
+  module Feed
+    # Feed::Item struct definition
+    Item = Struct.new :title, :link, :desc, :date
 
-  #
-  # Return the contents of a URL
-  #
-  def Feed::get_url(url, last_modified = nil)
-    ret = [nil, nil]
+    #
+    # Return the contents of a URL
+    #
+    def Feed::get_url(url, last_modified = nil)
+      ret = [nil, nil]
 
-    if url =~ /^(\w+?):/
-      key = $1.downcase
-      if $config['url_handlers'][key]
-        ret = $config['url_handlers'][key].call(url, last_modified)
+      if url =~ /^(\w+?):/
+        key = $1.downcase
+        if $config['url_handlers'][key]
+          ret = $config['url_handlers'][key].call(url, last_modified)
+        else
+          if $config['strict_url_handling']
+            raise "Missing handler for URL \"#{url}\"."
+          else
+            key = $config['default_url_handler']
+            ret = $config['url_handlers'][key].call(url, last_modified)
+          end
+        end
       else
         if $config['strict_url_handling']
-          raise "Missing handler for URL \"#{url}\"."
+          raise "Malformed URL: #{url}"
         else
           key = $config['default_url_handler']
           ret = $config['url_handlers'][key].call(url, last_modified)
         end
       end
-    else
-      if $config['strict_url_handling']
-        raise "Malformed URL: #{url}"
-      else
-        key = $config['default_url_handler']
-        ret = $config['url_handlers'][key].call(url, last_modified)
-      end
+
+      ret
     end
 
-    ret
-  end
-
-  #
-  # Return the contents of a HTTP URL
-  #
-  def Feed::get_http_url(url, last_modified = nil)
-    port = 80
-    use_ssl = false
-    user, pass = nil, nil
-
-    # work with a copy of the url
-    url = url.dup
-
-    # check for ssl
-    if url =~ /^https:/
-      raise 'HTTPS support requires OpenSSL-Ruby' unless $HAVE_LIB['ssl']
-      use_ssl = true
-    end
-
-    # strip 'http://' prefix from URL
-    url.gsub!(/^\w+?:\/\//, '') if url =~ /^\w+?:\/\//
-
-    # get user and pass from URL
-    if url =~ /^([^:]*):([^@]*)@/
-      user, pass = $1, $2
-      url.gsub(/^.+?@/, '')
-    end
-
-    # get host and path portions of url
-    raise "Couldn't parse URL: \"#{url}\"" unless url =~ /^(.+?)\/(.*)$/
-    host, path = $1, $2
-
-
-    # check for port in URL
-    if host =~ /:(\d+)$/
-      port = $1.to_i
-      host.gsub!(/:(\d+)$/, '')
-    end
-
-    # start up proxy support
-    proxy = find_proxy(host) || { }
-    
-    # initialize http connection
-    http = Net::HTTP::new(host, port, proxy['host'], proxy['port'])
-    if $HAVE_LIB['ssl'] && use_ssl
-      http.use_ssl = use_ssl
-    end
-    http.open_timeout = $config['http_open_timeout'] || 30
-    # http.read_timeout = $config['http_read_timeout'] || 120
-    http.start
-    raise "Couldn't connect to host \"#{host}:#{port}\"" unless http
-
-    begin 
-      # check last-modified header first
-      if last_modified
-        # build headers
-        headers = $config['use_http_headers'] ? $config['http_headers'] : {}
-        headers['If-Modified-Since'] = last_modified
-        
-        # handle basic http authentication
-        if user
-          pass ||= ''
-          headers['Authorization'] = 'Basic ' <<
-                                     ["#{user}:#{pass}"].pack('m').strip
-        end
-
-        # get response
-        resp = http.head('/' << path, headers)
-
-        # check header
-        if last_modified == resp['last-modified']
-          # it's the same as the old content
-          ret = [nil, last_modified]
-        else
-          # it's changed, get it again
-          ret = get_http_url(url, nil)
-        end
-      else
-        # no cache, just get the result
-        headers = $config['use_http_headers'] ? $config['http_headers'] : {}
-
-        # handle basic http authentication
-        if user
-          pass ||= ''
-          headers['Authorization'] = 'Basic ' <<
-                                     ["#{user}:#{pass}"].pack('m').strip
-        end
-
-        # get the result
-        resp, content = http.get(('/' << path), headers)
-
-        if resp.code.to_i != 200
-          # if we got anythign other than success, raise an exception
-          # (this might be a little overzealous, anyone?
-          raise "HTTP Error: #{resp.code} #{resp.message}" \
-        end
-
-        # build return array
-        ret = [content, resp['last-modified']]
-      end
-    rescue 
-      resp = $!.response
-
-      # handle unchanged content and redirects
-      if resp.code.to_i == 304      # hasn't changed
-        ret = [nil, last_modified]
-      elsif resp.code =~ /3\d{2}/   # redirect
-        location = resp['location']
-        if location =~ /^\//
-          # handle relative host, absolute path redirects
-          location = host << ':' << port.to_s << location
-          location = 'http' << (http.use_ssl ? 's' : '') << '://' << location
-        elsif location !~ /^http/
-          # handle relative host, relative path redirects
-          path.gsub!(/[^\/]+$/, '') if path =~ /[^\/]+$/
-          location = 'http' << (http.use_ssl ? 's' : '') << '://' << 
-                     host << ':' << port.to_s << '/' << path << '/' <<
-                     location
-        end
-
-        ret = get_http_url(location, last_modified)
-      else
-        raise "HTTP Error: #$!"
-      end
-    ensure
-      # close HTTP connection
-      # Note: if we don't specify this, then the connection is pooled
-      # for the HTTP/1.1 spec (do we prefer that kind of behavior?
-      # maybe I should make in an option)
-      http.finish if http.active?
-    end
-
-
-    # return URL content and last-modified header
-    ret
-  end
-
-  #
-  # Return the contents of a file URL
-  #
-  def Feed::get_file_url(url, last_modified = nil)
-    ret = [nil, nil]
-
-    # work with a copy of the url
-    path = url.dup
-
-    # strip 'file:' prefix from URL
-    path.gsub!(/^\w+?:/, '') if path =~ /^\w+?:/
-
-    if stat = File::stat(path)
-      stat_mtime = stat.mtime.to_s
-      
-      if last_modified
-        # check last-modified header first
-        if last_modified == stat_mtime
-          # it's the same as the old content
-          ret = [nil, last_modified]
-        else
-          # it's changed, get it again
-          ret = get_file_url(url, nil)
-        end
-      else
-        # no cache, just get the result
-        if file = File::open(path)
-          ret = [file.read, stat_mtime]
-          file.close
-        else
-          raise "Couldn't open file URL: #$!"
-        end
-      end
-    else
-      raise "File URL Error: #$!"
-    end
-
-    # return URL content and last-modified header
-    ret
-  end
-
-  #
-  # Return the contents of an exec URL
-  #
-  def Feed::get_exec_url(url, last_modified = nil)
-    ret = [nil, nil]
-
-    # work with a copy of the url
-    cmd = url.dup
-
-    # strip 'exec:' prefix from URL
-    cmd.gsub!(/^[^:]+?:/, '') if cmd =~ /^[^:]+?:/
-
-    # no cache, just get the result
-    begin 
-      pipe = IO::popen(cmd, 'r')
-      ret = [pipe.read, nil]
-      pipe.close
-    rescue
-      raise "Couldn't read exec URL: #$!"
-    end
-
-    # return URL content and last-modified header
-    ret
-  end
-
-
-  class Channel
-    attr_accessor :title, :link, :desc, :lang, :image, :items, :last_modified
-
-    def initialize(url, last_modified = nil)
-      parse_rss_url url
-    end
-
-    # 
-    # Parse an RSS URL and return a FeedChannel object (which contains,
-    # among other things, an array of feed_item structs).  If the last
     #
-    def parse_rss_url(url, last_modified = nil)
-      begin
-        content, modified = Feed::get_url(url, last_modified)
-        $log.puts "content: #{content[0,80]}",
-                  "modified: #{modified}"
+    # Return the contents of a HTTP URL
+    #
+    def Feed::get_http_url(url, last_modified = nil)
+      port = 80
+      use_ssl = false
+      user, pass = nil, nil
+
+      # work with a copy of the url
+      url = url.dup
+
+      # check for ssl
+      if url =~ /^https:/
+        raise 'HTTPS support requires OpenSSL-Ruby' unless $HAVE_LIB['ssl']
+        use_ssl = true
+      end
+
+      # strip 'http://' prefix from URL
+      url.gsub!(/^\w+?:\/\//, '') if url =~ /^\w+?:\/\//
+
+      # get user and pass from URL
+      if url =~ /^([^:]*):([^@]*)@/
+        user, pass = $1, $2
+        url.gsub(/^.+?@/, '')
+      end
+
+      # get host and path portions of url
+      raise "Couldn't parse URL: \"#{url}\"" unless url =~ /^(.+?)\/(.*)$/
+      host, path = $1, $2
+
+
+      # check for port in URL
+      if host =~ /:(\d+)$/
+        port = $1.to_i
+        host.gsub!(/:(\d+)$/, '')
+      end
+
+      # start up proxy support
+      proxy = find_proxy(host) || { }
+      
+      # initialize http connection
+      http = Net::HTTP::new(host, port, proxy['host'], proxy['port'])
+      if $HAVE_LIB['ssl'] && use_ssl
+        http.use_ssl = use_ssl
+      end
+      http.open_timeout = $config['http_open_timeout'] || 30
+      # http.read_timeout = $config['http_read_timeout'] || 120
+      http.start
+      raise "Couldn't connect to host \"#{host}:#{port}\"" unless http
+
+      begin 
+        # check last-modified header first
+        if last_modified
+          # build headers
+          headers = $config['use_http_headers'] ? $config['http_headers'] : {}
+          headers['If-Modified-Since'] = last_modified
+          
+          # handle basic http authentication
+          if user
+            pass ||= ''
+            headers['Authorization'] = 'Basic ' <<
+                                       ["#{user}:#{pass}"].pack('m').strip
+          end
+
+          # get response
+          resp = http.head('/' << path, headers)
+
+          # check header
+          if last_modified == resp['last-modified']
+            # it's the same as the old content
+            ret = [nil, last_modified]
+          else
+            # it's changed, get it again
+            ret = get_http_url(url, nil)
+          end
+        else
+          # no cache, just get the result
+          headers = $config['use_http_headers'] ? $config['http_headers'] : {}
+
+          # handle basic http authentication
+          if user
+            pass ||= ''
+            headers['Authorization'] = 'Basic ' <<
+                                       ["#{user}:#{pass}"].pack('m').strip
+          end
+
+          # get the result
+          resp, content = http.get(('/' << path), headers)
+
+          if resp.code.to_i != 200
+            # if we got anythign other than success, raise an exception
+            # (this might be a little overzealous, anyone?
+            raise "HTTP Error: #{resp.code} #{resp.message}" \
+          end
+
+          # build return array
+          ret = [content, resp['last-modified']]
+        end
+      rescue 
+        resp = $!.response
+
+        # handle unchanged content and redirects
+        if resp.code.to_i == 304      # hasn't changed
+          ret = [nil, last_modified]
+        elsif resp.code =~ /3\d{2}/   # redirect
+          location = resp['location']
+          if location =~ /^\//
+            # handle relative host, absolute path redirects
+            location = host << ':' << port.to_s << location
+            location = 'http' << (http.use_ssl ? 's' : '') << '://' << location
+          elsif location !~ /^http/
+            # handle relative host, relative path redirects
+            path.gsub!(/[^\/]+$/, '') if path =~ /[^\/]+$/
+            location = 'http' << (http.use_ssl ? 's' : '') << '://' << 
+                       host << ':' << port.to_s << '/' << path << '/' <<
+                       location
+          end
+
+          ret = get_http_url(location, last_modified)
+        else
+          raise "HTTP Error: #$!"
+        end
+      ensure
+        # close HTTP connection
+        # Note: if we don't specify this, then the connection is pooled
+        # for the HTTP/1.1 spec (do we prefer that kind of behavior?
+        # maybe I should make in an option)
+        http.finish if http.active?
+      end
+
+
+      # return URL content and last-modified header
+      ret
+    end
+
+    #
+    # Return the contents of a file URL
+    #
+    def Feed::get_file_url(url, last_modified = nil)
+      ret = [nil, nil]
+
+      # work with a copy of the url
+      path = url.dup
+
+      # strip 'file:' prefix from URL
+      path.gsub!(/^\w+?:/, '') if path =~ /^\w+?:/
+
+      if stat = File::stat(path)
+        stat_mtime = stat.mtime.to_s
+        
+        if last_modified
+          # check last-modified header first
+          if last_modified == stat_mtime
+            # it's the same as the old content
+            ret = [nil, last_modified]
+          else
+            # it's changed, get it again
+            ret = get_file_url(url, nil)
+          end
+        else
+          # no cache, just get the result
+          if file = File::open(path)
+            ret = [file.read, stat_mtime]
+            file.close
+          else
+            raise "Couldn't open file URL: #$!"
+          end
+        end
+      else
+        raise "File URL Error: #$!"
+      end
+
+      # return URL content and last-modified header
+      ret
+    end
+
+    #
+    # Return the contents of an exec URL
+    #
+    def Feed::get_exec_url(url, last_modified = nil)
+      ret = [nil, nil]
+
+      # work with a copy of the url
+      cmd = url.dup
+
+      # strip 'exec:' prefix from URL
+      cmd.gsub!(/^[^:]+?:/, '') if cmd =~ /^[^:]+?:/
+
+      # no cache, just get the result
+      begin 
+        pipe = IO::popen(cmd, 'r')
+        ret = [pipe.read, nil]
+        pipe.close
       rescue
-        raise "Couldn't get URL \"#{url}\": #$!."
+        raise "Couldn't read exec URL: #$!"
       end
 
-      @last_modified = modified
-      if !modified || modified != last_modified
-        # strip external entities (work-around for bug in REXML 2.7.1)
-        content.gsub!(/<!ENTITY %.*?>/m, '') if \
-          $config['strip_external_entities'] && content =~ /<!ENTITY %.*?>/m
-
-        # parse URL content
-        doc = REXML::Document.new content
-
-        # get channel info
-        e = nil
-        @title = e.text if e = doc.root.elements['//channel/title']
-        @link = e.text if e = doc.root.elements['//channel/link']
-        @desc = e.text if e = doc.root.elements['//channel/description']
-        @image = e.text if e = doc.root.elements['//image/url']
-        @lang = e.text if e = doc.root.elements['//channel/language']
-    
-        # build list of feed items
-        @items = []
-        doc.root.elements.each('//item') { |e| 
-          # get item attributes (the ones that are set, anyway... stupid
-          # RSS)
-          h = {}
-
-          # basic item attribute element check
-          ['title', 'link', 'date', 'description'].each { |val|
-            h[val] = (t_e = e.elements[val]) ? fix_character_encoding(t_e) : ''
-          }
-
-          # more elaborate xpath checks for item attribute elements
-          ['link', 'date', 'description'].each { |key|
-            h[key] = find_element(e, key)
-          }
-
-          # insert new item
-          @items << Feed::Item.new(h['title'], h['link'],
-                                   h['description'], h['date'])
-        }
-      end
+      # return URL content and last-modified header
+      ret
     end
 
-    def find_element(elem, name)
-      if $config['item_element_xpaths'][name]
-        $config['item_element_xpaths'][name].each { |xpath|
-          e = elem.elements[xpath]
-          return fix_character_encoding(e) if e
-        }
-      end
-      ''
-    end
 
-    def fix_character_encoding(element)
-      tmp = ''
-      encoding = $config['character_encoding'] || 'ISO-8859-1'
-      text = element.get_text
-      text.write(REXML::Output.new(tmp, encoding)) if text
-      tmp.unescape_html
+    class Channel
+      attr_accessor :title, :link, :desc, :lang, :image, :items, :last_modified
+
+      def initialize(url, last_modified = nil)
+        parse_rss_url url
+      end
+
+      # 
+      # Parse an RSS URL and return a FeedChannel object (which contains,
+      # among other things, an array of feed_item structs).  If the last
+      #
+      def parse_rss_url(url, last_modified = nil)
+        begin
+          content, modified = Feed::get_url(url, last_modified)
+          $log.puts "content: #{content[0,80]}",
+                    "modified: #{modified}"
+        rescue
+          raise "Couldn't get URL \"#{url}\": #$!."
+        end
+
+        @last_modified = modified
+        if !modified || modified != last_modified
+          # strip external entities (work-around for bug in REXML 2.7.1)
+          content.gsub!(/<!ENTITY %.*?>/m, '') if \
+            $config['strip_external_entities'] && content =~ /<!ENTITY %.*?>/m
+
+          # parse URL content
+          doc = REXML::Document.new content
+
+          # get channel info
+          e = nil
+          @title = e.text if e = doc.root.elements['//channel/title']
+          @link = e.text if e = doc.root.elements['//channel/link']
+          @desc = e.text if e = doc.root.elements['//channel/description']
+          @image = e.text if e = doc.root.elements['//image/url']
+          @lang = e.text if e = doc.root.elements['//channel/language']
+      
+          # build list of feed items
+          @items = []
+          doc.root.elements.each('//item') { |e| 
+            # get item attributes (the ones that are set, anyway... stupid
+            # RSS)
+            h = {}
+
+            # basic item attribute element check
+            ['title', 'link', 'date', 'description'].each { |val|
+              h[val] = (t_e = e.elements[val]) ? fix_character_encoding(t_e) : ''
+            }
+
+            # more elaborate xpath checks for item attribute elements
+            ['link', 'date', 'description'].each { |key|
+              h[key] = find_element(e, key)
+            }
+
+            # insert new item
+            @items << Feed::Item.new(h['title'], h['link'],
+                                     h['description'], h['date'])
+          }
+        end
+      end
+
+      def find_element(elem, name)
+        if $config['item_element_xpaths'][name]
+          $config['item_element_xpaths'][name].each { |xpath|
+            e = elem.elements[xpath]
+            return fix_character_encoding(e) if e
+          }
+        end
+        ''
+      end
+
+      def fix_character_encoding(element)
+        tmp = ''
+        encoding = $config['character_encoding'] || 'ISO-8859-1'
+        text = element.get_text
+        text.write(REXML::Output.new(tmp, encoding)) if text
+        tmp.unescape_html
+      end
     end
   end
 end

@@ -31,6 +31,14 @@ p {
   padding: 0px;
 }
 
+img.feed-image {
+  float: right;
+  border: 2px;
+  padding-top: 0px;
+  padding-right: 0px;
+  padding: 10px;
+}
+
 #desc-title {
   font-family: arial, helvetica, sans-serif;
   font-weight: bold;

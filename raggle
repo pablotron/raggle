@@ -709,7 +709,8 @@ module OPML
             next
           end
           raise "WARNING!!! EXEC URL IN OPML IMPORT" if (url =~ /^exec:/)
-          feed_list.add(title, url, refresh, lock_title, save_items, site, desc, [], force)
+          feed_list.add(title, url, refresh, lock_title, save_items,
+                        site, desc, [], nil, nil, force)
         end
       else
         raise "Couldn't open input file \"#{file_name}\"."
@@ -786,18 +787,20 @@ class FeedList
   end
   
   def add(title, url, refresh, lock_title=false, save_items=false, site='',
-          desc='', items=[], force=true)
+          desc='', items=[], image = nil, category = nil, force=true)
     refresh_interval_check(refresh) unless force || url =~ /^(file|exec):/
     lock_title = false if !lock_title
     save_items = false if !save_items
     @feeds << {
-      'title'   => title,
-      'url'     => url,
-      'refresh' => refresh,
-      'site'    => site,
-      'desc'    => desc,
-      'updated' => 0,
-      'items'   => items,
+      'title'       => title,
+      'url'         => url,
+      'refresh'     => refresh,
+      'site'        => site,
+      'desc'        => desc,
+      'updated'     => 0,
+      'image'       => image,
+      'items'       => items,
+      'category'    => category, 
       'lock_title?' => lock_title,
       'save_items?' => save_items,
     }
@@ -805,6 +808,15 @@ class FeedList
 
   def <<(feed)
     @feeds << feed
+  end
+
+  def category(cat = 'all')
+    if cat != 'all'
+      re = /\b#{cat}\b/
+      @feeds.map { |feed| feed['category'] =~ re ? feed : nil }.compact
+    else
+      @feeds
+    end
   end
 
   def [](*n)
@@ -1160,7 +1172,7 @@ module Feed
 
 
   class Channel
-    attr_accessor :title, :link, :desc, :lang, :items, :last_modified
+    attr_accessor :title, :link, :desc, :lang, :image, :items, :last_modified
 
     def initialize(url, last_modified = nil)
       parse_rss_url url
@@ -1183,6 +1195,17 @@ module Feed
         content.gsub!(/<!ENTITY %.*?>/m, '') if \
           $config['strip_external_entities'] && content =~ /<!ENTITY %.*?>/m
 
+        # get host portion of original 
+        host_url = url.gsub(/^((?:\w+):\/\/)?(\w+)\/.*$/, '\1\2')
+
+        # fix relative URLs
+# 
+#         content = content.gsub(/<([^>]+)(href|src)=['"](\/[^"']+)['"]/,
+#                                "<\\1\\2='#{host_url}/\\3'")
+# 
+        content = content.gsub(/href='\/([^']+)'/,
+                               "href='#{host_url}/\\1'")
+
         # parse URL content
         doc = REXML::Document.new content
 
@@ -1191,6 +1214,7 @@ module Feed
         @title = e.text if e = doc.root.elements['//channel/title']
         @link = e.text if e = doc.root.elements['//channel/link']
         @desc = e.text if e = doc.root.elements['//channel/description']
+        @image = e.text if e = doc.root.elements['//image/url']
         @lang = e.text if e = doc.root.elements['//channel/language']
     
         # build list of feed items
@@ -1754,12 +1778,16 @@ module Raggle
 
     def initialize(opts)
       @opts = opts
-      s = WEBrick::HTTPServer::new(:Port         => @opts['port'],
-                                   :DocumentRoot => $config['web_ui_root_path'])
+      s = WEBrick::HTTPServer::new(
+        :BindAddress  => @opts['bind_address'],
+        :Port         => @opts['port'],
+        :DocumentRoot => $config['web_ui_root_path'],
+        :Logger       => WEBrick::Log::new($config['web_ui_log_path'])
+      )
 
       # load templates
       @templates = Hash::new
-      %w{feed feed_list item item_list desc}.each { |tmpl|
+      %w{feed feed_list item item_list desc feed_image}.each { |tmpl|
         path = $config['web_ui_root_path'] + "/inc/#{tmpl}.html"
         @templates[tmpl] = File::open(path).readlines.join if test(?e, path)
       }
@@ -1778,6 +1806,9 @@ module Raggle
 
         mode = 'default'
         mode = $1 if req.query_string =~ /mode=([^&]+)/
+
+        cat = 'all'
+        cat = $1 if req.query_string =~/category=([^&]+)/
 
         case mode
           when 'sort'
@@ -1802,9 +1833,11 @@ module Raggle
 
         end
           
+        # build feed list title
+        list_title = 'Feeds ' << ((cat && cat != 'all') ? "(#{cat})" : '')
 
         # build each feed title
-        $config['feeds'].each_with_index { |feed, i|
+        $config['feeds'].category(cat).each_with_index { |feed, i|
           str = @templates['feed'].dup
           title = feed['title'] || $config['default_feed_title']
           
@@ -1823,7 +1856,9 @@ module Raggle
             'INDEX'         => i.to_s,
             'READ'          => ((unread_count == 0) ? 'read' : 'unread'),
             'EVEN'          => ((i % 2 == 0) ? 'even' : 'odd'),
-            'UPDATED'       => updated}.each { |key, val|
+            'UPDATED'       => updated,
+            'CATEGORY'      => cat,
+          }.each { |key, val|
             str.gsub!(/__#{key}__/, val) if str =~ /__#{key}__/
           }
           ret << str
@@ -1833,6 +1868,9 @@ module Raggle
         { 'FEEDS'           => ret,
           'REFRESH'         => opts['page_refresh'].to_s, 
           'VERSION'         => $VERSION,
+          'CATEGORY'        => cat,
+          'FEED_LIST_TITLE' => list_title,
+          'CATEGORY_SELECT' => build_category_select(cat),
         }.each { |key, val|
           body.gsub!(/__#{key}__/, val) if body =~ /__#{key}__/
         }
@@ -1849,7 +1887,13 @@ module Raggle
         feed_id = 0
         feed_id = $1.to_i if req.query_string =~ /feed_id=(\d+)/
 
-        feed = $config['feeds'][feed_id]
+        cat = 'all'
+        cat = $1 if req.query_string =~/category=([^&]+)/
+
+        feed = $config['feeds'].category(cat)[feed_id]
+
+        # get feed image
+        feed_image = build_feed_image(feed)
 
         # convert updated to minutes
         updated = ((Time.now.to_i - feed['updated']) / 60).to_i
@@ -1880,6 +1924,7 @@ module Raggle
           'FEED_URL'        => feed['url'],
           'FEED_DESC'       => feed['desc'] || '',
           'FEED_UPDATED'    => updated.to_s,
+          'FEED_IMAGE'      => feed_image,
           'REFRESH'         => opts['page_refresh'].to_s,
           'VERSION'         => $VERSION,
         }.each { |key, val|
@@ -1897,15 +1942,20 @@ module Raggle
 
         feed_id = 0
         item_id = 0
+        cat = 'all'
         feed_id = $1.to_i if req.query_string =~ /feed_id=([-\d]+)/
         item_id = $1.to_i if req.query_string =~ /item_id=([-\d]+)/
+        cat = $1 if req.query_string =~/category=([^&]+)/
+
+        # get feed image
+        feed = $config['feeds'].category(cat)[feed_id]
+        feed_image = build_feed_image(feed)
 
         if item_id == -1
-          title = $config['feeds'][feed_id]['title']
+          title = feed['title']
           body = "description of feed #{title}"
         else 
-          item = $config['feeds'][feed_id]['items'][item_id] ||
-                 opts['empty_item']
+          item = feed['items'][item_id] || opts['empty_item']
           title = item['title'] || 'Untitled Item'
           item['read?'] = true
           
@@ -1913,6 +1963,7 @@ module Raggle
             'DATE'          => item['date'].to_s,
             'READ'          => item['read?'] ? 'read' : 'unread',
             'URL'           => item['url'], 
+            'FEED_IMAGE'    => feed_image,
             'DESC'          => item['desc'],
             'REFRESH'       => opts['refresh'], }.each { |key, val|
             body.gsub!(/__#{key}__/, val) if body =~ /__#{key}__/
@@ -1932,6 +1983,44 @@ module Raggle
 
     def shutdown
       @server.shutdown
+    end
+
+    def build_feed_image(feed)
+      # get feed image
+      feed_image = ''
+      if feed['image']
+        feed_image = @templates['feed_image'].dup
+        { 'SITE'        => feed['site'],
+          'IMAGE_TITLE' => '',
+          'IMAGE_URL'   => feed['image'],
+        }.each { |key, val|
+          feed_image.gsub!(/__#{key}__/, val) if feed_image =~ /__#{key}__/
+        }
+      end
+
+      # return feed image
+      feed_image
+    end
+
+    def build_category_select(cat)
+      cat = 'all' unless cat
+      cats = {}
+
+      $config['feeds'].each { |feed| cats[feed['category']] = true }
+      
+      ret = "<select name='category' onChange='form.submit()'>\n" <<
+            "  <option value='all' " <<
+            ((cat == 'all') ? ' selected="1"' : '') <<
+            ">All</option>\n"
+
+      cats.keys.compact.sort.each { |opt| 
+        ret << "  <option value='#{opt}'" <<
+               ((cat == opt) ? ' selected="1"' : '') <<
+               ">#{opt}</option>\n"
+      }
+      ret << "</select>\n"
+
+      ret
     end
   end
 end
@@ -2505,7 +2594,7 @@ def add_feed(opts)
     %w{title refresh}.each { |i| opts[i] ||= $config["default_feed_#{i}"] }
     $config['feeds'].add(opts['title'], opts['url'], opts['refresh'],
                          opts['lock_title?'], opts['save_items?'],
-			 '', '', [], opts['force'])
+			                   '', '', [], nil, nil, nil, opts['force'])
 end
 
 #
@@ -2953,6 +3042,7 @@ def main
                                                   feed['lock_title?'] == true
                 feed['desc'] = chan.desc
                 feed['site'] = chan.link
+                feed['image'] = chan.image
                 feed['updated'] = t.to_i
 
                 # Note: last_modified is slightly different than modified,
@@ -3126,6 +3216,7 @@ $config = {
   'grab_log_path'         => '${config_dir}/grab.log',
   'cache_lock_path'       => '${config_dir}/lock',
   'web_ui_root_path'      => Path::find_web_ui_root,
+  'web_ui_log_path'       => '${config_dir}/webrick.log',
 
   # feed list handling
   'load_feed_list'        => true,
@@ -3223,14 +3314,17 @@ $config = {
   # raggle http daemon settings
   'run_http_server'       => false,
   'http_server' => {
-    'port'                => 2222,  # port to bind to
-    'page_refresh'        => 20,    # refresh interval on feed and item wins
+    'bind_address'        => '127.0.0.1', # localhost only
+    'port'                => 2222,        # port to bind to
+    'page_refresh'        => 20,          # refresh interval (feed & item wins)
     'empty_item'          => {
       'title'             => '',
       'url'               => '',
       'desc'              => '',
     }
-    # NOTE: document root is set as $config['web_ui_path'] above
+    # NOTE:
+    # document root is set as $config['web_ui_root_path'], and the
+    # access log is set via $config['web_ui_log_path']
   },
 
   # messages

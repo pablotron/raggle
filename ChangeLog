@@ -1420,3 +1420,21 @@
 
 * Sat Sep 13 20:52:23 2003, pabs <pabs@pablotron.org>
   * raggle: ignore "a " and "the " prefix when sorting feed list
+
+* Sun Sep 14 12:48:31 2003, pabs <pabs@pablotron.org>
+  * raggle: add preliminary relative URL repair support (only works
+    on a few instances)
+  * raggle: grab image URL (displayed in web ui)
+  * raggle: add categories (only accessible via the web ui at the moment)
+  * raggle: only bind to local interface for web ui
+  * raggle: log to $config['web_ui_log_path'] instead of stderr
+  * extras/web_ui/inc/desc.css: add style for feed image
+  * extras/web_ui/inc/desc.html: added feed image
+  * extras/web_ui/inc/feed.html: add category to link
+  * extras/web_ui/inc/feed_list.html: title is generated now (includes
+    category)
+  * extras/web_ui/inc/feed_list.html: add category select to bottom
+  * extras/web_ui/inc/item_list.css: add style for feed description
+  * extras/web_ui/inc/item_list.html: move feed desc to bottom of info
+  * added extras/web_ui/inc/feed_image.html
+

@@ -31,6 +31,9 @@ p {
   padding: 0px;
 }
 
+#item-feed-desc {
+}
+
 #item-feed-desc-title {
   font-family: arial, helvetica, sans-serif;
   font-weight: bold;
@@ -54,6 +57,11 @@ p {
   padding: 5px;
 
   background-color: #eeeeee;
+}
+
+#item-feed-desc-desc {
+  font-size: 12px;
+  padding-top: 5px;
 }
 
 #feed-list-table {

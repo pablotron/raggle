@@ -1259,3 +1259,6 @@
     (it's loading really slow here)
   * raggle: don't attempt to read date as timestamp unless it's just a
     number
+
+* Tue Sep 02 23:35:45 2003, pabs <pabs@pablotron.org>
+  * TODO: more ideas, mark some finished stuff off

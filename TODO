@@ -20,14 +20,14 @@ Raggle TODO
     We need to know *where* the windows are.
     For instance, in the default config, narrowing "Feeds" means
     widening the other two windows, and such.  
-[ ] Add a focus mode 'focus_smart'(?) that will select a feed when you
+[*] Add a focus mode 'focus_smart'(?) that will select a feed when you
     flip from feeds into items (such that you don't have one feed by all
     visual accounts "Highlighted", but the items from another, since
     just because a feed is highlighted, doesn't mean it's *selected*
     too (though possibly it should, but that's what this is all about).
 [*] Add an option ('force_reflow') that will forcibly wrap lines that
     would otherwise evade it (by not having spaces in it, say).
-[ ] When selecting a feed, automatically (and optionally) select the
+[*] When selecting a feed, automatically (and optionally) select the
     first item in the feed.
 [*] OPML import/export support (http://www.opml.org/)
 [ ] RSS locator (see link from http://www.pablotron.org/?cid=1154)
@@ -51,14 +51,17 @@ Raggle TODO
       word to text, sticking a \n in when one appears (which you can't
       see, because of the way #reflow is implemented, hence why I'm
       not doing it.
-[ ] extended RSS support (1.0 modules, including Dublin Core and
+[-] extended RSS support (1.0 modules, including Dublin Core and
     Syndication support, etc)
 [ ] Check that the feedlist and feedcache are valid, after saving
     them. Write to another file, and check it, then move it into place
 [ ] select and follow links in description window (suggested by Omnic)
-[ ] add, remove, edit feeds inside Raggle
+[-] add, remove, edit feeds inside Raggle
 [ ] SIGHUP to update now (also suggested by Omnic)
 [ ] Feedster integration
 [ ] Technocrati integration
 [ ] syndic8 integration
 [ ] BlogThis support?
+[ ] user-configurable http open timeout and http read timeout
+[ ] per-feed xpath configuration?
+[ ] feed groups

@@ -135,7 +135,7 @@ $config = {
   'unescape_html'         => true,
 
   # replace unicode chars with what?
-  'unicode_munge_char'    => 'X',
+  'unicode_munge_str'     => 'ZZ',
 
   # open new screen window for browser?
   'use_screen'            => true,
@@ -630,6 +630,8 @@ class String
         '<'
       when /^gt$/ni
         '>'
+      when /^#8212$/n
+        ","
       when /^#8217$/n
         "'"
       when /^#(\d+)$/n
@@ -641,6 +643,10 @@ class String
       end
     }
     str
+  end
+
+  def strip_tags
+    gsub(/<[^>]+?>/, '')
   end
 end
 
@@ -832,7 +838,7 @@ class Window
   end
 
   # get window width and height
-  def wh
+  def dimensions
     ha = []; wa = []
     Ncurses::getmaxyx @win, ha, wa
     [wa[0], ha[0]]
@@ -843,7 +849,7 @@ class Window
   #
   def adjust_to(item)
     # scroll window (if necessary)
-    w, h = wh
+    w, h = dimensions
     if item < @offset || item >= @offset + (h - 3)
       @offset = @active_item
       @offset = 0 if @offset < 0
@@ -855,7 +861,10 @@ class Window
     draw_items
     
     # Should I really have put this here? -- richlowe 2003-06-19
-    set_status ' ' << @items[@active_item]['title']
+    status = ' ' << @items[@active_item]['title']
+    status = status.split(/\s+/).join(' ')
+    set_status status
+
     select_win_item if $config['focus'] == 'auto'
   end
 
@@ -884,28 +893,28 @@ class Window
   # Scroll the window up one item
   #
   def scroll_up
-      activate scroll_bound(@active_item - 1)
+    activate scroll_bound(@active_item - 1)
   end
   
   #
   # Scroll window down.
   #
   def scroll_down
-      activate scroll_bound(@active_item + 1)
+    activate scroll_bound(@active_item + 1)
   end
   
   #
   # Scroll to the bottom.
   #
   def scroll_bottom
-      activate @items.size - 1
+    activate @items.size - 1
   end
 
   #
   # Scroll to the top item
   #
   def scroll_top
-      activate 0
+    activate 0
   end
 
   #
@@ -1020,12 +1029,12 @@ class Window
           # @win.color_set @colors['date'], nil
           draw(d_str, 7, y, 'date', true, false)
         end
-        str = item['title'].gsub(/<[^>]+?>/, '') if $config['strip_html_tags']
+        str = item['title'].strip_tags if $config['strip_html_tags']
         str = str.unescape_html if $config['unescape_html']
         draw(str, 1, y += 2)
       }
     else
-      w, h = wh
+      w, h = dimensions
       ic = 0
       @items.each { |i| 
         t = i['title'] || ''
@@ -1128,8 +1137,30 @@ def select_feed(id)
       d_str = item['date']
       d_str = Time.at(item['date'].to_i).strftime(fmt) if item['date'].to_i > 0
       title = "#{item['title']} (#{d_str})"
-    else 
+    elsif item['title'] !~ /^\s*$/ 
       title = item['title'].dup
+    elsif item['desc'] !~ /^\s*$/ 
+      # fall back on cleaned up and truncated description if we're
+      # missing a title
+      w, h = $wins[item_id].dimensions
+      title = item['desc'].dup.strip_tags.unescape_html.split(/\s+/).join(' ')
+
+      if title.length > w - 5
+        title = title.slice 0, w - 5
+        title << '...'
+      end
+    else
+      # if title is garbage and we have no description, then fall back
+      # on formatted and truncated link (silly broken RSS feeds)
+      title = '[' << item['url'].dup << ']'
+
+      w, h = $wins[item_id].dimensions
+      title = title.dup.strip_tags.unescape_html.split(/\s+/).join(' ')
+
+      if title.length > w - 5
+        title = title.slice 0, w - 5
+        title << '...'
+      end
     end
 
     $wins[item_id].items << {
@@ -1543,6 +1574,7 @@ end
 # create cache lock
 create_cache_lock if $config['use_cache_lock']
 
+# handle command-line options
 $config['raggle_mode'] = opts['mode']
 case opts['mode']
 when 'list'
@@ -1566,6 +1598,7 @@ end
 load_feed_cache if $config['load_feed_cache'] &&
                    test(?e, $config['feed_cache_path'])
 
+# load theme
 puts $config['msg_load_theme']
 if $config['load_theme'] && test(?e, $config['theme_path'])
   $config['theme'] = YAML::load(File::open($config['theme_path']))

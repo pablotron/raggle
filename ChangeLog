@@ -204,3 +204,14 @@
     window
   * AUTHORS: updated Richard's entry
   * TODO: marked off some stuff
+
+* Thu Jun 19 05:47:55 2003, pabs <pabs@pablotron.org>
+  * raggle: minor comment updates
+  * raggle: changed Window#wh to Window#dimensions (I like wh
+    more, but I think Richard was going to kick me)
+  * raggle: 'unicode_munge_str' option works properly now
+  * raggle: handle pathological feeds more gracefully: if we're missing
+    an item title, fall back to the truncated description as a title,
+    and finally a truncated url
+  * raggle: strip newlines from status strings
+  * raggle: changed unicode munge str to 'ZZ'

@@ -8,7 +8,8 @@ Bugs
 [ ] Sometimes (every time), the FeedList will be loaded as a Hash
     rather than a FeedList by ruby1.8/syck.  Not reproducible with syck
     0.35 under 1.6.  I'm tempted to blame syck, instrumented code
-    clearly shows that it leaves us as a FeedList, and comes back as a Hash.
+    clearly shows that it leaves us as a FeedList, stores as a
+    FeedList and comes back as a Hash.
 [ ] Code *very* untidy in places, (will be fixed post-release)
 [ ] Man page is worthlessly incomplete
 [ ] It's possible that sometimes the inline documentation ("Raggle"

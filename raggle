@@ -817,7 +817,7 @@ class Window
 
   def delete_item
     @items.delete_at(@active_item)
-    draw_items
+    populate_feed_win
   end
 
   def resize_width

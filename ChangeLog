@@ -474,6 +474,15 @@
   * raggle: added "Files" feed item
   * raggle: updated reporting bugs section
 
+* Sun Jun 22 05:29:02 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Fix bug where deleting an item would offset win/feed index,
+            and cause widespread confusion, and a crash, when selecting
+	    the last item.  It also made me change the code again, which I
+	    had commited myself to not doing (think of it as the "Richard
+	    sucks feature freeze", I think Paul will kill me if this
+	    breaks other stuff :)
+
+
 
 
 

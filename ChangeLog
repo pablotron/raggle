@@ -1171,3 +1171,13 @@
 
 * Fri Aug 22 21:56:00 2003, pabs <pabs@pablotron.org>
   * MANIFEST: updated
+
+* Sun Aug 24 20:56:55 2003, pabs <pabs@pablotron.org>
+  * raggle: add WEBrick-based web interface to Raggle.  to use it
+    install WEBrick (http://www.webrick.org/, apt-get install
+    libwebrick-ruby, whatever), "cp -a $PWD/extras/web_ui ~/.raggle/",
+    run Raggle like "./raggle --server 2323", then point a web browser
+    at http://localhost:2323/
+  * README: added note about WEBrick requirement for web interface
+  * added extras/web_ui (contains web interface tempates and images)
+

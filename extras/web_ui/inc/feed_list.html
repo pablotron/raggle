@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" 
+  "http://www.w3.org/TR/xhtml10/DTD/xhtml10.dtd">
+
+<html>
+  <head>
+    <title>Raggle: Feeds</title>
+    <meta http-equiv='refresh'  content='__REFRESH__;url=/raggle/feed' />
+    <meta name='author'         content='Raggle' />
+    <meta name='description'    content='Raggle Feed List' />
+    <meta name='keywords'       content='rss channels feeds' />
+
+    <link title='default' href='/inc/feed_list.css'
+      rel='stylesheet' type='text/css' />
+  </head>
+
+  <script language='javascript'>
+  <!--
+  function selectFeed(feed_id) {
+    parent.desc.location.href = '/raggle/desc?feed_id=' +
+      feed_id + '&amp;item_id=0';
+  }
+
+  // -->
+  </script>
+
+  <body bgcolor='#ffffff'>
+    <div id='feed-list-title'>
+      Feeds
+    </div>
+
+    <table id='feed-list-table'>
+      __FEEDS__
+    </table>
+  </body>
+</html>
+

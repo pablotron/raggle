@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" 
+  "http://www.w3.org/TR/xhtml10/DTD/xhtml10.dtd">
+
+<html>
+  <head>
+    <title>Raggle: Feed Items</title>
+    <meta http-equiv='refresh'
+          content='__REFRESH__;url=/raggle/item/?feed_id=__FEED_ID__' />
+    <meta name='author'         content='Raggle' />
+    <meta name='description'    content='Raggle Feed Item List' />
+    <meta name='keywords'       content='rss channel feed item' />
+
+    <link title='default' href='/inc/item_list.css'
+      rel='stylesheet' type='text/css' />
+  </head>
+
+  <script language='javascript'>
+  <!--
+  function selectFeedItem(feed_id, item_id) {
+    parent.desc.location.href = '/raggle/desc?feed_id=' +
+      feed_id + '&amp;item_id=' + item_id;
+    parent.feed.location.href = '/raggle/feed';
+    return true;
+  }
+
+  // -->
+  </script>
+
+  <body bgcolor='#ffffff'>
+    <div id='item-feed-desc'>
+      <div id='item-feed-desc-title'>__FEED_TITLE__</div>
+      <div id='item-feed-desc-nontitle'>
+        <div id='item-feed-desc-desc'>__FEED_DESC__</div>
+        <div id='item-feed-desc-site'>
+          <a target='raggle-article' href='__FEED_SITE__'>__FEED_SITE__</a>
+        </div>
+        <div id='item-feed-desc-update'>
+          Last updated: __FEED_UPDATED__ minutes ago
+        </div>
+      </div>
+    </div>
+
+    <table width='100%' class='item-list-table'>
+      __ITEMS__
+    </table>
+  </body>
+</html>
+

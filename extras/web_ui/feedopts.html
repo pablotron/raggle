@@ -1,0 +1,34 @@
+<?xml version='1.0' encoding='iso-8859-1'?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" 
+  "http://www.w3.org/TR/xhtml10/DTD/xhtml10.dtd">
+
+<html>
+  <head>
+    <title>Raggle: Feed Options</title>
+    <meta name='author'         content='Raggle' />
+    <meta name='description'    content='Raggle Feed Options' />
+    <meta name='keywords'       content='rss channels feeds' />
+
+    <link title='default' href='/inc/feedopts.css'
+      rel='stylesheet' type='text/css' />
+  </head>
+
+  <script language='javascript'>
+    <!--
+    function addFeed() {
+      url = prompt('Please enter the Feed URL.', 'http://');
+      if (url && url != '')
+        parent.feed.location.href = '/raggle/feed/?mode=add&url=' + url;
+    }
+    // -->
+  </script>
+
+  <body bgcolor="#eeeeee">
+    <a target='feed' href=''
+      onClick='javascript:addFeed(); return false;'>Add</a> |
+    <a target='feed' href='/raggle/feed/?mode=invalidate_all'>Reload</a> |
+    <a target='feed' href='/raggle/feed/?mode=sort'>Sort</a><br />
+    <a target='feed' href='/raggle/feed'>Refresh Window</a> |
+    <a target='feed' href='/raggle/feed/?mode=save_feed_list'>Save Feeds</a>
+  </body>
+</html>

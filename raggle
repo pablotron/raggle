@@ -82,6 +82,13 @@ rescue LoadError
   $HAVE_SSL = false
 end
 
+begin
+  require 'webrick'
+  $HAVE_WEBRICK = true
+rescue LoadError
+  $HAVE_WEBRICK = false
+end
+
 ###################
 # utility methods #
 ###################
@@ -1608,26 +1615,219 @@ class TextWindow < Window
   end
 end
 
+module Raggle
+  class HTTPServer
+    attr_accessor :server, :opts, :templates
+
+    def initialize(opts)
+      @opts = opts
+      s = WEBrick::HTTPServer::new(:Port         => @opts['port'],
+                                   :DocumentRoot => $config['web_ui_root_path'])
+
+      # load templates
+      @templates = Hash::new
+      %w{feed feed_list item item_list desc}.each { |tmpl|
+        path = $config['web_ui_root_path'] + "/inc/#{tmpl}.html"
+        @templates[tmpl] = File::open(path).readlines.join if test(?e, path)
+      }
+
+      s.mount_proc('/') { |req, res| res['Location'] = '/index.html' }
+
+      # set up mount points
+      s.mount('/', WEBrick::HTTPServlet::FileHandler,
+              $config['web_ui_root_path'], true)
+
+
+      # set up feed list mount point
+      s.mount_proc('/raggle/feed') { |req, res|
+        body = @templates['feed_list'].dup
+        ret = ''
+
+        mode = 'default'
+        mode = $1 if req.query_string =~ /mode=([^&]+)/
+
+        case mode
+          when 'sort'
+            sort_feeds
+          when 'invalidate_all'
+            invalide_feed(-1)
+          when 'add'
+            url = $1 if req.query_string =~ /url=(.*)$/
+            add_feed({ 'url' => url })
+          when 'delete'
+            if req.query_string =~ /id=(\d+)/
+              id = $1.to_i
+              delete_feed(id)
+            end
+          when 'invalidate'
+            if req.query_string =~ /id=(\d+)/
+              id = $1.to_i
+              invalide_feed(id)
+            end
+          when 'save_feed_list'
+            save_feed_list
+
+        end
+          
+
+        # build each feed title
+        $config['feeds'].each_with_index { |feed, i|
+          str = @templates['feed'].dup
+          title = feed['title'] || $config['default_feed_title']
+          
+          # count unread items
+          unread_count = 0
+          feed['items'].each { |item| unread_count += 1 unless item['read?'] }
+
+          # convert updated to minutes
+          updated = (Time.now.to_i - feed['updated'] / 60).to_i
+
+          # handle feed list item template
+          { 'TITLE'         => title || 'Untitled Feed',
+            'URL'           => feed['url'],
+            'ITEM_COUNT'    => feed['items'].size.to_s,
+            'UNREAD_COUNT'  => unread_count.to_s,
+            'INDEX'         => i.to_s,
+            'READ'          => ((unread_count == 0) ? 'read' : 'unread'),
+            'EVEN'          => ((i % 2 == 0) ? 'even' : 'odd'),
+            'UPDATED'       => updated}.each { |key, val|
+            str.gsub!(/__#{key}__/, val) if str =~ /__#{key}__/
+          }
+          ret << str
+        }
+
+        # handle feed list template
+        { 'FEEDS'           => ret,
+          'REFRESH'         => opts['page_refresh'].to_s, 
+          'VERSION'         => $VERSION,
+        }.each { |key, val|
+          body.gsub!(/__#{key}__/, val) if body =~ /__#{key}__/
+        }
+        
+        res['Content-Type'] = 'text/html'
+        res.body = body
+      }
+
+      # set up feed item list mount point
+      s.mount_proc('/raggle/item') { |req, res|
+        body = @templates['item_list'].dup
+        ret = ''
+
+        feed_id = 0
+        feed_id = $1.to_i if req.query_string =~ /feed_id=(\d+)/
+
+        feed = $config['feeds'][feed_id]
+
+        # convert updated to minutes
+        updated = ((Time.now.to_i - feed['updated']) / 60).to_i
+
+        # build each feed item title
+        feed['items'].each_with_index { |item, i|
+          str = @templates['item'].dup
+          title = item['title']
+          
+          # handle item template
+          { 'TITLE'         => title,
+            'URL'           => item['url'],
+            'DATE'          => item['date'].to_s,
+            'EVEN'          => ((i % 2 == 0) ? 'even' : 'odd'),
+            'READ'          => item['read?'] ? 'read' : 'unread',
+            'FEED_ID'       => feed_id.to_s,
+            'INDEX'         => i.to_s }.each { |key, val|
+            str.gsub!(/__#{key}__/, val) if str =~ /__#{key}__/
+          }
+          ret << str
+        }
+
+        # handle item list template
+        { 'ITEMS'           => ret,
+          'FEED_ID'         => feed_id.to_s,
+          'FEED_TITLE'      => feed['title'] || 'Untitled Feed',
+          'FEED_SITE'       => feed['site'] || '',
+          'FEED_URL'        => feed['url'],
+          'FEED_DESC'       => feed['desc'] || '',
+          'FEED_UPDATED'    => updated.to_s,
+          'REFRESH'         => opts['page_refresh'].to_s,
+          'VERSION'         => $VERSION,
+        }.each { |key, val|
+          body.gsub!(/__#{key}__/, val) if body =~ /__#{key}__/
+        }
+        
+        res['Content-Type'] = 'text/html'
+        res.body = body
+      }
+
+      # set up desc window moutn point
+      s.mount_proc('/raggle/desc') { |req, res|
+        body = @templates['desc'].dup
+        ret = ''
+
+        feed_id = 0
+        item_id = 0
+        feed_id = $1.to_i if req.query_string =~ /feed_id=([-\d]+)/
+        item_id = $1.to_i if req.query_string =~ /item_id=([-\d]+)/
+
+        if item_id == -1
+          title = $config['feeds'][feed_id]['title']
+          body = "description of feed #{title}"
+        else 
+          item = $config['feeds'][feed_id]['items'][item_id] ||
+                 opts['empty_item']
+          title = item['title'] || 'Untitled Item'
+          item['read?'] = true
+          
+          { 'TITLE'         => title,
+            'DATE'          => item['date'].to_s,
+            'READ'          => item['read?'] ? 'read' : 'unread',
+            'URL'           => item['url'], 
+            'DESC'          => item['desc'],
+            'REFRESH'       => opts['refresh'], }.each { |key, val|
+            body.gsub!(/__#{key}__/, val) if body =~ /__#{key}__/
+          }
+        end
+
+        res['Content-Type'] = 'text/html'
+        res.body = body
+      }
+
+      @server = s
+    end
+
+    def start
+      @server.start
+    end
+
+    def shutdown
+      @server.shutdown
+    end
+  end
+end
+    
+
 #
-# set status bar message
+# set status bar message (or log message, if running as daemon)
 #
 def set_status(str)
   str ||= ''
 
-  w, e_msg = $config['w'], $config['msg_exit']
-  $status, $new_status = str, str
-
-  # fix message length
-  if str.length > (w - e_msg.length)
-    str = str.slice(0, w - e_msg.length)
+  if $config['run_http_server']
+    $stderr.puts "Raggle: #{str}"
   else
-    str += ' ' * (w - e_msg.length - str.length)
-  end
-  msg = str << e_msg
+    w, e_msg = $config['w'], $config['msg_exit']
+    $status, $new_status = str, str
 
-  Ncurses::stdscr.color_set $config['theme']['status_bar_cols'], nil
-  Ncurses::mvprintw $config['h'], 0, msg.escape_format
-  Ncurses::refresh
+    # fix message length
+    if str.length > (w - e_msg.length)
+      str = str.slice(0, w - e_msg.length)
+    else
+      str += ' ' * (w - e_msg.length - str.length)
+    end
+    msg = str << e_msg
+
+    Ncurses::stdscr.color_set $config['theme']['status_bar_cols'], nil
+    Ncurses::mvprintw $config['h'], 0, msg.escape_format
+    Ncurses::refresh
+  end
 end
 
 # 
@@ -1943,9 +2143,13 @@ def load_feed_cache
       feed['items'] = s.root?(feed['url']) ? s[feed['url']] : []
     }
   }
-  populate_feed_win
-  select_feed 0
-  set_active_win get_win_id('feed')
+
+  unless $config['run_http_server']
+    populate_feed_win
+    select_feed 0
+    set_active_win get_win_id('feed')
+  end
+
   set_status "Loading feed cache... done"
 end
 
@@ -2018,6 +2222,7 @@ Options:
                                 '--edit').
   --save-items                  Save old items of feed (for '--add' and
                                 '--edit').
+  --server                      Run Raggle in HTTP server mode.
   --sort, --sort-feeds          Sort feeds by title (case-insensitive).
   -t, --title                   Title attribute of feed (for '--add' and
                                 '--edit').
@@ -2048,6 +2253,9 @@ Examples:
 
   # set and lock the title of feed 12
   #$0 -e 12 -t 'short title' --lock-title
+
+  # run as HTTP server on port 2345
+  #$0 --server 2345
   
 About the Authors:
 Paul Duncan <pabs@pablotron.org>
@@ -2092,6 +2300,7 @@ def handle_command_line(opts)
     ['--import-opml',                           GetoptLong::REQUIRED_ARGUMENT],
     ['--export-opml',                           GetoptLong::REQUIRED_ARGUMENT],
     ['--diag',                                  GetoptLong::NO_ARGUMENT],
+    ['--server',                                GetoptLong::OPTIONAL_ARGUMENT],
     ['--help', '-h', '--usage',                 GetoptLong::NO_ARGUMENT]
   )
 
@@ -2112,7 +2321,7 @@ def handle_command_line(opts)
         when '--config'
           $config['config_path'] = arg
         when '--force'
-	  ret['force'] = true
+          ret['force'] = true
         when '--list'
           ret['mode'] = 'list'
         when '--title'
@@ -2146,6 +2355,14 @@ def handle_command_line(opts)
           ret['opml_file'] = arg
         when '--diag'
           $config['diag'] = true
+        when '--server'
+          if $HAVE_WEBRICK
+            $config['run_http_server'] = true
+            $config['http_server']['port'] = arg.to_i \
+              if $config['http_server'] && arg && arg.to_i > 0
+          else
+            die 'Missing WEBrick, can\'t run HTTP Server.'
+          end
         when '-h', '--help', '--usage'
           print_usage
       end
@@ -2505,7 +2722,8 @@ def main
   end
 
   # Draw windows and such.
-  setup_win
+  # (unless we're running as a daemon)
+  setup_win unless $config['run_http_server']
   
   # load feed cache
   load_feed_cache if $config['load_feed_cache'] &&
@@ -2623,6 +2841,13 @@ def main
     }
   }
 
+  if $HAVE_WEBRICK && $config['run_http_server']
+    http_thread = Thread.new {
+      $http_server = Raggle::HTTPServer::new($config['http_server'])
+      $http_server.start
+    }
+  end
+
   # explicit GC thread
   gc_thread = Thread.new { 
     loop {
@@ -2635,33 +2860,45 @@ def main
   Thread::main.priority = $config['thread_priority_main'] || 5
   $feed_thread.priority = $config['thread_priority_feed'] || 0
   gc_thread.priority    = $config['thread_priority_gc']   || 1
+  if $config['run_http_server']
+    http_thread.priority  = $config['thread_priority_http'] || 1
+  end
 
   begin
-    # main input loop
-    timeout = $config['input_select_timeout']
-    $done = false
-    until $done
-      # handle keyboard input
-      r = select [$stdin], nil, nil, timeout
-      if r && r.size > 0
-        c = Ncurses::getch
-        $config['keys'][c].call($wins[$a_win], c) if $config['keys'].has_key? c
+    if $config['run_http_server']
+      http_thread.join
+    else
+      # main input loop
+      timeout = $config['input_select_timeout']
+      $done = false
+      until $done
+        # handle keyboard input
+        r = select [$stdin], nil, nil, timeout
+        if r && r.size > 0
+          c = Ncurses::getch
+          $config['keys'][c].call($wins[$a_win],c) \
+            if $config['keys'].has_key? c
+        end
+        
+        # refresh window contents if there's been a feed update
+        if $update_wins
+          $update_wins = false
+          populate_feed_win
+          # wins.each { |win| win.draw_items }
+        end
+        
+        set_status $new_status if $new_status != $status
       end
-      
-      # refresh window contents if there's been a feed update
-      if $update_wins
-        $update_wins = false
-        populate_feed_win
-        # wins.each { |win| win.draw_items }
-      end
-      
-      set_status $new_status if $new_status != $status
     end
   ensure
     
-    # clean up screen on exit
-    Ncurses::endwin
-    
+    # clean up either screen or HTTP server on exit
+    if $config['run_http_server']
+      $http_server.shutdown
+    else
+      Ncurses::endwin
+    end
+      
     # stop feed grabbing thread
     $feed_thread.exit
     
@@ -2692,6 +2929,7 @@ $config = {
   'theme_path'            => '${config_dir}/theme.yaml',
   'grab_log_path'         => '${config_dir}/grab.log',
   'cache_lock_path'       => '${config_dir}/lock',
+  'web_ui_root_path'      => '${config_dir}/web_ui',
 
   # feed list handling
   'load_feed_list'        => true,
@@ -2723,6 +2961,7 @@ $config = {
   'thread_priority_main'  => 5,
   'thread_priority_feed'  => 0,
   'thread_priority_gc'    => 1,
+  'thread_priority_http'  => 1,
 
   # don't check every 60 seconds, wait for the update
   # key to be pressed (for modem users, slow computers, etc)
@@ -2782,6 +3021,19 @@ $config = {
   'item_date_format'      => '%c',
   'desc_date_format'      => '%c',
 
+  # raggle http daemon settings
+  'run_http_server'       => false,
+  'http_server' => {
+    'port'                => 2222,  # port to bind to
+    'page_refresh'        => 20,    # refresh interval on feed and item wins
+    'empty_item'          => {
+      'title'             => '',
+      'url'               => '',
+      'desc'              => '',
+    }
+    # NOTE: document root is set as $config['web_ui_path'] above
+  },
+
   # messages
   'msg_welcome'           => " Welcome to Raggle #{$VERSION}.",
   'msg_exit'              => "| Press Q to exit ",
@@ -2804,7 +3056,7 @@ $config = {
   # input select timeout (in seconds)
   'input_select_timeout'  => 0.2,
 
-  # feed sleep interval (in seconds)
+  # thread sleep intervals (in seconds)
   'feed_sleep_interval'   => 60,
 
   # gc thread sleep interval (in seconds)

@@ -275,7 +275,7 @@ class FeedList
   end
 
   def get(id)
-    rase "FeedList#get: Feed not found: #{id}" unless @feeds.size >= id
+    raise "FeedList#get: Feed not found: #{id}" unless @feeds.size >= id
     @feeds[id]
   end
   

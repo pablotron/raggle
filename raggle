@@ -497,7 +497,7 @@ module Key
   end
 
   def Key::gui_find_feed
-    ncurses_find_feed if $HAVE_LIB['xmlrpc']
+    ncurses_find_feeds if $HAVE_LIB['xmlrpc']
   end
 end
 
@@ -3025,10 +3025,17 @@ def find_feeds(str)
   ret
 end
 
+def cli_find_feeds(str)
+  results = find_feeds(str)
+  results.each_with_index do |feed, i|
+    puts "% 2d. %s - %s" % [i + 1, feed['sitename'], feed['dataurl']]
+  end
+end
+
 #
 # search for feeds from ncurses
 # 
-def ncurses_find_feed
+def ncurses_find_feeds
   w, e_msg = $config['w'], $config['msg_find_feed']
 
   # print entry message

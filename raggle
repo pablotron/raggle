@@ -2129,7 +2129,6 @@ def select_item(id)
   populate_feed_win
 
   # redraw description window
-  # desc_win.win.clear
   desc_win.clearrange(0, desc_win.dimensions[1])
   desc_win.draw_items
 

@@ -1369,3 +1369,7 @@
   * extras/web_ui/titlebar.html: start merging feedopts into
     titlebar (the titlebar is going to be a titlebar and a panel of
     options)
+
+* Tue Sep 09 13:56:59 2003, pabs <pabs@pablotron.org>
+  * raggle: remove full-screen redraw (and associated flicker) when
+    selecting feed items

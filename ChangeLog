@@ -1181,3 +1181,5 @@
   * README: added note about WEBrick requirement for web interface
   * added extras/web_ui (contains web interface tempates and images)
 
+* Sun Aug 24 21:08:30 2003, pabs <pabs@pablotron.org>
+  * removed extras/web_ui/inc/default.css

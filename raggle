@@ -2246,7 +2246,7 @@ def main
     $config['feeds'] = YAML::load(File::open($config['feed_list_path']))
   end
 
-  if $config['feeds'].size == 0
+  if $config['feeds'] && $config['feeds'].size == 0
     $config['default_feeds'].each {|feed|
       $config['feeds'].add(feed['title'], feed['url'], feed['refresh'],
                            feed['lock_title?'], feed['save_items?'],

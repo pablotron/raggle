@@ -955,3 +955,6 @@
     it to a key)
   * raggle: merge Ville Aine's second HTML renderer
   * raggle: preliminary proxy support (doesn't work yet)
+
+* Fri Aug 15 18:20:12 2003, pabs <pabs@pablotron.org>
+  * raggle: fix possible empty feed crash

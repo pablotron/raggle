@@ -7,7 +7,7 @@ DATA=themes
 DOCS=doc/* AUTHORS BUGS COPYING ChangeLog README
 
 install:
-	cp raggle rss_grab.rb ${BINDIR} && \
+	cp raggle ${BINDIR} && \
 	if [ ! -d "${DOCDIR}" ]; then \
 		mkdir ${DOCDIR}; \
 	fi && \

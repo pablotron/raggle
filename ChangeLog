@@ -517,6 +517,9 @@
   * added Makefile (just for make install)
   * README: updated installation section to account for make install
 
+* Mon Jun 23 18:32:35 2003, richlowe <richlowe@richlowe.net>
+  * Makefile: Don't install rss_grab.rb
+
 
 
 

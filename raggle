@@ -273,7 +273,7 @@ class String
   #   '&amp;&lt;br /&gt;'.unescape_html #=> '&<br />'
   #
   def unescape_html
-    munge_uni = !$config['use_iconv'] || $config['use_iconv_munge']
+    munge_uni = !($HAVE_LIB['iconv'] && $config['use_iconv']) || $config['use_iconv_munge']
 
     str = self.dup
     str.gsub!(/&(.*?);/n) {
@@ -4351,7 +4351,7 @@ ENDUSAGE
           ret = [content, resp['last-modified']]
         end
       rescue 
-        resp = $!.response
+        resp = $!.respond_to?(:response) ? $!.response : $!
 
         # handle unchanged content and redirects
         if resp.code.to_i == 304      # hasn't changed

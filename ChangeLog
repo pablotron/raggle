@@ -1770,3 +1770,7 @@
   * raggle: incremented copyright year
   * README: incremented last updated date
   * COPYING: incremented copyright year
+
+* Fri Feb 20 04:42:44 2004, pabs <pabs@pablotron.org>
+  * raggle: changed version to 0.3.0
+  * MANIFEST: updated

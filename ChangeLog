@@ -279,4 +279,6 @@
 * Fri Jun 20 04:07:44 EDT 2003, richlowe <richlowe@richlowe.net>
   * raggle: Fix bug preventing feed item number updating (misnamed variable).
 
-
+* Fri Jun 20 04:22:18 2003, pabs <pabs@pablotron.org>
+  * raggle: terminal resize works now, although you have to press a few
+    keys for it to update (not sure why yet).

@@ -123,6 +123,7 @@ $config = {
   'msg_load_theme'        => 'Raggle: Loading theme...',
   'msg_save_theme'        => 'Raggle: Saving theme...',
   'msg_thanks'            => 'Thanks for using Raggle!',
+  'msg_term_resize'       => 'Terminal Resize: ',
 
   # menu bar color
   'menu_bar_cols'         => 24,
@@ -213,6 +214,8 @@ $config = {
 
     ?\n                 => proc { |win, key| win.select_win_item },
     ?\                  => proc { |win, key| win.select_win_item },
+
+    Ncurses::KEY_RESIZE => proc { |win, key| resize_term },
   },
 
   # default theme settings
@@ -1014,30 +1017,6 @@ class Window
   end
 
   #
-  # handle keyboard input
-  #
-  def handle_key(key)
-    case key
-    when Ncurses::KEY_UP 
-      scroll_up
-    when Ncurses::KEY_DOWN
-      scroll_down
-    when Ncurses::KEY_END
-      scroll_bottom
-    when Ncurses::KEY_HOME
-      scroll_top
-    when Ncurses::KEY_PPAGE
-      scroll_up_page
-    when Ncurses::KEY_NPAGE
-      scroll_down_page
-    when ?\n
-      select_win_item
-    when ?\ 
-      select_win_item
-    end
-  end
-
-  #
   # select currently hilited window item
   #
   def select_win_item
@@ -1717,6 +1696,39 @@ def sort_feeds
   }
 end
 
+
+def resize_term
+  # get screen coordinates
+  h = []; w = []
+  Ncurses::getmaxyx Ncurses::stdscr, h, w
+  $config['w'] = w[0]
+  $config['h'] = h[0] - 1
+
+  # resize each window
+  $config['theme']['window_order'].each { |key|
+    win_id = get_win_id key
+
+    # determine new coordinates
+    coords = $config['theme']['win_' << key]['coords'].dup
+    coords[2] = $config['w'] - coords[0] if coords[2] == -1
+    coords[3] = $config['h'] - coords[1] if coords[3] == -1
+
+    # delete old window, create new one
+    $wins[win_id].win.del
+    $wins[win_id].win = Ncurses::newwin coords[3], coords[2],
+                                        coords[1], coords[0]
+
+    # refresh window
+    $wins[win_id].refresh
+    $wins[win_id].draw_items
+  }
+
+  set_status " #{$config['msg_term_resize']}#{w[0]}x#{h[0]}"
+
+  # refresh full screen
+  Ncurses::refresh
+end
+
 ######################################
 # some convenient navigation methods #
 ######################################
@@ -1937,6 +1949,8 @@ begin
   select_feed(0)
   set_active_win(0)
   
+  # trap('WINCH') { resize_term }
+  
   # main input loop
   timeout = $config['input_select_timeout']
   $done = false
@@ -1958,6 +1972,9 @@ begin
     set_status $new_status if $new_status != $status
   end
 ensure
+  # ignore resize signals
+  # trap 'WINCH', 'IGNORE'
+
   # clean up screen on exit
   Ncurses::endwin
 

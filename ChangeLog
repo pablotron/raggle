@@ -525,6 +525,8 @@
     use it instead (it defaults to "Raggle #$VERSION" at the moemnt)
   * README: add comment about terminal size
 
+* Mon Jun 23 19:09:33 2003, pabs <pabs@pablotron.org>
+  * added MANIFEST
 
 
 

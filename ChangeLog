@@ -697,3 +697,8 @@
 * Mon Jun 23 22:06:24 2003, richlowe <richlowe@richlowe.net>
   * raggle.1: Add HISTORY section mentioning first release.
 
+* Mon Jun 23 23:05:07 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Strip HTML tags from titles in ListWindows
+	    (It seems some RSS feeds leave tags in the item title).
+
+

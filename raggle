@@ -674,7 +674,7 @@ class ListWindow < Window
     w, h = dimensions
     ic = 0
     @items.each { |i| 
-      t = i['title'] || ''
+      t = i['title'].strip_tags || ''
       text = t + ((t.length < w) ? (' ' * (w - t.length)) : '')
       if i.has_key?('item_count') && i['item_count'] == 0 &&
           i['updated'] > 0

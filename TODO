@@ -55,5 +55,6 @@ Raggle TODO
     Syndication support, etc)
 [ ] Check that the feedlist and feedcache are valid, after saving
     them. Write to another file, and check it, then move it into place
-[ ] select and follow links in description window
+[ ] select and follow links in description window (suggested by Omnic)
 [ ] add, remove, edit feeds inside Raggle
+[ ] SIGHUP to update now (also suggested by Omnic)

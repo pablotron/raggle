@@ -1206,3 +1206,6 @@
 
 * Mon Sep 01 00:50:07 2003, pabs <pabs@pablotron.org>
   * save feeds on SIGHUP, and SIGTERM as well (suggested by Omnic)
+
+* Mon Sep 01 13:44:33 2003, pabs <pabs@pablotron.org>
+  * TODO: minor update

@@ -2333,3 +2333,12 @@
 
 * Sun Mar 13 04:37:02 2005, pabs <pabs@pablotron.org>
   * raggle: commit fully-working transitional feeds.yaml code
+
+_Cvs
+  * raggle: add support for iconv character encoding translation, and
+    use it by default.  This adds three new options ('use_iconv',
+    'use_iconv_translit', and 'use_iconv_munge'), and changes the
+    behavior of the following options: 'character_encoding', 
+    'unicode_munge_str'
+  * raggle: long friggin comments about iconv support and how it affects
+    character encoding translation.  

@@ -86,6 +86,7 @@ require 'pstore'
   'webrick' => ['webrick',        'WEBrick',      false],
   'drb'     => ['drb',            'DRb',          false],
   'xmlrpc'  => ['xmlrpc/client',  'xmlrpc4r',     false],
+  'iconv'   => ['iconv',          'Iconv',        false],
 }.each { |key, info|
   path, title, required = info[0, 3]
   $HAVE_LIB ||= {}
@@ -272,6 +273,8 @@ class String
   #   '&amp;&lt;br /&gt;'.unescape_html #=> '&<br />'
   #
   def unescape_html
+    munge_uni = !$config['use_iconv'] || $config['use_iconv_munge']
+
     str = self.dup
     str.gsub!(/&(.*?);/n) {
       m = $1.dup
@@ -287,10 +290,10 @@ class String
       when /^#8217$/n:  "'"
       when /^#(\d+)$/n
         r = $1.to_i # Integer() interprets leading zeros as octal
-        r.between?(0, 255) ? r.chr : $config['unicode_munge_str']
+        (!munge_uni || r.between?(0, 255)) ? r.chr : $config['unicode_munge_str']
       when /^#x([0-9a-f]+)$/ni
         r = $1.hex
-        r.between?(0, 255) ? r.chr : $config['unicode_munge_str']
+        (!munge_uni || r.between?(0, 255)) ? r.chr : $config['unicode_munge_str']
       end
     }
     str
@@ -1492,8 +1495,27 @@ ENDWARNING
       # 'ISO-8859-1' if unset).
       #
       def fix_character_encoding(element)
+        # get character encoding
         enc = $config['character_encoding'] || 'ISO-8859-1'
-        (REXML::Output.new('', enc) << element.text).to_s.unescape_html
+
+        # check and see if we have iconv support
+        if $HAVE_LIB['iconv'] && $config['use_iconv']
+          unless $iconv
+            # $iconv hasn't been intialized; create it
+            enc += '//TRANSLIT' if $config['use_iconv_translit']
+            $iconv = Iconv.new(enc, 'UTF-8')
+          end
+
+          # decode element using iconv
+          ret = $iconv.iconv(element.text.to_s) << $iconv.iconv(nil)
+        else
+          # iconv isn't installed, or it's disabled; fall back to
+          # the old (oogly) encoding behavior
+          ret = (REXML::Output.new('', enc) << element.text).to_s
+        end
+
+        # return result
+        ret.unescape_html
       end
     end
   end
@@ -4456,7 +4478,7 @@ ENDUSAGE
         chan = Raggle::Feed::Channel.new(feed['url'], feed['last_modified'])
         feed.delete 'error'
       rescue
-        NcursesInterface::set_status "Error updating \"#{feed['title']}\"."
+        Raggle::Interfaces::NcursesInterface::set_status "Error updating \"#{feed['title']}\"."
         $log.puts "#{t}: Error: #$!"
         feed['error'] = "#$!"
         return
@@ -5001,13 +5023,54 @@ $config = {
   'force_text_wrap'       => false,
 
   # replace unicode chars with what?
+  #
+  # Note: this option is meaningless when iconv character encoding
+  # translation is enabled, unless 'use_iconv_munge' is true.
   'unicode_munge_str'     => '!u!',
 
-  # character encoding used to display text
-  # from RSS feeds.
+  # character encoding used to display text from RSS feeds.
   #
-  # Supported encodings are: ISO-8859-1, UTF-8, UTF-16 and UNILE
+  # The allowed values for 'character_encoding' vary depending on the
+  # character encoding method.  If you're using the pre-0.4.0
+  # REXML-style encoding translation (and you really shouldn't be unless
+  # you're having problems; see 'use_iconv' below for additional
+  # information), then the supported values are as follows:
+  # 
+  #   ISO-8859-1, UTF-8, UTF-16 and UNILE
+  #
+  # On the other hand, if you're using iconv-style encoding translation,
+  # the list of allowed values is any character encoding supported by 
+  # your version of iconv (use "iconv --list" for a full list).  Be sure
+  # to omit the trailing '//' from your character_encoding value; Raggle
+  # automatically appends it if it's necessary.
+  #
   'character_encoding'    => 'ISO-8859-1',
+
+  # iconv support 
+  # 
+  # This is the new character encoding support.  If iconv is installed
+  # and iconv support is enabled (with 'use_iconv'), then use iconv
+  # instead of REXML to do character encoding translations.  If
+  # 'use_iconv_translit' is enabled, then use iconv transliteration to
+  # approximate characters that cannot be directly represented in the
+  # character encoding (specified above in 'character_encoding').
+  #
+  # Both 'use_iconv' and 'use_iconv_translit' default to true.
+  #
+  # If you've got iconv installed, you really should be using it to do
+  # character conversions.  It's faster than REXML, supports a much
+  # broader range of character encodings, and has intelligent built-in 
+  # transliteration (as opposed to the unicode_munge_str chicanery
+  # Raggle uses for the REXML-style encoding translation).
+  #
+  # It's probably a good idea to leave transliteration enabled.  It will
+  # prevent iconv from barfing on characters it can't translate, and,
+  # since Ncurses-Ruby doesn't have wide character support, it will keep
+  # Ncurses from printing garbage all over the screen. 
+  # 
+  'use_iconv'             => true,
+  'use_iconv_translit'    => true,
+  'use_iconv_munge'       => false,
 
   # warn if feed refresh is set to less than this
   'feed_refresh_warn'     => 60,

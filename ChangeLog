@@ -2345,3 +2345,7 @@ _Cvs
 
 * Sun Mar 13 06:07:46 2005, pabs <pabs@pablotron.org>
   * raggle: fix minor bug in http redirect support
+
+* Sun Mar 13 17:36:00 2005, pabs <pabs@pablotron.org>
+  * raggle: mark feeds as updated even if they have an error (we don't
+    want to poll sites constantly)

@@ -4481,6 +4481,9 @@ ENDUSAGE
         Raggle::Interfaces::NcursesInterface::set_status "Error updating \"#{feed['title']}\"."
         $log.puts "#{t}: Error: #$!"
         feed['error'] = "#$!"
+
+        # mark this feed as updated so it doesn't get constantly polled
+        feed['updated'] = t.to_i 
         return
       end
       

@@ -1,24 +1,16 @@
-# -*- Mode: Ruby -*-
-
-#######################################################################
-# default_config.rb - default configuration for Raggle 0.2.0          #
-#                                                                     #
-# This file is distributed with Raggle.  Please see the Raggle page   #
-# at http://www.raggle.org/ for the latest version                    #
-# of this file.                                                       #
-#######################################################################
-
 ##################
 # default config #
 ##################
 $config = {
-  'config_dir'            => ENV['HOME'] + '/.raggle',
+  'config_dir'            => Path::find_home + '/.raggle',
   'config_path'           => '${config_dir}/config.rb',
   'feed_list_path'        => '${config_dir}/feeds.yaml',
   'feed_cache_path'       => '${config_dir}/feed_cache.store',
   'theme_path'            => '${config_dir}/theme.yaml',
   'grab_log_path'         => '${config_dir}/grab.log',
   'cache_lock_path'       => '${config_dir}/lock',
+  'web_ui_root_path'      => Path::find_web_ui_root,
+  'web_ui_log_path'       => '${config_dir}/webrick.log',
 
   # feed list handling
   'load_feed_list'        => true,
@@ -38,17 +30,38 @@ $config = {
   'load_theme'            => true,
   'save_theme'            => true,
 
+  # save stuff on crash?
+  'save_on_crash'         => false,
+
+  # abort feed thread on exception?
+  'abort_on_exception'    => false,
+
   # feed list, feed cache, and theme lock handling
   'use_cache_lock'        => true,
 
   # ui options
-  'focus'                 => 'select', # ['none', 'select', 'select_first', 'auto']
+  'focus'                 => 'auto', # ['none', 'select', 'select_first', 'auto']
   'no_desc_auto_focus'    => true,
   'scroll_wrapping'       => true,
 
+  # grab in parallel (grab threads in parallel instead of serial)
+  'grab_in_parallel'      => false,
+
+  # use ASCII for window borders instead of ANSI?
+  'use_ascii_only?'       => false,
+
+  # maximum number of threads (don't set to less than 5!)
+  'max_threads'           => 10,
+
   # thread priorities (best to leave these alone)
-  'thread_priority_main'  => 5,
-  'thread_priority_feed'  => 0,
+  'thread_priority_main'  => 10,
+  'thread_priority_feed'  => 1, # parent feed grabbing thread
+  'thread_priority_grab'  => 0, # child grabbing threads
+  'thread_priority_gc'    => 1,
+  'thread_priority_http'  => 1,
+
+  # grab thread reap timeout (wait up to N seconds)
+  'thread_reap_timeout'   => 120,
 
   # don't check every 60 seconds, wait for the update
   # key to be pressed (for modem users, slow computers, etc)
@@ -92,11 +105,7 @@ $config = {
     'Accept'              => 'text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,*/*;q=0.1',
     # yes Richard, there is a reason the following line looks so
     # ugly. -- Paul
-    'Accept-Charset'      => if REXML::constants.include?('Encoding')
-      (REXML::Encoding::ENCODING_CLAIMS.values.sort + ['*;q=0.1']).join(',')
-    else
-      'ISO-8859-1,UTF-8;q=0.7,*;q=0.7'
-    end,
+    'Accept-Charset'      =>'ISO-8859-1,UTF-8;q=0.7,*;q=0.7',
     'User-Agent'          => "Raggle/#$VERSION (#{PLATFORM}; Ruby/#{VERSION})",
   },
 
@@ -107,6 +116,29 @@ $config = {
   # date formats
   'item_date_format'      => '%c',
   'desc_date_format'      => '%c',
+
+  # raggle http daemon settings
+  'run_http_server'       => false,
+  'http_server' => {
+    'bind_address'        => '127.0.0.1', # localhost only
+    'port'                => 2222,        # port to bind to
+    'page_refresh'        => 120,         # refresh interval (feed & item wins)
+    'shutdown_sleep'      => 0.5,         # seconds to wait for shutdown
+    'empty_item'          => {
+      'title'             => '',
+      'url'               => '',
+      'desc'              => '',
+    },
+    # NOTE:
+    # document root is set as $config['web_ui_root_path'], and the
+    # access log is set via $config['web_ui_log_path']
+  },
+
+  # raggle drb server settings
+  'run_drb_server'        => false,
+  'drb_server'            => {
+    'bind_url'            => 'druby://localhost:1234',
+  },
 
   # messages
   'msg_welcome'           => " Welcome to Raggle #{$VERSION}.",
@@ -123,21 +155,40 @@ $config = {
   'msg_thanks'            => 'Thanks for using Raggle!',
   'msg_term_resize'       => 'Terminal Resize: ',
   'msg_links'             => 'Links:',
+  'msg_add_feed'          => 'Enter URL:',
+  'msg_find_entry'        => 'Find:',
 
   # menu bar color
   'menu_bar_cols'         => 24,
 
+  # strip external entity declarations
+  # (workaround for bug in REXML 2.7.1)
+  'strip_external_entities' => true,
+
   # input select timeout (in seconds)
   'input_select_timeout'  => 0.2,
 
-  # feed sleep interval (in seconds)
+  # http timeouts (in seconds)
+  'http_open_timeout'     => 10,
+  'http_read_timeout'     => 10,
+
+  # thread sleep intervals (in seconds)
   'feed_sleep_interval'   => 60,
+
+  # gc thread sleep interval (in seconds)
+  'gc_sleep_interval'     => 600,
 
   # grab log mode (a == append, w == write)
   'grab_log_mode'         => 'w',
 
+  # update feeds after adding a new one?
+  'update_after_add'      => true,
+
   # strip html from item contents?
   'strip_html_tags'       => false,
+
+  # repair relative URLs in feed items?
+  'repair_relative_urls'  => true,
 
   # decode html escape sequences?
   'unescape_html'         => true,
@@ -148,27 +199,33 @@ $config = {
   # replace unicode chars with what?
   'unicode_munge_str'     => '!u!',
 
+  # character encoding used to display text
+  # from RSS feeds.
+  #
+  # Supported encodings are: ISO-8859-1, UTF-8, UTF-16 and UNILE
+  'character_encoding'    => 'ISO-8859-1',
+
   # warn if feed refresh is set to less than this
   'feed_refresh_warn'     => 60,
 
   # default feed name and refresh rate
-  'default_feed_title'    => 'Unnamed Feed',
+  'default_feed_title'    => 'Untitled Feed',
   'default_feed_refresh'  => 120,
 
   # open new screen window for browser?
   'use_screen'            => true,
 
   # screen command
-  'screen_cmd'            => 'screen -t "%s"',
+  'screen_cmd'            => ['screen', '-t', '%s'],
   
   # browser options
   'browser'               => Path::find_browser,
-  'browser_cmd'           => '${browser} %s',
+  'browser_cmd'           => ['${browser}', '%s'],
 
   # Force raggle to accept shell metacharacters in urls.
   'force_url_meta'        => false,
   # Regular expression matching shell metacharacters to not allow in URLs
-  'shell_meta_regex'       => /([\`\$]|\#{)/, # the #{ is to stop ruby
+  'shell_meta_regex'       => /([\`\$]|\#\{)/, # the #{ is to stop ruby
                                               # expansion.
                                               # Is that necessary?
 
@@ -182,19 +239,31 @@ $config = {
   'desc_show_url'         => false,
   'desc_show_divider'     => false,
 
-  # xpaths to elements to look for item's description
-  'desc_element_xpaths'   => [
-    "./[local-name() = 'encoded' and namespace-uri() = 'http://purl.org/rss/1.0/modules/content/']",
-    'description'
-  ],
+  
+  # xpaths to item elements
+  'item_element_xpaths'  => {
+    'description' => [
+      "./[local-name() = 'encoded' and namespace-uri() = 'http://purl.org/rss/1.0/modules/content/']",
+      'description',
+    ],
+    'link'  => [
+      'link',
+      'guid', # (this needs tob e guid/attribute, isPermaLink=true)
+    ],
+    'date'  => [
+      'date',
+      "./[local-name() = 'date' and namespace-uri() = 'http://purl.org/dc/elements/1.1/']",
+      'pubDate',
+    ],
+  },
 
   # key bindings
-  'keys'            => {
+  'keys'            => ($HAVE_LIB['ncurses'] ? {
     Ncurses::KEY_RIGHT  => proc { |win, key| Key::next_window },
     ?\t                 => proc { |win, key| Key::next_window },
 
     Ncurses::KEY_LEFT   => proc { |win, key| Key::prev_window },
-    ?\\                 => proc { |win, key| Key::prev_window },
+    ?\\                 => proc { |win, key| Key::view_source },
 
     Ncurses::KEY_F12    => proc { |win, key| Key::quit },
     ?q                  => proc { |win, key| Key::quit },
@@ -202,7 +271,9 @@ $config = {
     Ncurses::KEY_UP     => proc { |win, key| Key::scroll_up },
     Ncurses::KEY_DOWN   => proc { |win, key| Key::scroll_down },
     Ncurses::KEY_HOME   => proc { |win, key| Key::scroll_top },
+    ?0                  => proc { |win, key| Key::scroll_top },
     Ncurses::KEY_END    => proc { |win, key| Key::scroll_bottom },
+    ?$                  => proc { |win, key| Key::scroll_bottom },
     Ncurses::KEY_PPAGE  => proc { |win, key| Key::scroll_up_page },
     Ncurses::KEY_NPAGE  => proc { |win, key| Key::scroll_down_page },
 
@@ -218,6 +289,10 @@ $config = {
     ?u                  => proc { |win, key| Key::move_item_up },
     ?d                  => proc { |win, key| Key::move_item_down },
 
+    ?I                  => proc { |win, key| Key::invalidate_feed },
+
+    ?/                  => proc { |win, key| Key::find_entry(win) },
+
     Ncurses::KEY_DC     => proc { |win, key| Key::delete },
     ##
     # XXX: Meta can be dropped after spawned browser exits
@@ -227,7 +302,7 @@ $config = {
 
 
     # Literal control L is horrid -- richlowe 2003-06-26
-    ?\                 => proc { |win, key| resize_term },
+    ?\                => proc { |win, key| resize_term },
     Ncurses::KEY_RESIZE => proc { |win, key| resize_term },
 
     ?s                  => proc { |win, key| Key::sort_feeds },
@@ -242,10 +317,11 @@ $config = {
     ?n                  => proc { |win, key| select_next_unread },
 
     ?U                  => proc { |win, key| Key::manual_update },
-  },
+    ?a                  => proc { |win, key| Key::gui_add_feed },
+  } : {}),
 
   # color palette (referenced by themes)
-  'color_palette'         => [
+  'color_palette'         => ($HAVE_LIB['ncurses'] ? [
     [  1, Ncurses::COLOR_WHITE,    Ncurses::COLOR_BLACK   ],
     [  2, Ncurses::COLOR_RED,      Ncurses::COLOR_BLACK   ],
     [  3, Ncurses::COLOR_GREEN,    Ncurses::COLOR_BLACK   ],
@@ -274,9 +350,9 @@ $config = {
     [ 35, Ncurses::COLOR_MAGENTA,  Ncurses::COLOR_CYAN    ],
     [ 36, Ncurses::COLOR_BLACK,    Ncurses::COLOR_CYAN    ],
     [ 37, Ncurses::COLOR_YELLOW,   Ncurses::COLOR_CYAN    ],
-  ],
+  ] : []),
 
-  'attr_palette'          => {
+  'attr_palette'          => ($HAVE_LIB['ncurses'] ? {
     'normal'        => Ncurses::A_NORMAL,
     'normal'        => Ncurses::A_NORMAL,
     'standout'      => Ncurses::A_STANDOUT,
@@ -289,7 +365,7 @@ $config = {
     'invis'         => Ncurses::A_INVIS,
     'altcharset'    => Ncurses::A_ALTCHARSET,
     'chartext'      => Ncurses::A_CHARTEXT,
-  },
+  } : {}),
 
   # default theme settings
   'theme'           => {
@@ -378,11 +454,12 @@ $config = {
 
   'default_feeds' => [
     { 'title'     => '  Raggle Help', # add a space so sorting puts it at top
-      'url'       => "http://www.raggle.org/files/help-#{$VERSION}.xml",
+      'url'       => "http://www.raggle.org/rss/help/",
       'site'      => 'http://www.raggle.org/',
       'refresh'   => 240,
       'updated'   => -1,
       'desc'      => '',
+      'category'  => 'Raggle',
       'items'     => [ ],
     },
     { 'title'     => 'Alternet',
@@ -391,6 +468,7 @@ $config = {
       'desc'      => 'Alternative News and Information.',
       'refresh'   => 120,
       'updated'   => 0,
+      'category'  => 'Politics,News',
       'items'     => [ ],
     },
     { 'title'     => 'Daily Daemon News',
@@ -399,6 +477,7 @@ $config = {
       'desc'      => 'Daily Daemon News',
       'refresh'   => 120,
       'updated'   => 0,
+      'category'  => 'Tech',
       'items'     => [ ],
     },
     { 'title'     => 'FreshMeat',
@@ -407,6 +486,7 @@ $config = {
       'desc'      => 'FreshMeat.',
       'refresh'   => 120,
       'updated'   => 0,
+      'category'  => 'Tech',
       'items'     => [ ],
     },
     { 'title'     => 'KernelTrap',
@@ -415,6 +495,7 @@ $config = {
       'desc'      => 'KernelTrap',
       'refresh'   => 120,
       'updated'   => 0,
+      'category'  => 'Tech',
       'items'     => [ ],
     },
     { 'title'     => 'Kuro5hin',
@@ -423,6 +504,7 @@ $config = {
       'desc'      => 'Kuro5hin',
       'refresh'   => 120,
       'updated'   => 0,
+      'category'  => 'Tech',
       'items'     => [ ],
     },
     { 'title'     => 'Linux Weekly News',
@@ -431,14 +513,25 @@ $config = {
       'desc'      => 'Linux Weekly News',
       'refresh'   => 120,
       'updated'   => 0,
+      'category'  => 'Tech',
+      'items'     => [ ],
+    },
+    { 'title'     => 'Linuxbrit.co.uk',
+      'url'       => 'http://www.linuxbrit.co.uk/rss.php',
+      'site'      => 'http://www.linuxbrit.co.uk/',
+      'desc'      => 'Linuxbrit.co.uk',
+      'refresh'   => 120,
+      'updated'   => 0,
+      'category'  => 'Blogs',
       'items'     => [ ],
     },
     { 'title'     => 'Pablotron',
-      'url'       => 'http://www.pablotron.org/?theme=rss&amp;max=15',
+      'url'       => 'http://www.pablotron.org/rss/',
       'site'      => 'http://www.pablotron.org/',
       'desc'      => 'Paul Duncan\'s personal site.',
       'refresh'   => 120,
       'updated'   => 0,
+      'category'  => 'Blogs',
       'items'     => [ ],
     },
     { 'title'     => 'Paul Duncan.org',
@@ -447,6 +540,7 @@ $config = {
       'desc'      => 'Paul Duncan\'s other personal site.',
       'refresh'   => 120,
       'updated'   => 0,
+      'category'  => 'Blogs',
       'items'     => [ ],
     },
     { 'title'     => 'Pigdog Journal',
@@ -455,14 +549,25 @@ $config = {
       'desc'      => 'Pigdog Journal',
       'refresh'   => 120,
       'updated'   => 0,
+      'category'  => 'Politics,News',
+      'items'     => [ ],
+    },
+    { 'title'     => 'Raggle: News',
+      'url'       => 'http://raggle.org/rss/',
+      'site'      => 'http://www.raggle.org/',
+      'desc'      => 'Raggle News',
+      'refresh'   => 120,
+      'updated'   => 0,
+      'category'  => 'Tech,Raggle',
       'items'     => [ ],
     },
     { 'title'     => 'Richlowe.net',
-      'url'       => 'http://richlowe.net/index.cgi/index.rss',
+      'url'       => 'http://richlowe.net/diary/index.rss',
       'site'      => 'http://www.richlowe.net/',
       'desc'      => 'Richlowe.net',
       'refresh'   => 120,
       'updated'   => 0,
+      'category'  => 'Blogs',
       'items'     => [ ],
     },
     { 'title'     => 'Slashdot',
@@ -471,6 +576,7 @@ $config = {
       'desc'      => 'Slashdot',
       'refresh'   => 120,
       'updated'   => 0,
+      'category'  => 'Tech,News',
       'items'     => [ ],
     },
     { 'title'     => 'This Modern World',
@@ -479,6 +585,16 @@ $config = {
       'desc'      => 'This Modern World',
       'refresh'   => 120,
       'updated'   => 0,
+      'category'  => 'Blogs,Politics',
+      'items'     => [ ],
+    },
+    { 'title'     => 'Tynian.net',
+      'url'       => 'http://tynian.net/rss/',
+      'site'      => 'http://tynian.net/',
+      'desc'      => 'tynian.net',
+      'refresh'   => 120,
+      'updated'   => 0,
+      'category'  => 'Blogs',
       'items'     => [ ],
     },
     { 'title'     => 'W3C',
@@ -487,6 +603,34 @@ $config = {
       'desc'      => 'W3C',
       'refresh'   => 120,
       'updated'   => 0,
+      'category'  => 'Tech',
+      'items'     => [ ],
+    },
+    { 'title'     => 'Yahoo! News - Tech',
+      'url'       => 'http://rss.news.yahoo.com/rss/tech',
+      'site'      => 'http://news.yahoo.com/',
+      'desc'      => 'yahoo tech',
+      'refresh'   => 120,
+      'updated'   => 0,
+      'category'  => 'Tech,News',
+      'items'     => [ ],
+    },
+    { 'title'     => 'Yahoo! News - Top Stories',
+      'url'       => 'http://rss.news.yahoo.com/rss/topstories',
+      'site'      => 'http://news.yahoo.com/',
+      'desc'      => 'yahoo top stories',
+      'refresh'   => 120,
+      'updated'   => 0,
+      'category'  => 'News',
+      'items'     => [ ],
+    },
+    { 'title'     => 'Yahoo! News - World',
+      'url'       => 'http://rss.news.yahoo.com/rss/world',
+      'site'      => 'http://news.yahoo.com/',
+      'desc'      => 'yahoo world',
+      'refresh'   => 120,
+      'updated'   => 0,
+      'category'  => 'Politics,News',
       'items'     => [ ],
     },
   ],

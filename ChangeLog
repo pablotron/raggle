@@ -1745,3 +1745,7 @@
 * Thu Feb 19 23:09:06 2004, pabs <pabs@pablotron.org>
   * TODO: updated. marked off some stuff, added notes
   * BUGS: added current bugs, marked off fixed ones
+
+* Thu Feb 19 23:10:59 2004, pabs <pabs@pablotron.org>
+  * doc/default_config.rb: updated defaulta config
+  * raggle: remove damn ruby1.8 at top

@@ -2124,3 +2124,4 @@
 
 * Thu Dec 09 17:53:45 2004, redshift <redshift@halffull.org>
   * raggle: check for duplicate feeds on command line as well
+  * raggle: upped refresh for default feeds from 2 to 15 minutes also

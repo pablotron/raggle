@@ -40,4 +40,5 @@ Bugs
     which ones. (I've seen this once, but can't reproduce reliably).
 [*] No HTTP grabbing in OSX (only one report, can't reproduce, might
     be bogus).  The error was "connection is already set up".
-[ ] Memory leak.
+[ ] Memory leak (might be fixed by GC thread; we'll have to wait
+    and see).

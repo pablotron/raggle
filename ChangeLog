@@ -1027,3 +1027,6 @@
 * Sat Aug 16 20:35:32 2003, pabs <pabs@pablotron.org>
   * raggle: fix non-proxy HTTP grabbing (oops). also reported by srl.
 
+* Sat Aug 16 20:44:05 2003, pabs <pabs@pablotron.org>
+  * raggle: he's still having problems. maybe this fixes it?
+

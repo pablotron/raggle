@@ -879,8 +879,7 @@ module Feed
     proxy = find_proxy(host) || { }
     
     # initialize http connection
-    Net::HTTP.version_1_1
-    http = Net::HTTP.start(host, port, proxy['host'], proxy['port'])
+    http = Net::HTTP::start(host, port, proxy['host'], proxy['port'])
     http.use_ssl = use_ssl if $HAVE_SSL
     raise "Couldn't connect to host \"#{host}:#{port}\"" unless http
 
@@ -2384,6 +2383,9 @@ def main
   load_feed_cache if $config['load_feed_cache'] &&
     test(?e, $config['feed_cache_path'])
   
+  # set up Net::HTTP module
+  Net::HTTP.version_1_1
+
   # start feed grabbing thread
   feed_thread = Thread.new {
     File.open($config['grab_log_path'], $config['grab_log_mode']) { |log|

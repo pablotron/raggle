@@ -1295,3 +1295,7 @@
 * Wed Sep 03 21:37:09 2003, pabs <pabs@pablotron.org>
   * raggle: evil method missing hack! (just a test to see if it'll
     get win32 people going w/o hackery)
+
+* Wed Sep 03 21:42:18 2003, pabs <pabs@pablotron.org>
+  * raggle: disabled method missing hack, added $HAVE_LIB['ncurses']
+    wrapper to relevant $config{} stuff

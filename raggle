@@ -104,13 +104,15 @@ ENDERR
 end
 
 # hackery to avoid mucking with config below
-unless $HAVE_LIB['ncurses'] 
-  module Ncurses
-    def Ncurses::method_missing(*args)
-      nil
-    end
-  end
-end
+# 
+# unless $HAVE_LIB['ncurses'] 
+#   module Ncurses
+#     def Ncurses::method_missing(*args)
+#       
+#     end
+#   end
+# end
+# 
 
 ###################
 # utility methods #
@@ -3331,7 +3333,7 @@ $config = {
   },
 
   # key bindings
-  'keys'            => {
+  'keys'            => ($HAVE_LIB['ncurses'] ? {
     Ncurses::KEY_RIGHT  => proc { |win, key| Key::next_window },
     ?\t                 => proc { |win, key| Key::next_window },
 
@@ -3373,7 +3375,7 @@ $config = {
 
 
     # Literal control L is horrid -- richlowe 2003-06-26
-    ?\                 => proc { |win, key| resize_term },
+    ?\                => proc { |win, key| resize_term },
     Ncurses::KEY_RESIZE => proc { |win, key| resize_term },
 
     ?s                  => proc { |win, key| Key::sort_feeds },
@@ -3389,10 +3391,10 @@ $config = {
 
     ?U                  => proc { |win, key| Key::manual_update },
     ?a                  => proc { |win, key| Key::gui_add_feed },
-  },
+  } : {}),
 
   # color palette (referenced by themes)
-  'color_palette'         => [
+  'color_palette'         => ($HAVE_LIB['ncurses'] ? [
     [  1, Ncurses::COLOR_WHITE,    Ncurses::COLOR_BLACK   ],
     [  2, Ncurses::COLOR_RED,      Ncurses::COLOR_BLACK   ],
     [  3, Ncurses::COLOR_GREEN,    Ncurses::COLOR_BLACK   ],
@@ -3421,9 +3423,9 @@ $config = {
     [ 35, Ncurses::COLOR_MAGENTA,  Ncurses::COLOR_CYAN    ],
     [ 36, Ncurses::COLOR_BLACK,    Ncurses::COLOR_CYAN    ],
     [ 37, Ncurses::COLOR_YELLOW,   Ncurses::COLOR_CYAN    ],
-  ],
+  ] : []),
 
-  'attr_palette'          => {
+  'attr_palette'          => ($HAVE_LIB['ncurses'] ? {
     'normal'        => Ncurses::A_NORMAL,
     'normal'        => Ncurses::A_NORMAL,
     'standout'      => Ncurses::A_STANDOUT,
@@ -3436,7 +3438,7 @@ $config = {
     'invis'         => Ncurses::A_INVIS,
     'altcharset'    => Ncurses::A_ALTCHARSET,
     'chartext'      => Ncurses::A_CHARTEXT,
-  },
+  } : {}),
 
   # default theme settings
   'theme'           => {

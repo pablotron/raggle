@@ -2329,6 +2329,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 - s : Sort the feed list alphabetically. .
 - Del: Delete the hilited feed. .
 - o : Open the currently selected feed item. .
+- m : Mark all items as read.
+- n : Move to next unread item.
+- ! : Escape to a shell
 - Enter, Space : Select active item .
 - Q, F12 : Exit Raggle              .
 .

@@ -759,6 +759,14 @@
 * Thu Jun 26 21:29:15 2003, richlowe <richlowe@richlowe.net>
   * raggle: Bind ^L to refresh the screen (this uses a literal ^L in the
             code, this is evil)
+
+* Thu Jun 26 23:46:27 2003, richlowe <richlowe@richlowe.net>
+  * raggle.1: Document 's', 'o', 'm', '!' and 'n' in the KEYS section.
+  * raggle: Document 'm', '!' and 'n' in the Keyboard section of the
+            internal documentation feed.
+  
+
+
 	
 
 

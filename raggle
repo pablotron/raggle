@@ -214,7 +214,7 @@ class String
       when /^#8217$/n
         "'"
       when /^#(\d+)$/n
-        r = Integer($1)
+        r = $1.to_i # Integer() interprets leading zeros as octal
         r.between?(0, 255) ? r.chr : $config['unicode_munge_str']
       when /^#x([0-9a-f]+)$/ni
         r = $1.hex

@@ -1904,7 +1904,7 @@ ENDUSAGE
         end
 
         def Key::build_cat_title(cat, count, width)
-          ret, count_str = "#{cat}  ", "(#{count})"
+          ret, count_str = "#{cat.capitalize}  ", "(#{count})"
           ret << ' ' * (width - ret.size - count_str.size) << count_str
         end
 
@@ -1928,8 +1928,8 @@ ENDUSAGE
 
             # build item list
             win.items << { 
-              'title' => build_cat_title('All', $config['feeds'].size, w - 3),
-              'cat'   => 'All'
+              'title' => build_cat_title('all', $config['feeds'].size, w - 3),
+              'cat'   => 'all'
             }
 
             # iterate and append
@@ -2120,7 +2120,7 @@ ENDUSAGE
         def close(switchwin=false)
           old_wins = $wins.dup
           @win.del; $wins.delete_at(NcursesInterface::get_win_id(@key))
-          NcursesInterface::set_active_win($prev_win) if switchwin unless old_wins == $wins
+          NcursesInterface::set_active_win($old_win) if switchwin unless old_wins == $wins
           $wins.each { |i| i.refresh }
         end
 
@@ -2555,7 +2555,7 @@ ENDUSAGE
           $wins[$a_win].refresh
         end
 
-        $prev_win = $a_win || NcursesInterface::get_win_id('feed')
+        $old_win = $a_win || NcursesInterface::get_win_id('feed')
         $a_win = a_win
 
         $wins[$a_win].active = true
@@ -2790,15 +2790,20 @@ ENDUSAGE
       end
       
       def NcursesInterface::select_cat(str)
+        $old_cat = $category || 'all'
         $category = str
       
-        # rebuild feed window
-        NcursesInterface::populate_feed_win
-      
-        # select feed window and select top feed
-        w_id = NcursesInterface::get_win_id('feed')
-        NcursesInterface::set_active_win(w_id)
-        $wins[w_id].activate 0
+        unless $old_cat == $category  # rebuild feeds in new category
+          # rebuild feed window
+          NcursesInterface::populate_feed_win
+
+          # select feed window and select top feed
+          w_id = NcursesInterface::get_win_id('feed')
+          NcursesInterface::set_active_win(w_id)
+          $wins[w_id].activate 0 
+        else  # just go back to old window if category didn't change
+          NcursesInterface::set_active_win($old_win)
+        end
         
         # delete category window
         $wins[NcursesInterface::get_win_id('cat')].close
@@ -4386,7 +4391,6 @@ def main
   $config['run_http_server'] = true unless $HAVE_LIB['ncurses'] ||
                                            $HAVE_LIB['drb']
   # initialize default globals
-  $category = "all"
   $view_source = false
   $update_wins = false
 

@@ -2196,3 +2196,5 @@
 
 * Wed Dec 22 12:16:00 2004, redshift <redshift@halffull.org>
   * raggle: fixed scrolling in description window to skip blank lines
+  * raggle: don't change window/item upon selecting category if the
+    category didn't change

@@ -1,7 +1,7 @@
 Raggle TODO
 ===========
 [*] scrolling
-[ ] sanitize window modes (remove text reflow from draw())
+[*] sanitize window modes (remove text reflow from draw())
 [ ] clean up code (move methods to modules, eliminate globals, etc)
 [ ] modularize code to make it suitable for reuse
 [ ] finish inline documentation
@@ -9,7 +9,7 @@ Raggle TODO
 [*] feed grab save existing items
 [*] speed up feed cache loading
 [*] theme shouldn't save hard-coded window coordinates
-[-] scrolling in Description window (richlowe has patches)
+[*] scrolling in Description window
 [ ] fix blocking for feed grabbing (grab feeds in parallel?)
 [*] better theme format
 [ ] Convert manpage (raggle.1) to -ms

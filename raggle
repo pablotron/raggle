@@ -44,7 +44,6 @@ $VERSION = '0.1.0'
 trap('INT') { puts "Interrupted"; exit -1 }
 trap('QUIT') { puts "Quit"; exit -1 }
 
-
 # load required modules
 require 'getoptlong'
 require 'ncurses'
@@ -69,32 +68,36 @@ end
 # I like die
 #
 def die(str)
-  $stderr.puts 'FATAL: ' << str
+  errstr = "#$0: FATAL: #{str}"
+  errstr += ": #$!" if $!
+  $stderr.puts errstr
   exit -1
 end
 
-#
-# find an application in your $PATH
-#
-def find_app(app)
-  ENV['PATH'].split(/:/).find { |path| test ?x, "#{path}/#{app}" }
-end
-
-#
-# Find browser
-#
-def find_browser
-  ret = ENV['RAGGLE_BROWSER']
-  ret = ENV['BROWSER']
-  ret = 'links' if !ret && test(?e, find_app('links'))
-  ret = 'w3m' if !ret && test(?e, find_app('w3m'))
-  ret = 'lynx' if !ret && test(?e, find_app('lynx'))
-
-  # die if we couldn't find a browser
-  die "Couldn't find suitable browser.  Is $BROWSER set?" unless ret
-
-  # return browser
-  ret
+module Path
+  #
+  # find an application in your $PATH
+  #
+  def Path::find_app(app)
+    ENV['PATH'].split(/:/).find { |path| test ?x, "#{path}/#{app}" }
+  end
+  
+  #
+  # Find browser
+  #
+  def Path::find_browser
+    ret = ENV['RAGGLE_BROWSER']
+    ret = ENV['BROWSER']
+    ret = 'links' if !ret && test(?e, find_app('links'))
+    ret = 'w3m' if !ret && test(?e, find_app('w3m'))
+    ret = 'lynx' if !ret && test(?e, find_app('lynx'))
+    
+    # die if we couldn't find a browser
+    die "Couldn't find suitable browser.  Is $BROWSER set?" unless ret
+    
+    # return browser
+    ret
+  end
 end
 
 # 
@@ -104,9 +107,11 @@ def in_screen?
   ENV['WINDOW'] != nil
 end
 
-
-
 class String
+  def lines
+    self.split(/\n/).size
+  end
+  
   def escape
     gsub(/(["\\])/, "\\$1")
   end
@@ -165,6 +170,7 @@ class String
       end
     }
     text << curr_line << "\n"
+    text
   end
 end
 
@@ -257,8 +263,8 @@ class FeedList
     @feeds.size
   end
   
-  def add(title, url, refresh, lock_title=false, save_items=false,
-          site='', desc='', items=[])
+  def add(title, url, refresh, lock_title=false, save_items=false, site='',
+          desc='', items=[])
     lock_title = false if !lock_title
     save_items = false if !save_items
     @feeds << {
@@ -273,7 +279,7 @@ class FeedList
       'save_items?' => save_items,
     }
   end
-  
+
   def <<(feed)
     @feeds << feed
   end
@@ -347,6 +353,25 @@ class FeedList
     end
   end
 
+  def describe(id)
+    # clear desc window
+    desc_id = get_win_id 'desc'
+    $wins[desc_id].clear
+    
+    $wins[desc_id].items = [ ] # This should only ever have one entry
+    $wins[desc_id].items << {
+      'real_title' => $config['feeds'][id]['title'],
+      'title'      => $config['feeds'][id]['desc'],
+      'date'       => $config['feeds'][id]['date'],
+      'url'        => $config['feeds'][id]['url'],
+      'date'       => $config['feeds'][id]['updated'].to_s,
+      'read?'      => false
+    }
+
+    $wins[desc_id].draw_items
+  end
+    
+  
   def refresh_interval_check(interval)
     if interval > 0 && interval < $config['feed_refresh_warn']
         err = <<ENDWARNING
@@ -474,7 +499,8 @@ end
 
 
 class Window
-  attr_accessor :win, :win_type, :title, :key, :colors, :active, :items, :active_item, :offset
+  attr_accessor :win, :title, :key, :colors, :active, :items, :active_item,
+    :offset
 
   #
   # window constructor
@@ -489,7 +515,7 @@ class Window
     @items = []
 
     @title = opts['title']
-    @win_type = opts['type']
+    
     @key = opts['key']
     @colors = opts['colors'].dup
 
@@ -520,34 +546,26 @@ class Window
     @win.refresh
   end
 
+  def draw_text(text, x, y, reflow, offset)
+    w,i = dimensions[0], 0
+    
+    text = reflow_string text if reflow
+
+    text.each_line do |line|
+      i += 1
+      if i >= offset
+        Ncurses::mvwprintw @win, y, x, line.gsub(/%/, '%%').slice(0, w - x - 1)
+        y += 1
+      end
+    end
+  end
+
   #
   # draw text in window
   #
-  def draw(orig_text, x = 1, y = 1, color = 'text', refresh_win = true, reflow_text = true)
-    ha = []; wa = []
-    Ncurses::getmaxyx win, ha, wa
-    w, h = wa[0], ha[0]
-
-    # reflow text if it's a text window
-    # DOES THIS BELONG HERE?
-    if reflow_text && @win_type == 'text'
-      text = ''
-      curr_line = ''
-      orig_text.split(/\s+/).each { |word|
-        if word == '.'
-          text << curr_line << "\n" 
-          curr_line = ''
-        elsif curr_line.length + word.length > w - 2
-          text << curr_line << "\n"
-          curr_line = "#{word} "
-        else
-          curr_line += "#{word} "
-        end
-      }
-      text << curr_line << "\n"
-    else
-      text = orig_text
-    end
+  def draw(text, x = 1, y = 1, color = 'text', refresh_win = true,
+           reflow_text = true, offset = 0)
+    w, h = dimensions
 
     # handle color
     col = @colors[color]
@@ -562,10 +580,8 @@ class Window
 
     # draw text in window
     @win.color_set col, nil if color != 'text'
-    text.each_line { |line|
-      Ncurses::mvwprintw @win, y, x, line.gsub(/%/, '%%').slice(0, w - x - 1)
-      y += 1
-    }
+
+    draw_text(text, x, y, reflow_text, offset)
 
     # get default color, attributes
     col = @colors['text']
@@ -580,7 +596,7 @@ class Window
     @win.attrset Ncurses::A_NORMAL
 
     refresh if refresh_win
-    y
+    y 
   end
 
   # get window width and height
@@ -591,117 +607,10 @@ class Window
   end
 
   #
-  # Adjust the window to show the selected item
-  #
-  def adjust_to(item)
-    # scroll window (if necessary)
-    w, h = dimensions
-    if item < @offset || item >= @offset + (h - 3)
-      @offset = @active_item
-      @offset = 0 if @offset < 0
-      if item + h - 3 > @items.size - 1
-        @offset = @active_item - (h - 3)
-        @offset = 0 if @offset < 0
-      end
-    end
-    draw_items
-
-    describe_feed(item) if $config['describe_hilited_feed'] == true &&
-                           @items[item].has_key?('feed')
-    
-    # Should I really have put this here? -- richlowe 2003-06-19
-    status = ' ' << @items[@active_item]['title']
-    status = status.split(/\s+/).join(' ')
-    set_status status
-
-    select_win_item if $config['focus'] == 'auto'
-  end
-
-  #
-  # Activate an item
-  #
-  def activate(item)
-    if @items.size > 0
-      if item >= @items.size or item < 0
-        throw "Window#activate item out of range (#{item}/#{@items.size})"
-      end
-      @active_item = item
-      adjust_to item
-    end
-  end
-  
-  def scroll_up_page
-    if $config['page_step'] < 0
-      w,h = dimensions
-      step = (h - 2) + $config['page_step']
-    else
-      step = $config['page_step']
-    end
-      
-    pos = @active_item - step
-    pos < 0 ? activate(0) : activate(pos)
-
-  end
-
-  #
-  # Scroll one page down.
-  #
-  def scroll_down_page
-    if $config['page_step'] < 0
-      w,h = dimensions
-      step = (h - 2) + $config['page_step']
-    else
-      step = $config['page_step']
-    end
-
-    pos = @active_item + step
-    pos >= @items.size ? activate(@items.size - 1) : activate(pos)
-  end
-       
-  #
-  # Bound scrolling based on $config['scroll_wrapping']
-  #
-  def scroll_bound(point)
-    if point >= @items.size
-      $config['scroll_wrapping'] ? 0 : @items.size - 1
-    elsif point < 0
-      $config['scroll_wrapping'] ? @items.size - 1 : 0
-    else
-      point
-    end
-  end
-
-  #
-  # Scroll the window up one item
-  #
-  def scroll_up
-    activate scroll_bound(@active_item - 1)
-  end
-  
-  #
-  # Scroll window down.
-  #
-  def scroll_down
-    activate scroll_bound(@active_item + 1)
-  end
-  
-  #
-  # Scroll to the bottom.
-  #
-  def scroll_bottom
-    activate @items.size - 1
-  end
-
-  #
-  # Scroll to the top item
-  #
-  def scroll_top
-    activate 0
-  end
-
-  #
   # select currently hilited window item
   #
+  # XXX: This really should be split between the window classes as
+  #      Appropriate -- richlowe 2003-06-23
   def select_win_item
     if @items && @items.size > 0
       if @items[@active_item].has_key? 'feed'
@@ -746,58 +655,282 @@ class Window
     end
   end
 
+  def reflow_string(str)
+    w = dimensions[0]
+    str.dup.reflow(w - 2)
+  end
+  
+  def method_missing(id)
+    raise "Please implement #{self.class}##{id.id2name}"
+  end
+end
+  
+class ListWindow < Window
   #
   # redraw window items
   #
   def draw_items
     y = 0
-    if @win_type == 'text'
-      @items.each { |item|
-        y += 1
-        draw("Link: ", 1, y)
-        # @win.color_set @colors['url'], nil
-        draw(item['url'], 7, y, 'url', true, false)
-
-        # don't draw the date if it isn't set (silly RSS)
-        if item['date'] && item['date'] != ''
-          y += 1
-          draw("Date: ", 1, y)
-
-          # handle date string shenanigans
-          if ((i_val = item['date'].to_i) > 0)
-            d_str = Time.at(i_val).strftime($config['desc_date_format'])
-          else
-            d_str = item['date']
-          end
-
-          # draw date string
-          # @win.color_set @colors['date'], nil
-          draw(d_str, 7, y, 'date', true, false)
-        end
-        str = item['title'].strip_tags if $config['strip_html_tags']
-        str = str.unescape_html if $config['unescape_html']
-        draw(str, 1, y += 2)
-      }
-    else
-      w, h = dimensions
-      ic = 0
-      @items.each { |i| 
-        t = i['title'] || ''
-        text = t + ((t.length < w) ? (' ' * (w - t.length)) : '')
-        if i.has_key?('item_count') && i['item_count'] == 0 &&
-           i['updated'] > 0
-          color = (ic == @active_item) ? 'h_empty' : 'empty'
-        elsif i.has_key?('read?') && i['read?'] == false
-          color = (ic == @active_item) ? 'h_unread' : 'unread'
-        else
-          color = (ic == @active_item) ? 'h_text' : 'text'
-        end
-
-        draw(text, 1, y += 1, color) if ic >= @offset
-        ic += 1
-      }
-    end
+    w, h = dimensions
+    ic = 0
+    @items.each { |i| 
+      t = i['title'] || ''
+      text = t + ((t.length < w) ? (' ' * (w - t.length)) : '')
+      if i.has_key?('item_count') && i['item_count'] == 0 &&
+          i['updated'] > 0
+        color = (ic == @active_item) ? 'h_empty' : 'empty'
+      elsif i.has_key?('read?') && i['read?'] == false
+        color = (ic == @active_item) ? 'h_unread' : 'unread'
+      else
+        color = (ic == @active_item) ? 'h_text' : 'text'
+      end
+      draw(text, 1, y += 1, color, true, false) if ic >= @offset
+      ic += 1
+    }
     refresh(true)
+  end
+  
+  #
+  # Adjust the window to show the selected item
+  #
+  def adjust_to(item)
+    # scroll window (if necessary)
+    w, h = dimensions
+    if item < @offset || item >= @offset + (h - 3)
+      @offset = @active_item
+      @offset = 0 if @offset < 0
+      if item + h - 3 > @items.size - 1
+        @offset = @active_item - (h - 3)
+        @offset = 0 if @offset < 0
+      end
+    end
+    draw_items
+
+    if $config['describe_hilited_feed'] == true &&
+        @items[item].has_key?('feed')
+      $config['feeds'].describe(item)
+    end
+    
+    status = ' ' << @items[@active_item]['title']
+    status = status.split(/\s+/).join(' ')
+    set_status status
+
+    select_win_item if $config['focus'] == 'auto'
+  end
+  private :adjust_to
+
+  #
+  # Activate an item
+  #
+  def activate(item)
+    if @items.size > 0
+      if item >= @items.size or item < 0
+        throw "Window#activate item out of range (#{item}/#{@items.size})"
+      end
+      @active_item = item
+      adjust_to item
+    end
+  end
+  
+  def scroll_up_page
+    if $config['page_step'] < 0
+      w,h = dimensions
+      step = (h - 2) + $config['page_step']
+    else
+      step = $config['page_step']
+    end
+      
+    pos = @active_item - step
+    pos < 0 ? activate(0) : activate(pos)
+  end
+
+  #
+  # Scroll one page down.
+  #
+  def scroll_down_page
+    if $config['page_step'] < 0
+      w,h = dimensions
+      step = (h - 2) + $config['page_step']
+    else
+      step = $config['page_step']
+    end
+
+    pos = @active_item + step
+    pos >= @items.size ? activate(@items.size - 1) : activate(pos)
+  end
+       
+  #
+  # Bound scrolling based on $config['scroll_wrapping']
+  #
+  def scroll_bound(point)
+    if point >= @items.size
+      $config['scroll_wrapping'] ? 0 : @items.size - 1
+    elsif point < 0
+      $config['scroll_wrapping'] ? @items.size - 1 : 0
+    else
+      point
+    end
+  end
+
+  #
+  # Scroll the window up one item
+  #
+  def scroll_up
+      activate scroll_bound(@active_item - 1)
+  end
+  
+  #
+  # Scroll window down.
+  #
+  def scroll_down
+      activate scroll_bound(@active_item + 1)
+  end
+  
+  #
+  # Scroll to the bottom.
+  #
+  def scroll_bottom
+    activate @items.size - 1
+  end
+
+  #
+  # Scroll to the top item
+  #
+  def scroll_top
+    activate 0
+  end
+
+  def move_item_down
+    if @active_item < @items.size - 1 
+      nitem = @items[@active_item + 1]
+      @items[@active_item + 1] = @items[@active_item]
+      @items[@active_item] = nitem
+      @active_item = @active_item + 1
+      draw_items
+    end
+  end
+
+  def move_item_up
+    if @active_item > 0
+      pitem = @items[@active_item - 1]
+      @items[@active_item - 1] = @items[@active_item]
+      @items[@active_item] = pitem
+      @active_item = @active_item - 1
+      draw_items
+    end
+  end
+
+  def delete_item
+    @items.delete_at(@active_item)
+    populate_feed_win
+  end
+end
+
+class TextWindow < Window
+  def draw_items
+    y = 0
+    clear
+    item = @items[0] # There can be only one
+    y += 1
+
+    if item['real_title'] && item['real_title'] != ''
+      draw(item['real_title'].strip, 1, y, 'f_title', true, false)
+      y += 1
+    end
+    draw("Link: ", 1, y)
+    # @win.color_set @colors['url'], nil
+    draw(item['url'], 7, y, 'url', true, false)
+    
+    # don't draw the date if it isn't set (silly RSS)
+    if item['date'] && item['date'] != ''
+      y += 1
+      draw("Date: ", 1, y)
+      
+      # handle date string shenanigans
+      if ((i_val = item['date'].to_i) > 0)
+        d_str = Time.at(i_val).strftime($config['desc_date_format'])
+      else
+        d_str = item['date']
+      end
+      
+      # draw date string
+      # @win.color_set @colors['date'], nil
+      draw(d_str, 7, y, 'date', true, false)
+    end
+    if item['title']
+      str = item['title'].strip_tags if $config['strip_html_tags']
+      str = str.unescape_html if $config['unescape_html']
+      # Offset + 1, so we scroll on the *first* press
+      draw(str, 1, y += 2, 'text', true, true, @offset + 1)
+    end
+    
+    refresh(true)
+  end
+
+  def scroll_up_page
+    if $config['page_step'] < 0
+      w, h = dimensions
+      step = (h - 2) + $config['page_step']
+    else
+      step = $config['page_step']
+    end
+
+    @offset = @offset - step
+    draw_items
+  end
+
+  def scroll_down_page
+    if $config['page_step'] < 0
+      w, h = dimensions
+      step = (h - 2) + $config['page_step']
+    else
+      step = $config['page_step']
+    end
+
+    @offset = @offset + step
+    draw_items
+  end
+  
+  def scroll_up
+    @offset -= 1 if @offset > 0
+    draw_items
+  end
+
+  def scroll_down
+    # This is a *terrible* way to figure out how many lines of text we'll end
+    # up with..
+    s = reflow_string(@items[0]['title']).lines
+    @offset += 1 if @offset < s - 1
+    draw_items
+  end
+
+  def move_item_down
+    if @active_item < @items.size - 1 
+      nitem = @items[@active_item + 1]
+      @items[@active_item + 1] = @items[@active_item]
+      @items[@active_item] = nitem
+      @active_item = @active_item + 1
+      draw_items
+    end
+  end
+
+  def move_item_up
+    if @active_item > 0
+      pitem = @items[@active_item - 1]
+      @items[@active_item - 1] = @items[@active_item]
+      @items[@active_item] = pitem
+      @active_item = @active_item - 1
+      draw_items
+    end
+  end
+
+  def delete_item
+    @items.delete_at(@active_item)
+    populate_feed_win
+  end
+
+  def resize_width
+    # XXX
   end
 
   def move_item_down
@@ -953,10 +1086,9 @@ def select_feed(id)
   $wins[item_id].active_item = 0
   $wins[item_id].items.clear
 
-  # clear desc window
-  desc_id = get_win_id 'desc'
-  $wins[desc_id].clear
-
+  $wins[get_win_id('desc')].offset = 0
+  $config['feeds'].describe($a_feed)
+  
   # unused.. remove it?
   fmt = $config['item_date_format']
 
@@ -1059,6 +1191,8 @@ def select_item(id)
   $wins[item_id].items[$a_item]['read?'] = true
   $config['feeds'].get($a_feed)['items'][id]['read?'] = true
 
+  $wins[desc_id].offset = 0
+  
   # load item
   $wins[desc_id].items << {
     'title'       => $config['feeds'].get($a_feed)['items'][id]['desc'],
@@ -1651,7 +1785,17 @@ def main
     $a_win = 0
     $wins = []
     $config['theme']['window_order'].each { |i|
-      $wins << Window.new($config['theme']["win_#{i}"])
+      case i
+        when /feed/
+          cl = ListWindow
+        when /item/
+          cl = ListWindow
+        when /desc/
+          cl = TextWindow
+      else
+        raise "Unknown window #{i}"
+      end
+      $wins << cl.new($config['theme']["win_#{i}"])
       # $wins[-1].draw LONG_STRING
     }
     set_active_win(0)
@@ -1663,7 +1807,6 @@ def main
     
     select_feed(0)
     set_active_win(0)
-    describe_feed(0)
     
     # trap('WINCH') { resize_term }
     
@@ -1697,7 +1840,7 @@ def main
     # stop feed grabbing thread
     feed_thread.exit
     
-    # save feed cachepppp
+    # save feed cache
     save_feed_cache if $config['save_feed_cache']
     
     # save feed list
@@ -1805,7 +1948,7 @@ $config = {
   'screen_cmd'            => 'screen -t "%s"',
   
   # browser options
-  'browser'               => find_browser,
+  'browser'               => Path::find_browser,
   'browser_cmd'           => '${browser} %s',
 
   # lock feed names (don't update feed title from feed)
@@ -1848,6 +1991,8 @@ $config = {
     # -- richlowe 2003-06-22 (actually --pabs 2003-06-21)
     # ?D                  => proc { |win, key| Key::delete },
 
+
+    ?r                  => proc { |win, key| resize_term },
     Ncurses::KEY_RESIZE => proc { |win, key| resize_term },
 
     ?s                  => proc { |win, key| Key::sort_feeds },

@@ -1123,8 +1123,9 @@ module Raggle
         cats = {}
         @feeds.each { |feed|
           if feed['category']
-            feed['category'].split(/\s*,\s*/).each { |cat|
-              if cats.has_key? cat.downcase
+            feed['category'].split(/\s*\b\s*/).each { |cat|
+              if cat == ','
+              elsif cats.has_key? cat.downcase
                 cats[cat.downcase].count += 1
               else
                 cats[cat.downcase] = category.new(cat, 1)
@@ -2736,7 +2737,7 @@ ENDUSAGE
             if str =~ /none|nil/i: newopts = {feedopt => nil}
             else newopts = {feedopt => str.to_i}; end
           when 'category'
-            if str =~ /none|nil/i: newopts = {feedopt => nil}
+            if str =~ /\bnone\b|\bnil\b/i: newopts = {feedopt => nil}
             else newopts = {feedopt => str}; end
           else newopts = {feedopt => str}
           end
@@ -3494,7 +3495,7 @@ ENDUSAGE
             mode = $1 if req.query_string =~ /mode=([^&]+)/
 
             cat = 'all'
-            cat = $1 if req.query_string =~/category=([^&]+)/
+            cat = $1 if req.query_string =~ /category=([^&]+)/
 
             case mode
               when 'sort'
@@ -3576,7 +3577,7 @@ ENDUSAGE
             feed_id = $1.to_i if req.query_string =~ /feed_id=(\d+)/
 
             cat = 'all'
-            cat = $1 if req.query_string =~/category=([^&]+)/
+            cat = $1 if req.query_string =~ /category=([^&]+)/
 
             feed = $config['feeds'].category(cat)[feed_id]
 
@@ -3636,7 +3637,7 @@ ENDUSAGE
             cat = 'all'
             feed_id = $1.to_i if req.query_string =~ /feed_id=([-\d]+)/
             item_id = $1.to_i if req.query_string =~ /item_id=([-\d]+)/
-            cat = $1 if req.query_string =~/category=([^&]+)/
+            cat = $1 if req.query_string =~ /category=([^&]+)/
 
             # get feed image
             feed = $config['feeds'].category(cat)[feed_id]
@@ -3695,7 +3696,7 @@ ENDUSAGE
           feed_image
         end
 
-        def build_category_select(cat)
+        def build_category_select(cat = nil)
           cat = 'all' unless cat
           
           ret = "<select name='category' onChange='form.submit()'>\n" <<
@@ -5177,7 +5178,7 @@ $config = {
       'desc'      => 'Alternative News and Information.',
       'refresh'   => 120,
       'updated'   => 0,
-      'category'  => 'Politics,News',
+      'category'  => 'Politics News',
       'items'     => [ ],
     },
     { 'title'     => 'Daily Daemon News',
@@ -5258,7 +5259,7 @@ $config = {
       'desc'      => 'Pigdog Journal',
       'refresh'   => 120,
       'updated'   => 0,
-      'category'  => 'Politics,News',
+      'category'  => 'Politics News',
       'items'     => [ ],
     },
     { 'title'     => 'Raggle: News',
@@ -5267,7 +5268,7 @@ $config = {
       'desc'      => 'Raggle News',
       'refresh'   => 120,
       'updated'   => 0,
-      'category'  => 'Tech,Raggle',
+      'category'  => 'Tech Raggle',
       'items'     => [ ],
       'priority'  => 1,
     },
@@ -5286,7 +5287,7 @@ $config = {
       'desc'      => 'Slashdot',
       'refresh'   => 120,
       'updated'   => 0,
-      'category'  => 'Tech,News',
+      'category'  => 'Tech News',
       'items'     => [ ],
     },
     { 'title'     => 'This Modern World',
@@ -5295,7 +5296,7 @@ $config = {
       'desc'      => 'This Modern World',
       'refresh'   => 120,
       'updated'   => 0,
-      'category'  => 'Blogs,Politics',
+      'category'  => 'Blogs Politics',
       'items'     => [ ],
     },
     { 'title'     => 'Tynian.net',
@@ -5322,7 +5323,7 @@ $config = {
       'desc'      => 'yahoo tech',
       'refresh'   => 120,
       'updated'   => 0,
-      'category'  => 'Tech,News',
+      'category'  => 'Tech News',
       'items'     => [ ],
     },
     { 'title'     => 'Yahoo! News - Top Stories',
@@ -5340,7 +5341,7 @@ $config = {
       'desc'      => 'yahoo world',
       'refresh'   => 120,
       'updated'   => 0,
-      'category'  => 'Politics,News',
+      'category'  => 'Politics News',
       'items'     => [ ],
     },
   ],

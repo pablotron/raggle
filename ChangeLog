@@ -2267,3 +2267,5 @@
   * raggle: beefed up OPML support - saves all configurable feed attributes
   * raggle: minor rescue cleanup
   * raggle: allow Engine to add site, image, category, etc. if given
+  * raggle: added del.icio.us-style space-separated categories.  (any
+    regex word boundary will work, including the old commas.  space default)

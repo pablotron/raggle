@@ -1642,3 +1642,13 @@
 * Thu Sep 25 20:57:07 2003, pabs <pabs@pablotron.org>
   * raggle: remove commented GC thread, we're not going to use
     it
+
+* Thu Sep 25 22:05:08 2003, pabs <pabs@pablotron.org>
+  * raggle: attempt to fix "use_ssl undefined feed grab error"
+  * raggle: wrap entire feed grab in another thread, so if it
+    dies it doesn't kill the entire feed thread (also added the
+    option of grabbing all threads in parallel, but it won't work
+    at the moment; ruby's GC barfs on something in REXML)
+    this _should_ fix the bad feed killing feed grabbing thread bug
+    (/me crosses his fingers)
+

@@ -1234,3 +1234,8 @@
 
 * Tue Sep 02 17:31:49 2003, pabs <pabs@pablotron.org>
   * raggle: added search for entry key (bound to '/' by default)
+
+* Tue Sep 02 17:42:44 2003, pabs <pabs@pablotron.org>
+  * raggle: save last search string, and use that if no text was
+    entered
+  * search begins at next item, not current item

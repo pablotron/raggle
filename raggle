@@ -2500,12 +2500,14 @@ def ncurses_find_entry(win, direction = 1)
     Ncurses::refresh
 
     # if it's not nil, then add it to our list
-    if str && str.length > 0
+    if ((str && str.size > 0) || ($last_search && $last_search.size > 0))
       new_index = -1
+      
+      str = $last_search unless str && str.size > 0
       regex = /#{str}/i
 
       # search forward from item
-      win.active_item.upto(win.items.size - 1) { |i|
+      (win.active_item + 1).upto(win.items.size - 1) { |i|
         if win.items[i]['title'] =~ regex
           new_index = i
           break
@@ -2522,9 +2524,8 @@ def ncurses_find_entry(win, direction = 1)
         }
       end
 
-      if new_index >= 0
-        win.activate new_index
-      end
+      win.activate new_index if new_index >= 0
+      $last_search = str
     end
       
     # redraw status bar
@@ -3167,7 +3168,7 @@ $config = {
   'msg_term_resize'       => 'Terminal Resize: ',
   'msg_links'             => 'Links:',
   'msg_add_feed'          => 'Enter URL:',
-  'msg_find_entry'        => 'Search:',
+  'msg_find_entry'        => 'Find:',
 
   # menu bar color
   'menu_bar_cols'         => 24,

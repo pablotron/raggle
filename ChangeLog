@@ -2446,3 +2446,6 @@ _Cvs
   * raggle: fixed category sorting inc at window
   * raggle: fixed window title translations (were getting mangled by
     themes)
+
+* Sat Mar 19 12:09:41 2005, pabs <pabs@pablotron.org>
+  * REALLY releasing 0.4.0

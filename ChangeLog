@@ -780,7 +780,12 @@
   * added extras/rss_grab.rb
   * added extras/feed_sizes.rb
 
-	
+* Mon Jun 30 21:13:06 2003, pabs <pabs@pablotron.org>
+  * raggle: make --list-feeds handle feed titles and urls with %
+    characters in them
+
+
+
 
 
 

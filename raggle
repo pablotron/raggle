@@ -1525,12 +1525,15 @@ def list_feeds
   if $config['verbose']
     puts 'ID, Title, URL, Refresh'
     $config['feeds'].each { |feed|
-     puts "%2d, #{feed['title']}, #{feed['url']}, #{feed['refresh']}" % (i += 1)
+      title = feed['title'].gsub(/%/, '%%')
+      url = feed['url'].gsub(/%/, '%%')
+      puts "%2d, #{title}, #{url}, #{feed['refresh']}" % (i += 1)
     }
   else 
     puts 'ID, Title'
     $config['feeds'].each { |feed|
-     puts "%2d, #{feed['title']}" % (i += 1)
+      title = feed['title'].gsub(/%/, '%%')
+      puts "%2d, #{title}" % (i += 1)
     }
   end
 end

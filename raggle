@@ -1860,6 +1860,11 @@ def set_active_win(a_win)
 
   $wins[$a_win].active = true
   $wins[$a_win].refresh
+
+  if $config['focus'] == 'auto' && $wins[$a_win].items.size > 0 &&
+     $a_win != get_win_id('desc')
+    $wins[$a_win].select_win_item
+  end
 end
 
 #
@@ -3068,7 +3073,7 @@ $config = {
   'use_cache_lock'        => true,
 
   # ui options
-  'focus'                 => 'select', # ['none', 'select', 'select_first', 'auto']
+  'focus'                 => 'auto', # ['none', 'select', 'select_first', 'auto']
   'no_desc_auto_focus'    => true,
   'scroll_wrapping'       => true,
 

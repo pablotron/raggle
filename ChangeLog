@@ -1325,3 +1325,6 @@
 
 * Thu Sep 04 11:18:47 2003, pabs <pabs@pablotron.org>
   * TODO: added a great way to debug the feed grabbing thread!
+
+* Thu Sep 04 12:28:05 2003, pabs <pabs@pablotron.org>
+  * BUGS: add bugs for windows build

@@ -1299,3 +1299,6 @@
 * Wed Sep 03 21:42:18 2003, pabs <pabs@pablotron.org>
   * raggle: disabled method missing hack, added $HAVE_LIB['ncurses']
     wrapper to relevant $config{} stuff
+
+* Wed Sep 03 21:45:04 2003, pabs <pabs@pablotron.org>
+  * raggle: force web server if we're missing ncurses

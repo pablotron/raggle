@@ -2913,6 +2913,8 @@ def main
     $config['theme'] = YAML::load(File::open($config['theme_path']))
   end
 
+  $config['run_http_server'] = true unless $HAVE_LIB['ncurses']
+
   # Draw windows and such.
   # (unless we're running as a daemon)
   setup_win unless $config['run_http_server']

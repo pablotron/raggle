@@ -1796,3 +1796,7 @@
 
 * Tue Mar 02 16:29:37 2004, pabs <pabs@pablotron.org>
   * TODO: updated with new ideas
+
+* Sat Mar 20 20:41:33 2004, pabs <pabs@pablotron.org>
+  * raggle: preliminary console category selection dialog (bound to 
+    'b', but this will change eventually)

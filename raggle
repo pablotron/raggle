@@ -464,31 +464,34 @@ module Key
   end
 
   def Key::cat_list
-    cats = $config['feeds'].categories
-    h = $config['h'] - 5 
-    h = cats.size + 3 if h > cats.size + 3
+    id = get_win_id('cat')
+    if id == -1
+      cats = $config['feeds'].categories
 
-    # create window
-    win = ListWindow::new({
-      'title'   => 'Display Feed Category',
-      'key'     => 'cat',
-      'coords'  => [20, 3, $config['w'] - 40, h],
-      'colors'  => $wins[get_win_id('desc')].colors,
-    })
+      # determine window height
+      h = $config['h'] - 5 
+      h = cats.size + 3 if h > cats.size + 3
 
-    # build item list
-    win.items << { 'title' => 'All' }
-    cats.each_with_index do |c, i| 
-      win.items << { 'title' => c, 'cat' => c }
-      win.active_item = i + 1 if $category == c
+      # create window and add it to window list
+      $wins << win = ListWindow::new({
+        'title'   => 'Display Feed Category',
+        'key'     => 'cat',
+        'coords'  => [20, 3, $config['w'] - 40, h],
+        'colors'  => $wins[get_win_id('item')].colors,
+      })
+
+      # build item list
+      win.items << { 'title' => 'All', 'cat' => 'All' }
+      cats.each_with_index do |c, i| 
+        win.items << { 'title' => c, 'cat' => c }
+        win.active_item = i + 1 if $category == c
+      end
+
+      # add window to window list and draw item list
+      win.draw_items
     end
 
-    $wins << win
-
-    # draw window
-    win.draw_items
-
-    # activate it
+    # activate category window
     set_active_win(get_win_id('cat'))
   end
 end
@@ -1509,13 +1512,12 @@ class Window
   # XXX: This really should be split between the window classes as
   #      Appropriate -- richlowe 2003-06-23
   def select_win_item
-    if @items && @items.size > 0
+    if @items && @items.size > 0 && @items[@active_item]
       if @items[@active_item].has_key? 'feed'
         select_feed @items[@active_item]['feed']
       elsif @items[@active_item].has_key? 'item'
         select_item @items[@active_item]['item']
       elsif @items[@active_item].has_key? 'cat'
-        # TODO: select category here
         select_cat @items[@active_item]['cat']
       elsif @items[@active_item].has_key? 'url'
         # are we opening new screen windows?
@@ -2282,15 +2284,18 @@ end
 # set active window 
 #
 def set_active_win(a_win)
-  $wins[$a_win].active = false
-  $wins[$a_win].refresh
+  if $wins[$a_win]
+    $wins[$a_win].active = false
+    $wins[$a_win].refresh
+  end
 
   $a_win = a_win
 
   $wins[$a_win].active = true
   $wins[$a_win].refresh
 
-  if $config['focus'] == 'auto' && $a_win != get_win_id('desc') && 
+  if $config['focus'] == 'auto' && 
+     ![get_win_id('desc'), get_win_id('cat')].include?($a_win) && 
      $wins[$a_win].items && $wins[$a_win].items.size > 0
     $wins[$a_win].select_win_item
   end
@@ -2404,6 +2409,10 @@ def populate_feed_win
   win.items.clear
   
   $config['feeds'].each_with_index { |feed, i|
+    if $category && $category !~ /all/i
+      next unless feed['category'] =~ /#$category/i
+    end
+  
     # count unread items
     unread_count = 0
     feed['items'].each { |item| unread_count += 1 unless item['read?'] }
@@ -2506,12 +2515,14 @@ def select_cat str
   $category = str
 
   # none of this nonsense works yet (pabs)
-  # # select feed window (redisplay with new category)
-  # set_active_win(get_win_id('feed'))
+  # select feed window (redisplay with new category)
+  populate_feed_win
+  $a_feed = 0
+  set_active_win(get_win_id('feed'))
   #
   # # delete category window
-  # id = get_win_id('cat')
-  # $wins = $wins.delete_at(id) if id != -1
+  id = get_win_id('cat')
+  $wins.delete_at(id)
 end
 
 #
@@ -3919,7 +3930,10 @@ $config = {
     ?U                  => proc { |win, key| Key::manual_update },
     ?a                  => proc { |win, key| Key::gui_add_feed },
 
-    ?b                  => proc { |win, key| Key::cat_list },
+    # i know this is using 'c'.. we'll see if this fucks us (see note
+    # about 'C' above)
+    # -- pabs (Sat Mar 20 21:10:55 2004)
+    ?c                  => proc { |win, key| Key::cat_list },
   } : {}),
 
   # color palette (referenced by themes)

@@ -1800,3 +1800,8 @@
 * Sat Mar 20 20:41:33 2004, pabs <pabs@pablotron.org>
   * raggle: preliminary console category selection dialog (bound to 
     'b', but this will change eventually)
+
+* Sat Mar 20 21:11:25 2004, pabs <pabs@pablotron.org>
+  * raggle: rest of console category selection
+  * raggle: cat selection bound to 'c' (this may be a problem, we'll
+    try it for a while and see what happens)

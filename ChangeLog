@@ -880,3 +880,6 @@
 
 * Thu Jul 03 21:08:51 2003, pabs <pabs@pablotron.org>
   * ChangeLog: attributed % escape in die() to correct person
+
+* Thu Jul 03 22:04:09 2003, pabs <pabs@pablotron.org>
+  * AUTHORS: updated to reflect all the new patches

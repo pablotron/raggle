@@ -30,3 +30,12 @@ Ville Aine <vaine@cs.helsinki.fi>
 
 Richard Zidlicky <rz@linux-m68k.org>
 * HTTP proxy support
+
+Claes Nasten <pekdon@pekdon.net>
+* find_browser() fix
+
+Jon Bernard <jbernard@roanoke.edu>
+* another find_browser() fix
+
+Nikolai Weibull <lone-star@home.se>
+* proper % escaping in die()

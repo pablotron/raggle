@@ -1781,3 +1781,6 @@
 * Fri Feb 20 04:50:51 2004, pabs <pabs@pablotron.org>
   * raggle: incremented version number to 0.4.0-test.
   * README: ditto
+
+* Fri Feb 20 17:47:55 2004, pabs <pabs@pablotron.org>
+  * AUTHORS: add gentoo maintainer

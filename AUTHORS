@@ -55,3 +55,7 @@ Tom Paine <twp@gentoo.org>
 
 Ralf Horstmann <ralf.horstmann@webwasher.com
 * action_insert_link_href() nil reference fix
+
+Thomas Kirchner <tjkirch@rochester.rr.com>
+* get_win_id() fix 
+* refresh window on delete (Ncurses interface)

@@ -1776,7 +1776,7 @@ ENDUSAGE
           $view_source = !$view_source
           win = $wins[$a_win]
 
-          if $a_win == get_win_id('desc')
+          if $a_win == NcursesInterface::get_win_id('desc')
             if win.items 
               # clear formatted content to force refresh
               # (evil, but it works ;D)
@@ -2420,7 +2420,8 @@ ENDUSAGE
         $wins[$a_win].refresh
 
         if $config['focus'] == 'auto' && 
-           ![get_win_id('desc'), get_win_id('cat')].include?($a_win) && 
+           ![NcursesInterface::get_win_id('desc'), 
+             NcursesInterface::get_win_id('cat')].include?($a_win) && 
            $wins[$a_win].items && $wins[$a_win].items.size > 0
           $wins[$a_win].select_win_item
         end
@@ -2442,12 +2443,12 @@ ENDUSAGE
         $a_item = 0
       
         # clear item window
-        item_win = $wins[get_win_id('item')]
+        item_win = $wins[NcursesInterface::get_win_id('item')]
         item_win.offset = 0
         item_win.active_item = 0
         item_win.items.clear
       
-        $wins[get_win_id('desc')].offset = 0
+        $wins[NcursesInterface::get_win_id('desc')].offset = 0
         
         # unused.. remove it?
         fmt = $config['item_date_format']
@@ -2516,7 +2517,7 @@ ENDUSAGE
       # populate feed window
       # 
       def NcursesInterface::populate_feed_win 
-        win = $wins[get_win_id('feed')]
+        win = $wins[NcursesInterface::get_win_id('feed')]
       
         win.items.clear
         
@@ -2556,8 +2557,8 @@ ENDUSAGE
       def NcursesInterface::select_item(id)
         $a_item = id
       
-        desc_win = $wins[get_win_id('desc')]
-        item_win = $wins[get_win_id('item')]
+        desc_win = $wins[NcursesInterface::get_win_id('desc')]
+        item_win = $wins[NcursesInterface::get_win_id('item')]
       
         # clear description window
         desc_win.active_item = 0
@@ -2662,7 +2663,7 @@ ENDUSAGE
       # can be either +DIRECTION_FORWARD+ or +DIRECTION_BACKWARD+
       #
       def NcursesInterface::select_unread_item(direction)
-        win = $wins[get_win_id('item')]
+        win = $wins[NcursesInterface::get_win_id('item')]
         size = win.items.size
       
         return unless size > 0
@@ -2784,7 +2785,7 @@ ENDUSAGE
                 'title'   => $config['msg_find_title'] % [str],
                 'key'     => 'find',
                 'coords'  => [5, 3, w, h],
-                'colors'  => $wins[get_win_id('item')].colors,
+                'colors'  => $wins[NcursesInteface::get_win_id('item')].colors,
               })
             else
               win = $wins[id]
@@ -2886,7 +2887,7 @@ ENDUSAGE
       
         # resize each window
         $config['theme']['window_order'].each { |key|
-          win = $wins[get_win_id(key)]
+          win = $wins[NcursesInterface::get_win_id(key)]
       
           # determine new coordinates
           coords = $config['theme']['win_' << key]['coords'].dup
@@ -3989,7 +3990,7 @@ ENDUSAGE
       # (assuming it still exists)
       if !$config['run_http_server'] && !$config['run_drb_server'] &&
          $config['feeds'][$a_feed]['url'] == feed['url']
-        $wins[get_win_id('feed')].select_win_item
+        $wins[NcursesInterface::get_win_id('feed')].select_win_item
       end
     
       # redraw feed / item windows
@@ -4479,6 +4480,8 @@ $config = {
     ?j                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_down },
     ?k                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_up },
     ?l                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::next_window },
+    ?g                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_top },
+    ?G                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_bottom },
 
     ?\n                 => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::select_item },
     ?\                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::select_item },

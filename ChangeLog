@@ -1030,3 +1030,8 @@
 * Sat Aug 16 20:44:05 2003, pabs <pabs@pablotron.org>
   * raggle: he's still having problems. maybe this fixes it?
 
+* Sat Aug 16 20:53:18 2003, pabs <pabs@pablotron.org>
+  * raggle: just to clarify, he's having a problem with release as well;
+    I'm suspecting something is up with his Ruby install, but I'm not
+    sure.  Raggle stuff appears to be working fine (so noone try and
+    fix what isn't broken ;))

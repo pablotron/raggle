@@ -1222,3 +1222,9 @@
   * raggle: ditto
   * Makefile: apply cleanup patch from Brian Almeida <bma@tynian.net>.
   * AUTHORS: add a few missing entries
+
+* Tue Sep 02 01:42:00 2003, heap <vaine@cs.helsinki.fi>
+  * raggle.pod: Added -a, --add, --version, --invalidate-feed,
+    --version, --usage and --server to Synopsis. Removed --list-feeds
+    from Synopsis. Added explanation of using -1 with --invalidate. Added
+    --invalidate-feed and --server to Description.

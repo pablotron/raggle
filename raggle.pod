@@ -4,15 +4,15 @@ raggle - text mode RSS aggregator
 
 =head1 SYNOPSIS
 
-B<raggle> S<[B<-hlv>] [B<--force>] [B<--help>] [B<--usage>] [B<--list>] [B<--list-feeds>]>
-          S<[B<--verbose>] [B<--lock-title>] [B<--save-items>]> 
-          S<[B<--purge>] [B<--sort>] [B<--sort-feeds>] [B<--diag>]>
-          S<[B<--unsave-items>] [B<--unlock-title>] [B<--verbose>]>
+B<raggle> S<[B<-ahlv>] [B<--add>] [B<--force>] [B<--help>] [B<--usage>] [B<--list>]>
+          S<[B<--verbose>] [B<--lock-title>] [B<--save-items>] [B<--server>]>
+          S<[B<--purge>] [B<--sort>] [B<--sort-feeds>] [B<--diag>] [B<--usage>]>
+          S<[B<--unsave-items>] [B<--unlock-title>] [B<--verbose>] [B<--version>]>
           S<[B<-c> I<file>] [B<--config> I<file>] [B<--config-file> I<file>]>
           S<[B<-d> I<feed>] [B<--delete> I<feed>] [B<--delete-feed> I<feed>]>
           S<[B<-e> I<feed>] [B<--edit> I<feed>] [B<--edit-feed> I<feed>]>
           S<[B<--export-opml> I<file>] [B<--import-opml> I<file>]>
-          S<[B<-i> I<feed>] [B<--invalidate> I<feed>]>
+          S<[B<-i> I<feed>] [B<--invalidate> I<feed>] [B<--invalidate-feed> I<feed>]>
           S<[B<-r> I<refresh_time>] [B<--refresh> I<refresh_time>]>
           S<[B<-t> I<title>] [B<--title> I<title>]>
           S<[B<-u> I<url>] [B<--url> I<url>]>
@@ -29,7 +29,7 @@ The following options are available:
 
 Show usage information.
 
-=item B<-l> B<--list> B<--list-feeds>
+=item B<-l> B<--list>
 
 List feeds
 
@@ -71,9 +71,10 @@ are generally unwise
 
 Import feeds from an OPML format I<file>
 
-=item B<-i> I<feed> B<--invalidate> I<feed>
+=item B<-i> I<feed> B<--invalidate> I<feed> B<--invalidate-feed> I<feed>
 
-Invalidate I<feed> (force it to be refreshed).
+Invalidate I<feed> (force it to be refreshed). If -1 is given as I<feed>
+then all feeds are updated.
 
 =item B<--lock-title>
 
@@ -92,6 +93,10 @@ B<--edit>
 =item B<--save-items>
 
 Save old items from a feed, used with B<--add> or B<--edit>
+
+=item B<--server>
+
+Run Raggle in HTTP server mode.
 
 =item B<--sort> B<--sort-feeds>
 

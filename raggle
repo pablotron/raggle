@@ -937,7 +937,7 @@ def populate_feed_win
     $wins[id].items << {
       'title'       => title,
       'feed'        => i,
-      'read?'       => (unread_count == 0),
+      'read?'       => (feed['items'].size == 0 || unread_count == 0),
     }
   }
   $wins[id].draw_items

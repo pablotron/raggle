@@ -383,6 +383,8 @@
   * raggle: Don't activate (and thus swith to 'items' with the (default)
             auto focus) the item selected after a deletion
 	
+* Sun Jun 22 00:52:35 2003, pabs <pabs@pablotron.org>
+  * raggle: mark empty feeds as read
 
 
 

@@ -65,587 +65,7 @@ def in_screen?
   ENV['WINDOW'] != nil
 end
 
-##################
-# default config #
-##################
-$config = {
-  'config_dir'            => ENV['HOME'] << '/.raggle',
-  'config_path'           => '${config_dir}/config.rb',
-  'feed_list_path'        => '${config_dir}/feeds.yaml',
-  'feed_cache_path'       => '${config_dir}/feed_cache.store',
-  'theme_path'            => '${config_dir}/theme.yaml',
-  'grab_log_path'         => '${config_dir}/grab.log',
-  'cache_lock_path'       => '${config_dir}/lock',
 
-  # feed list handling
-  'load_feed_list'        => true,
-  'save_feed_list'        => true,
-
-  # feed cache handling
-  'load_feed_cache'       => true,
-  'save_feed_cache'       => true,
-
-  # save old feed items indefinitely?
-  # Note: doing this with a lot of high-traffic feeds can make
-  # your feed cache grow very large, very fast.  It's probably better
-  # to use the per-feed --save-items command-line option.
-  'save_feed_items'       => false,
-
-  # theme handling
-  'load_theme'            => true,
-  'save_theme'            => true,
-
-  # feed list, feed cache, and theme lock handling
-  'use_cache_lock'        => true,
-
-  # ui options
-  'focus'                 => 'select', # ['none', 'select', 'auto']
-  'no_desc_auto_focus'    => true,
-  'scroll_wrapping'       => true,
-
-  # Number of list items per "page" (wrt page up/down)
-  # (if < 0, then the height of the window, minus N items)
-  'page_step'             => -3,
-
-  # date formats
-  'item_date_format'      => '%c',
-  'desc_date_format'      => '%c',
-
-  # messages
-  'msg_welcome'           => " Welcome to Raggle #{$VERSION}.",
-  'msg_exit'              => "| Press Q to exit ",
-  'msg_close'             => '[X] ',
-  'msg_load_config'       => 'Raggle: Loading config...',
-  'msg_load_list'         => 'Raggle: Loading feed list...',
-  'msg_save_list'         => 'Raggle: Saving feed list...',
-  'msg_load_cache'        => 'Raggle: Loading feed cache...',
-  'msg_save_cache'        => 'Raggle: Saving feed cache...',
-  'msg_load_theme'        => 'Raggle: Loading theme...',
-  'msg_save_theme'        => 'Raggle: Saving theme...',
-  'msg_thanks'            => 'Thanks for using Raggle!',
-  'msg_term_resize'       => 'Terminal Resize: ',
-
-  # menu bar color
-  'menu_bar_cols'         => 24,
-
-  # input select timeout (in seconds)
-  'input_select_timeout'  => 0.2,
-
-  # feed sleep interval (in seconds)
-  'feed_sleep_interval'   => 60,
-
-  # grab log mode (a == append, w == write)
-  'grab_log_mode'         => 'w',
-
-  # strip html from item contents?
-  'strip_html_tags'       => true,
-
-  # decode html escape sequences?
-  'unescape_html'         => true,
-
-  # replace unicode chars with what?
-  'unicode_munge_str'     => 'ZZ',
-
-  # warn if feed refresh is set to less than this
-  'feed_refresh_warn'     => 30,
-
-  # open new screen window for browser?
-  'use_screen'            => true,
-
-  # screen command
-  'screen_cmd'            => 'screen -t "%s"',
-  
-  # browser options
-  'browser'               => find_browser,
-  'browser_cmd'           => '${browser} %s',
-
-  # lock feed names (don't update feed title from feed)
-  # (you can lock individual feed titles with the --lock-title command)
-  'lock_feed_title'       => false,
-
-  # color palette (referenced by themes)
-  'color_palette'         => [
-    [  1, Ncurses::COLOR_WHITE,    Ncurses::COLOR_BLACK   ],
-    [  2, Ncurses::COLOR_RED,      Ncurses::COLOR_BLACK   ],
-    [  3, Ncurses::COLOR_GREEN,    Ncurses::COLOR_BLACK   ],
-    [  4, Ncurses::COLOR_BLUE,     Ncurses::COLOR_BLACK   ],
-    [  5, Ncurses::COLOR_MAGENTA,  Ncurses::COLOR_BLACK   ],
-    [  6, Ncurses::COLOR_CYAN,     Ncurses::COLOR_BLACK   ],
-    [  7, Ncurses::COLOR_YELLOW,   Ncurses::COLOR_BLACK   ],
-    [ 11, Ncurses::COLOR_BLACK,    Ncurses::COLOR_WHITE   ],
-    [ 12, Ncurses::COLOR_BLACK,    Ncurses::COLOR_RED     ],
-    [ 13, Ncurses::COLOR_BLACK,    Ncurses::COLOR_GREEN   ],
-    [ 14, Ncurses::COLOR_BLACK,    Ncurses::COLOR_BLUE    ],
-    [ 15, Ncurses::COLOR_BLACK,    Ncurses::COLOR_MAGENTA ],
-    [ 16, Ncurses::COLOR_BLACK,    Ncurses::COLOR_CYAN    ],
-    [ 17, Ncurses::COLOR_BLACK,    Ncurses::COLOR_YELLOW  ],
-    [ 21, Ncurses::COLOR_BLACK,    Ncurses::COLOR_WHITE   ],
-    [ 22, Ncurses::COLOR_WHITE,    Ncurses::COLOR_RED     ],
-    [ 23, Ncurses::COLOR_WHITE,    Ncurses::COLOR_GREEN   ],
-    [ 24, Ncurses::COLOR_WHITE,    Ncurses::COLOR_BLUE    ],
-    [ 25, Ncurses::COLOR_WHITE,    Ncurses::COLOR_MAGENTA ],
-    [ 26, Ncurses::COLOR_WHITE,    Ncurses::COLOR_CYAN    ],
-    [ 27, Ncurses::COLOR_WHITE,    Ncurses::COLOR_YELLOW  ],
-    [ 31, Ncurses::COLOR_WHITE,    Ncurses::COLOR_CYAN    ],
-    [ 32, Ncurses::COLOR_RED,      Ncurses::COLOR_CYAN    ],
-    [ 33, Ncurses::COLOR_GREEN,    Ncurses::COLOR_CYAN    ],
-    [ 34, Ncurses::COLOR_BLUE,     Ncurses::COLOR_CYAN    ],
-    [ 35, Ncurses::COLOR_MAGENTA,  Ncurses::COLOR_CYAN    ],
-    [ 36, Ncurses::COLOR_BLACK,    Ncurses::COLOR_CYAN    ],
-    [ 37, Ncurses::COLOR_YELLOW,   Ncurses::COLOR_CYAN    ],
-  ],
-
-  # key bindings
-  'keys'            => {
-    Ncurses::KEY_RIGHT  => proc { |win, key| next_window },
-    ?\t                 => proc { |win, key| next_window },
-
-    Ncurses::KEY_LEFT   => proc { |win, key| prev_window },
-    ?\\                 => proc { |win, key| prev_window },
-
-    Ncurses::KEY_F12    => proc { |win, key| quit_raggle },
-    ?q                  => proc { |win, key| quit_raggle },
-
-    Ncurses::KEY_UP     => proc { |win, key| win.scroll_up },
-    Ncurses::KEY_DOWN   => proc { |win, key| win.scroll_down },
-    Ncurses::KEY_END    => proc { |win, key| win.scroll_bottom },
-    Ncurses::KEY_PPAGE  => proc { |win, key| win.scroll_up_page },
-    Ncurses::KEY_NPAGE  => proc { |win, key| win.scroll_down_page },
-
-    ?\n                 => proc { |win, key| win.select_win_item },
-    ?\                  => proc { |win, key| win.select_win_item },
-
-    Ncurses::KEY_RESIZE => proc { |win, key| resize_term },
-  },
-
-  # default theme settings
-  'theme'           => {
-    # theme information
-    'name'          => 'Default Theme',
-    'author'        => 'Paul Duncan <pabs@pablotron.org>',
-    'url'           => 'http://www.pablotron.org/software/raggle/',
-
-    # window order (order for window changes, etc)
-    'window_order'  => ['feed', 'item', 'desc'],
-    
-    # status bar color
-    'status_bar_cols'       => 24,
-
-    # feed window attributes
-    'win_feed'      => {
-      'key'         => 'feed',
-      'title'       => 'Feeds',
-      'coords'      => [0, 0, 25, -1],
-      'type'        => 'list',
-      'colors'      => { 
-        'title'     => 1,
-        'text'      => 1,
-        'h_text'    => 16,
-        'box'       => 4,
-        'a_title'   => 21,
-        # 'a_title'   => 36,
-        'a_box'     => 3,
-        'unread'    => 6,
-        'h_unread'  => 36,
-      },
-    },
-
-    # item window attributes
-    'win_item'      => {
-      'key'         => 'item',
-      'title'       => 'Items',
-      'coords'      => [25, 0, -1, 15],
-      'type'        => 'list',
-      'colors'      => {
-        'title'     => 1,
-        'text'      => 1,
-        'h_text'    => 16,
-        'box'       => 4,
-        'a_title'   => 21,
-        'a_box'     => 3,
-        'unread'    => 6,
-        'h_unread'  => 36,
-      },
-    },
-
-    # desc window attributes
-    'win_desc'      => {
-      'key'         => 'desc',
-      'title'       => 'Description',
-      'coords'      => [25, 15, -1, -1],
-      'type'        => 'text',
-      'colors'      => {
-        'title'     => 1,
-        'text'      => 1,
-        'h_text'    => 16,
-        'box'       => 4,
-        'a_title'   => 21,
-        'a_box'     => 3,
-        'url'       => 6,
-        'date'      => 6,
-      },
-    },
-  },
-
-  # live feeds
-  'feeds'         => [
-    { 'title'     => 'Raggle',
-      'url'       => 'http://www.pablotron.org/software/raggle/help.rss',
-      'site'      => 'http://www.pablotron.org/software/raggle/',
-      'refresh'   => -1,
-      'updated'   => 1055113783,
-      'items'     => [
-        { 'title' => 'Introduction',
-          'url'   => 'http://www.pablotron.org/software/raggle/',
-          'date'  => 1055074823,
-          'read?' => false,
-          'desc'  => 'Welcome to Raggle!
-. .
-Raggle is a command-line RSS aggregator, written in Ruby
-(http://www.ruby-lang.org/).  Raggle is free software; please see the
-file COPYING or the License item in this feed for licensing and
-warranty information.', },
-        { 'title' => 'License',
-          'url'   => 'http://www.pablotron.org/software/raggle/',
-          'date'  => 1055074823,
-          'read?' => false,
-          'desc'  => 'Copyright (C) 2003
-Paul Duncan, and various contributors.
-. . 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to
-deal in the Software without restriction, including without limitation the
-rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
-sell copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-. .
-The above copyright notice and this permission notice shall be included in
-all copies of the Software, its documentation and marketing & publicity 
-materials, and acknowledgment shall be given in the documentation, materials
-and software packages that this Software was used.
-. .   
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER 
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-          ', },
-        { 'title' => 'Usage',
-          'url'   => 'http://www.pablotron.org/software/raggle/',
-          'date'  => 1055074823,
-          'read?' => false,
-          'desc'  => 'Keyboard .
-========                            .
-- Tab, <-, -> : Window navigation   .
-- Up, Down : Item navigation        .
-- Home, End : Start, end of list.   .
-- Enter, Space : Select active item .
-- Q, F12 : Exit Raggle              .
-.
-', },
-        { 'title' => 'Keyboard',
-          'url'   => 'http://www.pablotron.org/software/raggle/',
-          'date'  => 1055074823,
-          'read?' => false,
-          'desc'  => 'Keyboard .
-========                            .
-- Tab, <-, -> : Window navigation   .
-- Up, Down : Item navigation        .
-- Home, End : Start, end of list.   .
-- Enter, Space : Select active item .
-- Q, F12 : Exit Raggle              .
-.
-', },
-        { 'title' => 'Reading Feeds',
-          'url'   => 'http://www.pablotron.org/software/raggle/',
-          'date'  => 1055074823,
-          'read?' => false,
-          'desc'  => 'Reading Feeds .
-============= .
-To read a given feed, hilite it in the Feed window and press Enter or
-Space.  The list of items available from that feed will be displayed in
-the Item window.  Unread feed items are marked slightly differently than
-read feed items (the color is adjustable on a per-theme basis).  To view
-the full story linked from a feed item, navigate to the Description
-window (using Tab or the Left and Right arrow keys) and press Space or
-Enter.  If Raggle is running in a screen session, it will invoke your
-browser of choice in a separate screen window (this behavior is
-configurable; see the \'use_screen\' option in the "Configuring Raggle"
-section for additional information).  There are several different window
-navigation modes available, see the \'focus\' "Configuring Raggle"
-section for additional information.
-', },
-        { 'title' => 'Adding Feeds',
-          'url'   => 'http://www.pablotron.org/software/raggle/',
-          'date'  => 1055074823,
-          'read?' => false,
-          'desc'  => 'Adding Feeds .
-============ .
-TODO (right now you have to edit the feed cache manually) .
-.
-', },
-        { 'title' => 'Configuring Raggle',
-          'url'   => 'http://www.pablotron.org/software/raggle/',
-          'date'  => 1055074823,
-          'read?' => false,
-          'desc'  => 'Configuring Raggle .
-================== .
-TODO
-', },
-        { 'title' => 'Reporting Bugs',
-          'url'   => 'http://www.pablotron.org/software/raggle/',
-          'date'  => 1055074823,
-          'read?' => false,
-          'desc'  => 'Reporting Bugs .
-============== .
-Please make sure you\'re using the latest version of Raggle before
-reporting bugs.  That said, you can submit bug reports to
-ragglebug@pablotron.org.
-', },
-      ],
-    },
-    { 'title'     => 'Alternet',
-      'url'       => 'http://www.alternet.org/rss/rss.xml',
-      'site'      => 'http://www.alternet.org/',
-      'desc'      => 'Alternative News and Information.',
-      'refresh'   => 30,
-      'updated'   => 1055113783,
-      'items'     => [ ],
-    },
-    { 'title'     => 'Anandtech (NiF)',
-      'url'       => 'http://www.newsisfree.com/HPE/xml/feeds/61/161.xml',
-      'site'      => 'http://www.anandtech.com/',
-      'desc'      => 'Anandtech',
-      'refresh'   => 30,
-      'updated'   => 1055113783,
-      'items'     => [ ],
-    },
-    { 'title'     => 'Consensus at Lawyerpoint',
-      'url'       => 'http://bpdg.blogs.eff.org/index.rdf',
-      'site'      => 'http://www.eff.org/',
-      'desc'      => 'Consensus at Lawyerpoint',
-      'refresh'   => 30,
-      'updated'   => 1055113783,
-      'items'     => [ ],
-    },
-    { 'title'     => 'Creative Commons',
-      'url'       => 'http://creativecommons.org/weblog/rss',
-      'site'      => 'http://creativecommons.org/',
-      'desc'      => 'Creative Commons',
-      'refresh'   => 30,
-      'updated'   => 1055113783,
-      'items'     => [ ],
-    },
-    { 'title'     => 'Daily Daemon News',
-      'url'       => 'http://daily.daemonnews.org/ddn.rdf.php3',
-      'site'      => 'http://daemonnews.org/',
-      'desc'      => 'Daily Daemon News',
-      'refresh'   => 30,
-      'updated'   => 1055113783,
-      'items'     => [ ],
-    },
-    { 'title'     => 'Digital Theatre',
-      'url'       => 'http://www.dtheatre.com/backend.php?xml=yes',
-      'site'      => 'http://www.dtheatre.com/',
-      'desc'      => 'Digital Theatre',
-      'refresh'   => 30,
-      'updated'   => 1055113783,
-      'items'     => [ ],
-    },
-    { 'title'     => 'EFF News (NiF)',
-      'url'       => 'http://www.newsisfree.com/HPE/xml/feeds/22/3222.xml',
-      'site'      => 'http://www.eff.org/',
-      'desc'      => 'EFF News.',
-      'refresh'   => 30,
-      'updated'   => 1055113783,
-      'items'     => [ ],
-    },
-    { 'title'     => 'Exploding Cigar',
-      'url'       => 'http://www.explodingcigar.com/backend.xml',
-      'site'      => 'http://www.explodingcigar.com/',
-      'desc'      => 'Exploding Cigar',
-      'refresh'   => 30,
-      'updated'   => 1055113783,
-      'items'     => [ ],
-    },
-    { 'title'     => 'FlipCode (NiF)',
-      'url'       => 'http://www.newsisfree.com/HPE/xml/feeds/08/208.xml',
-      'site'      => 'http://www.flipcode.org/',
-      'desc'      => 'FlipCode.',
-      'refresh'   => 30,
-      'updated'   => 1055113783,
-      'items'     => [ ],
-    },
-    { 'title'     => 'FreshMeat',
-      'url'       => 'http://themes.freshmeat.net/backend/fm-newsletter.rdf',
-      'site'      => 'http://www.freshmeat.net/',
-      'desc'      => 'FreshMeat.',
-      'refresh'   => 30,
-      'updated'   => 1055113783,
-      'items'     => [ ],
-    },
-    { 'title'     => 'KernelTrap',
-      'url'       => 'http://kerneltrap.org/module.php?mod=node&op=feed',
-      'site'      => 'http://www.kerneltrap.org/',
-      'desc'      => 'KernelTrap',
-      'refresh'   => 30,
-      'updated'   => 1055113783,
-      'items'     => [ ],
-    },
-    { 'title'     => 'Kuro5hin',
-      'url'       => 'http://www.kuro5hin.org/backend.rdf',
-      'site'      => 'http://www.kuro5hin.org/',
-      'desc'      => 'Kuro5hin',
-      'refresh'   => 30,
-      'updated'   => 1055113783,
-      'items'     => [ ],
-    },
-    { 'title'     => 'Leoville',
-      'url'       => 'http://www.leoville.com/mt/index.xml',
-      'site'      => 'http://www.leoville.com/',
-      'desc'      => 'Leoville',
-      'refresh'   => 30,
-      'updated'   => 1055113783,
-      'items'     => [ ],
-    },
-    { 'title'     => 'Linux Magazine',
-      'url'       => 'http://www.linux-mag.com/lm.rss',
-      'site'      => 'http://www.linux-mag.com/',
-      'desc'      => 'Linux Magazine',
-      'refresh'   => 30,
-      'updated'   => 1055113783,
-      'items'     => [ ],
-    },
-    { 'title'     => 'Linux Weekly News',
-      'url'       => 'http://www.lwn.net/headlines/rss',
-      'site'      => 'http://www.lwn.net/',
-      'desc'      => 'Linux Weekly News',
-      'refresh'   => 30,
-      'updated'   => 1055113783,
-      'items'     => [ ],
-    },
-    { 'title'     => 'MetaFilter',
-      'url'       => 'http://xml.metafilter.com/rss.xml',
-      'site'      => 'http://www.metafilter.com/',
-      'desc'      => 'MetaFilter',
-      'refresh'   => 30,
-      'updated'   => 1055113783,
-      'items'     => [ ],
-    },
-    { 'title'     => 'MovieComments',
-      'url'       => 'http://www.moviecomments.com/recentrev_rss.php',
-      'site'      => 'http://www.moviecomments.com/',
-      'desc'      => 'MovieComments',
-      'refresh'   => 30,
-      'updated'   => 1055113783,
-      'items'     => [ ],
-    },
-    { 'title'     => 'MTV News (NiF)',
-      'url'       => 'http://www.newsisfree.com/HPE/xml/feeds/92/1792.xml',
-      'site'      => 'http://www.mtv.com/',
-      'desc'      => 'MTV News (NiF)',
-      'refresh'   => 30,
-      'updated'   => 1055113783,
-      'items'     => [ ],
-    },
-    { 'title'     => 'O\'Reilly Network',
-      'url'       => 'http://www.oreillynet.com/cs/xml/query/q/295?x-ver=1.0',
-      'site'      => 'http://www.oreillynet.com/',
-      'desc'      => 'O\'Reilly Network',
-      'refresh'   => 30,
-      'updated'   => 1055113783,
-      'items'     => [ ],
-    },
-    { 'title'     => 'Open Sounds',
-      'url'       => 'http://www.opensounds.net/backend.php',
-      'site'      => 'http://www.opensounds.net/',
-      'desc'      => 'John Maguire.',
-      'refresh'   => 60,
-      'updated'   => 1055113783,
-      'items'     => [ ],
-    },
-    { 'title'     => 'PHP Journal',
-      'url'       => 'http://www.phpj.com/backend.php',
-      'site'      => 'http://www.phpj.com/',
-      'desc'      => 'PHP Journal',
-      'refresh'   => 30,
-      'updated'   => 1055113783,
-      'items'     => [ ],
-    },
-    { 'title'     => 'Pigdog Journal',
-      'url'       => 'http://www.pigdog.org/pigdog.rdf',
-      'site'      => 'http://www.pigdog.org/',
-      'desc'      => 'Pigdog Journal',
-      'refresh'   => 30,
-      'updated'   => 1055113783,
-      'items'     => [ ],
-    },
-    { 'title'     => 'Political Wire',
-      'url'       => 'http://politicalwire.com/headlines.xml',
-      'site'      => 'http://politicalwire.com/',
-      'desc'      => 'Political Wire',
-      'refresh'   => 30,
-      'updated'   => 1055113783,
-      'items'     => [ ],
-    },
-    { 'title'     => 'Slashdot',
-      'url'       => 'http://slashdot.org/slashdot.rss',
-      'site'      => 'http://www.slashdot.org/',
-      'desc'      => 'Slashdot',
-      'refresh'   => 30,
-      'updated'   => 1055113783,
-      'items'     => [ ],
-    },
-    { 'title'     => 'This Modern World',
-      'url'       => 'http://www.thismodernworld.com/index.rdf',
-      'site'      => 'http://www.thismodernworld.com/',
-      'desc'      => 'This Modern World',
-      'refresh'   => 30,
-      'updated'   => 1055113783,
-      'items'     => [ ],
-    },
-    { 'title'     => 'Universal Rule',
-      'url'       => 'http://radio.weblogs.com/0112083/rss.xml',
-      'site'      => 'http://radio.weblogs.com/0112083/',
-      'desc'      => 'Universal Rule',
-      'refresh'   => 30,
-      'updated'   => 1055113783,
-      'items'     => [ ],
-    },
-    { 'title'     => 'use Perl',
-      'url'       => 'http://use.perl.org/useperl.rdf',
-      'site'      => 'http://use.perl.org/',
-      'desc'      => 'Universal Rule',
-      'refresh'   => 30,
-      'updated'   => 1055113783,
-      'items'     => [ ],
-    },
-    { 'title'     => 'W3C',
-      'url'       => 'http://www.w3.org/2000/08/w3c-synd/home.rss',
-      'site'      => 'http://www.w3.org/',
-      'desc'      => 'W3C',
-      'refresh'   => 30,
-      'updated'   => 1055113783,
-      'items'     => [ ],
-    },
-    { 'title'     => 'Webmonkey',
-      'url'       => 'http://radio.weblogs.com/0112083/rss.xml',
-      'site'      => 'http://radio.weblogs.com/0112083/',
-      'desc'      => 'Webmonkey',
-      'refresh'   => 30,
-      'updated'   => 1055113783,
-      'items'     => [ ],
-    },
-  ],
-
-  # debugging / internal options (don't touch)
-  'use_raw_mode'  => true,
-  'use_noecho'    => true,
-
-  # debugging feeds (these will be removed at some point)
-  'debug_feeds'   => [ ],
-}
 
 class String
   def escape
@@ -707,6 +127,151 @@ class String
     }
     text << curr_line << "\n"
   end
+end
+
+module Key
+  def Key::scroll_up
+    $wins[$a_win].scroll_up
+  end
+
+  def Key::scroll_down
+    $wins[$a_win].scroll_down
+  end
+
+  def Key::scroll_up_page
+    $wins[$a_win].scroll_up_page
+  end
+
+  def Key::scroll_down_page
+    $wins[$a_win].scroll_down_page
+  end
+
+  def Key::quit
+    $done = true
+  end
+
+  def Key::next_window
+    set_active_win(($a_win + 1) % $wins.size)
+  end
+
+  def Key::prev_window
+    set_active_win((($a_win - 1 < 0) ? $wins.size : $a_win) - 1)
+  end
+
+  def Key::select_item
+    $wins[$a_win].select_win_item
+  end
+
+  def Key::move_item_up
+    win = $wins[$a_win]
+    $config[$SRC].move_up(win.active_item)
+    pitem = win.items[win.active_item - 1]
+    win.items[win.active_item - 1] = win.items[win.active_item]
+    win.items[win.active_item] = pitem
+    win.active_item = win.active_item - 1
+    win.draw_items
+  end
+
+  def Key::move_item_down
+    win = $wins[$a_win]
+    $config[$SRC].move_down(win.active_item)
+    nitem = win.items[win.active_item + 1]
+    win.items[win.active_item + 1] = win.items[win.active_item]
+    win.items[win.active_item] = nitem
+    win.active_item = win.active_item + 1
+    win.draw_items
+  end
+end
+
+class FeedList
+  attr_accessor :feeds
+  def initialize
+    @feeds = []
+  end
+
+  def size
+    @feeds.size
+  end
+  
+  def add(title, url, refresh, site='', desc='', items=[])
+    @feeds << {
+      'title'   => title,
+      'url'     => url,
+      'refresh' => refresh,
+      'site'    => site,
+      'desc'    => desc,
+      'updated' => 0,
+      'items'   => items
+    }
+  end
+  
+  def <<(feed)
+    @feeds << feed
+  end
+
+  def get(id)
+    rase "FeedList#get: Feed not found: #{id}" unless @feeds.size >= id
+    @feeds[id]
+  end
+  
+  def delete(id)
+    raise "FeedList#delete: Feed not found: #{id}" unless @feeds.size >= id
+    @feeds.delete_at(id)
+  end
+
+  def invalidate(id)
+    raise "FeedList#delete: Feed not found: #{id}" unless @feeds.size >= id
+    @feeds[id].updated = 0
+  end
+
+  def each_with_index
+    @feeds.each_with_index {|feed, i|
+      yield feed, i
+    }
+  end
+
+  def each
+    @feeds.each {|feed|
+      yield feed
+    }
+  end
+
+  def edit(id, opts)
+    raise "FeedList#edit: Feed not found: #{id}" unless @feeds.size >= id
+    refresh_interval_check opts['refresh'] if !opts['force'] &&
+      opts.has_key?('refresh')
+    ourl = $config[$SRC].get(id)['url']
+    %w{title url refresh lock_title?}.each { |key|
+      $config[$SRC].get(id)[key] = opts[key] if opts.has_key? key
+    }
+    $config[$SRC].invalidate(id) unless opts['url'] == ourl
+  end
+
+  def move_up(id)
+    pitem = @feeds[id - 1]
+    @feeds[id - 1] = @feeds[id]
+    @feeds[id] = pitem
+  end
+
+  def move_down(id)
+    nitem = @feeds[id + 1]
+    @feeds[id + 1] = @feeds[id]
+    @feeds[id] = nitem
+  end
+  
+  def refresh_interval_check(interval)
+    if interval > 0 && interval < $config['feed_refresh_warn']
+        err = <<ENDWARNING
+Using a refresh interval of less than #{$config['feed_refresh_warn']} minutes
+_really_ irritates some system administrators.  If you're sure you want to do
+this, use the '--force' option to bypass this warning.
+ENDWARNING
+# '
+      $stderr.puts err.reflow
+      exit -1
+    end
+  end
+  private :refresh_interval_check
 end
 
 module Feed
@@ -1192,7 +757,7 @@ def select_feed(id)
   raise "id.class.to_s = #{id.class.to_s}" unless id.class == Fixnum
   
   # iterate through feed items
-  $config[$SRC][id]['items'].each_with_index { |item, i|
+  $config[$SRC].get(id)['items'].each_with_index { |item, i|
     # can't depend on the date being in a consistent format, or
     # being defined at all, for that matter :( :( :(
     # title = item['title'] + ' (' +
@@ -1282,15 +847,15 @@ def select_item(id)
 
   # mark item as read
   $wins[item_id].items[$a_item]['read?'] = true
-  $config[$SRC][$a_feed]['items'][id]['read?'] = true
+  $config[$SRC].get($a_feed)['items'][id]['read?'] = true
 
   # load item
   $wins[desc_id].items << {
-    'title'       => $config[$SRC][$a_feed]['items'][id]['desc'],
-    'real_title'  => $config[$SRC][$a_feed]['items'][id]['title'],
-    'url'         => $config[$SRC][$a_feed]['items'][id]['url'],
-    'date'        => $config[$SRC][$a_feed]['items'][id]['date'],
-    'read?'       => $config[$SRC][$a_feed]['items'][id]['read?'],
+    'title'       => $config[$SRC].get($a_feed)['items'][id]['desc'],
+    'real_title'  => $config[$SRC].get($a_feed)['items'][id]['title'],
+    'url'         => $config[$SRC].get($a_feed)['items'][id]['url'],
+    'date'        => $config[$SRC].get($a_feed)['items'][id]['date'],
+    'read?'       => $config[$SRC].get($a_feed)['items'][id]['read?'],
   }
 
   # redraw feed window
@@ -1583,16 +1148,7 @@ end
 # add a new feed
 #
 def add_feed(opts)
-  refresh_interval_check opts['refresh'] unless opts['force']
-  $config[$SRC] << {
-    'title'     => opts['title'],
-    'url'       => opts['url'],
-    'site'      => '',
-    'desc'      => '',
-    'refresh'   => opts['refresh'],
-    'updated'   => 1,
-    'items'     => [ ],
-  }
+    $config[$SRC].add(opts['title'], opts['url'], opts['refresh'])
 end
 
 #
@@ -1615,45 +1171,21 @@ end
 # delete a feed by id
 #
 def delete_feed(id)
-  die "Unknown feed id #{id}." unless $config[$SRC].delete_at(id)
-  # clean up the feed cache here
-  purge_feed_cache
+  $config[$SRC].delete(id)
 end
 
 #
 # Invalidate a feed by id
 #
 def invalidate_feed(id)
-  die "Unknown feed id #{id}." unless $config[$SRC].size >= id
-  $config[$SRC][id]['updated'] = 0
-end
-
-# 
-# sanity check on feed refresh interval
-#
-def refresh_interval_check(interval)
-  if interval > 0 && interval < $config['feed_refresh_warn']
-    err = <<ENDWARNING
-Using a refresh interval of less than #{$config['feed_refresh_warn']} minutes
-_really_ irritates some system administrators.  If you're sure you want to do
-this, use the '--force' option to bypass this warning.
-ENDWARNING
-    $stderr.puts err.reflow
-    exit -1
-  end
+  $config[$SRC].invalidate(id)
 end
 
 #
 # edit an existing feed
 #
 def edit_feed(id, opts)
-  refresh_interval_check opts['refresh'] if !opts['force'] && 
-                                             opts.has_key?('refresh')
-  ourl = $config[$SRC][id]['url']
-  %w{title url refresh lock_title?}.each { |key|
-    $config[$SRC][id][key] = opts[key] if opts.has_key? key
-  }
-  invalidate_feed id if $config[$SRC][id]['url'] != ourl
+  $config[$SRC].edit(id, opts)
 end
 
 # 
@@ -1752,273 +1284,848 @@ def resize_term
   Ncurses::refresh
 end
 
-######################################
-# some convenient navigation methods #
-######################################
-
-#
-# navigate to next window
-# 
-def next_window
-  set_active_win(($a_win + 1) % $wins.size)
-end
-
-# 
-# navigate to previous window
-#
-def prev_window
-  set_active_win((($a_win - 1 < 0) ? $wins.size : $a_win) - 1)
-end
-
-#
-# quit the program
-#
-def quit_raggle
-  $done = true
-end
-
 #######################################################################
 # End Shenanigans, Begin Actual Code                                  #
 #######################################################################
 
-# expand the default config hash
-expand_config
+def main
+  # expand the default config hash
+  expand_config
+  
+  # parse command-line options
+  opts = handle_Command_line ARGV
+  
+  # if $HOME/.raggle doesn't exist, then create it
+  Dir::mkdir $config['config_dir'] unless test ?d , $config['config_dir']
+  
+  # load user config ($HOME/.raggle/config.rb)
+  puts $config['msg_load_config'] if opts['mode'] == 'view'
+  load $config['config_path'], false if test ?e, $config['config_path']
+  expand_config
+  
+  # load feed list
+  puts $config['msg_load_list'] if opts['mode'] == 'view'
+  if $config['load_feed_list'] && test(?e, $config['feed_list_path'])
+    $config[$SRC] = YAML::load(File::open($config['feed_list_path']))
+  end
 
-# parse command-line options
-opts = handle_Command_line ARGV
-
-# if $HOME/.raggle doesn't exist, then create it
-Dir::mkdir $config['config_dir'] unless test ?d , $config['config_dir']
-
-# load user config ($HOME/.raggle/config.rb)
-puts $config['msg_load_config'] if opts['mode'] == 'view'
-load $config['config_path'], false if test ?e, $config['config_path']
-expand_config
-
-# load feed list
-puts $config['msg_load_list'] if opts['mode'] == 'view'
-if $config['load_feed_list'] && test(?e, $config['feed_list_path'])
-  $config[$SRC] = YAML::load(File::open($config['feed_list_path']))
-end
-
-# create cache lock
-create_cache_lock if $config['use_cache_lock']
-
-# handle command-line options
-$config['raggle_mode'] = opts['mode']
-case opts['mode']
-when 'list'
-  list_feeds
-  exit 0
-when 'add'
-  add_feed opts
-  save_feed_list
-  exit 0
-when 'delete'
-  delete_feed opts['id'].to_i
-  save_feed_list
-  exit 0
-when 'invalidate'
-  invalidate_feed opts['id'].to_i
-  save_feed_list
-  exit 0
-when 'edit'
-  edit_feed opts['id'].to_i, opts
-  save_feed_list
-  exit 0
-when 'sort'
-  sort_feeds
-  save_feed_list
-  exit 0
-when 'purge'
-  purge_feed_cache
-  exit 0
-end
-
-# load feed cache
-load_feed_cache if $config['load_feed_cache'] &&
-                   test(?e, $config['feed_cache_path'])
-
-# load theme
-puts $config['msg_load_theme']
-if $config['load_theme'] && test(?e, $config['theme_path'])
-  $config['theme'] = YAML::load(File::open($config['theme_path']))
-end
-
-# start feed grabbing thread
-feed_thread = Thread.new {
-  File.open($config['grab_log_path'], $config['grab_log_mode']) { |log|
-    log.puts "#{Time.now}: Starting grab log."
-    loop {
-      $config[$SRC].each { |feed|
-        t = Time.now
-
-        $new_status = " Checking feed \"#{feed['title']}\"..."
-        log.puts "#{Time.now}: Checking feed \"#{feed['title']}\""
-        next unless feed['refresh'] > 0 && 
-                    feed['updated'] + (feed['refresh'] * 60) < t.to_i
-
-        # update statusbar and grab log
-        $new_status = " Updating feed \"#{feed['title']}\"..."
-        log.puts "#{t}: Updating feed \"#{feed['title']}\" from \"#{feed['url']}\""
-        # set_status "Updating \"#{feed['title']}\"..."
-
-        # TODO: save old items
-        # old_items = feed['items']
-        
-        # get channel
-        begin
-          chan = Feed::Channel.new(feed['url'])
-        rescue
-          # set_status "Error updating \"#{feed['title']}\"."
-          log.puts "#{t}: Error: #$!"
-          next
-        end
-
-        # update feed attributes
-        feed['title'] = chan.title unless $config['lock_feed_title'] ||
-                                          feed['lock_title?'] = true
-        feed['site'] = chan.link
-        feed['updated'] = t.to_i
-
-        # if we're saving old feed items, then hash the urls
-        # otherwise, clear the feed list
-        urls = {}
-        new_items = []
-        if $config['save_feed_items'] || feed['save_items?']
-          feed['items'].each { |item| urls[item['url']] = true }
-        else
-          feed['items'].clear 
-        end
-
-        # insert new items
-        chan.items.each { |item|
-          unless (($config['save_feed_items'] || feed['save_items?']) &&
-                  urls.has_key?(item.link))
-            new_items << {
-              'title' => item.title,
-              'date'  => item.date,
-              'url'   => item.link,
-              'desc'  => item.desc,
-              'read?' => false,
-              'added' => Time.now.to_i,
-            }
+  if $config[$SRC].size == 0
+    $config['default_feeds'].each {|feed|
+      $config[$SRC].add(feed['title'], feed['url'], feed['refresh'],
+                        feed['site'], feed['desc'], feed['items'])
+    }
+  end
+  
+  # create cache lock
+  create_cache_lock if $config['use_cache_lock']
+  
+  # handle command-line options
+  $config['raggle_mode'] = opts['mode']
+  case opts['mode']
+  when 'list'
+    list_feeds
+    exit 0
+  when 'add'
+    add_feed opts
+    save_feed_list
+    exit 0
+  when 'delete'
+    delete_feed opts['id'].to_i
+    save_feed_list
+    exit 0
+  when 'invalidate'
+    invalidate_feed opts['id'].to_i
+    save_feed_list
+    exit 0
+  when 'edit'
+    edit_feed opts['id'].to_i, opts
+    save_feed_list
+    exit 0
+  when 'sort'
+    sort_feeds
+    save_feed_list
+    exit 0
+  when 'purge'
+    purge_feed_cache
+    exit 0
+  end
+  
+  # load feed cache
+  load_feed_cache if $config['load_feed_cache'] &&
+    test(?e, $config['feed_cache_path'])
+  
+  # load theme
+  puts $config['msg_load_theme']
+  if $config['load_theme'] && test(?e, $config['theme_path'])
+    $config['theme'] = YAML::load(File::open($config['theme_path']))
+  end
+  
+  # start feed grabbing thread
+  feed_thread = Thread.new {
+    File.open($config['grab_log_path'], $config['grab_log_mode']) { |log|
+      log.puts "#{Time.now}: Starting grab log."
+      loop {
+        $config[$SRC].each { |feed|
+          t = Time.now
+          
+          $new_status = " Checking feed \"#{feed['title']}\"..."
+          log.puts "#{Time.now}: Checking feed \"#{feed['title']}\""
+          next unless feed['refresh'] > 0 && 
+            feed['updated'] + (feed['refresh'] * 60) < t.to_i
+          
+          # update statusbar and grab log
+          $new_status = " Updating feed \"#{feed['title']}\"..."
+          log.puts "#{t}: Updating feed \"#{feed['title']}\" from \"#{feed['url']}\""
+          # set_status "Updating \"#{feed['title']}\"..."
+          
+          # TODO: save old items
+          # old_items = feed['items']
+          
+          # get channel
+          begin
+            chan = Feed::Channel.new(feed['url'])
+          rescue
+            # set_status "Error updating \"#{feed['title']}\"."
+            log.puts "#{t}: Error: #$!"
+            next
           end
+          
+          # update feed attributes
+          feed['title'] = chan.title unless $config['lock_feed_title'] ||
+            feed['lock_title?'] = true
+          feed['site'] = chan.link
+          feed['updated'] = t.to_i
+          
+          # if we're saving old feed items, then hash the urls
+          # otherwise, clear the feed list
+          urls = {}
+          new_items = []
+          if $config['save_feed_items'] || feed['save_items?']
+            feed['items'].each { |item| urls[item['url']] = true }
+          else
+            feed['items'].clear 
+          end
+          
+          # insert new items
+          chan.items.each { |item|
+            unless (($config['save_feed_items'] || feed['save_items?']) &&
+                    urls.has_key?(item.link))
+              new_items << {
+                'title' => item.title,
+                'date'  => item.date,
+                'url'   => item.link,
+                'desc'  => item.desc,
+                'read?' => false,
+                'added' => Time.now.to_i,
+              }
+            end
+          }
+          
+          # if we're saving old items, then prepend the new items
+          # otherwise, replace the old list
+          if $config['save_feed_items'] || feed['save_items?']
+            feed['items'] = new_items + feed['items']
+          else
+            feed['items'] = new_items
+          end
+          
+          # redraw feed / item windows
+          $update_wins = true
         }
-
-        # if we're saving old items, then prepend the new items
-        # otherwise, replace the old list
-        if $config['save_feed_items'] || feed['save_items?']
-          feed['items'] = new_items + feed['items']
-        else
-          feed['items'] = new_items
-        end
-
-        # redraw feed / item windows
-        $update_wins = true
+        
+        # finish log entries
+        interval = $config['feed_sleep_interval']
+        $new_status = $config['msg_welcome']
+        log.puts "#{Time.now}: Done checking.  Sleeping for #{interval}s."
+        log.flush
+        sleep interval
       }
-
-      # finish log entries
-      interval = $config['feed_sleep_interval']
-      $new_status = $config['msg_welcome']
-      log.puts "#{Time.now}: Done checking.  Sleeping for #{interval}s."
-      log.flush
-      sleep interval
     }
   }
+  
+  begin
+    # initialize screen & keyboard
+    Ncurses::initscr
+    Ncurses::raw if $config['use_raw_mode']
+    Ncurses::keypad Ncurses::stdscr, 1
+    Ncurses::noecho if $config['use_noecho']
+    Ncurses::start_color
+    # Ncurses::mousemask(Ncurses::ALL_MOUSE_EVENTS, [])
+    
+    # exit -1 unless Ncurses::has_colors?
+    
+    # initialize color pairs
+    $config['color_palette'].each { |ary| Ncurses::init_pair *ary }
+    
+    # get screen coordinates
+    h = []; w = []
+    Ncurses::getmaxyx Ncurses::stdscr, h, w
+    $config['w'] = w[0]
+    $config['h'] = h[0] - 1
+    
+    # draw menu bar
+    # c_msg = $config['msg_close']
+    # msg = (' ' * ($config['w'] - c_msg.length)) << c_msg
+    # Ncurses::wcolor_set Ncurses::stdscr, $config['menu_bar_cols'], nil
+    # Ncurses::mvprintw 0, 0, msg
+    # Ncurses::refresh
+    
+    # draw status bar
+    $new_status = ''
+    set_status $config['msg_welcome']
+    
+    # create windows
+    $a_win = 0
+    $wins = []
+    $config['theme']['window_order'].each { |i|
+      $wins << Window.new($config['theme']["win_#{i}"])
+      # $wins[-1].draw LONG_STRING
+    }
+    set_active_win(0)
+    
+    $a_feed, $a_item = 0, 0
+    
+    # populate feed window
+    populate_feed_win
+    
+    select_feed(0)
+    set_active_win(0)
+    
+    # trap('WINCH') { resize_term }
+    
+    # main input loop
+    timeout = $config['input_select_timeout']
+    $done = false
+    until $done
+      # handle keyboard input
+      r = select [$stdin], nil, nil, timeout
+      if r && r.size > 0
+        c = Ncurses::getch
+        $config['keys'][c].call($wins[$a_win], c) if $config['keys'].has_key? c
+      end
+      
+      # refresh window contents if there's been a feed update
+      if $update_wins
+        $update_wins = false
+        populate_feed_win
+        # wins.each { |win| win.draw_items }
+      end
+      
+      set_status $new_status if $new_status != $status
+    end
+  ensure
+    # ignore resize signals
+    # trap 'WINCH', 'IGNORE'
+    
+    # clean up screen on exit
+    Ncurses::endwin
+    
+    # stop feed grabbing thread
+    feed_thread.exit
+    
+    # save feed cache
+    save_feed_cache if $config['save_feed_cache']
+    
+    # save feed list
+    save_feed_list if $config['save_feed_list']
+    
+    # save theme
+    save_theme if $config['save_theme']
+    
+    # unlock everything
+    destroy_cache_lock if $config['use_cache_lock'] && $config['cache_lock']
+    
+    $stdout.puts $config['msg_thanks']
+  end
+end
+
+##################
+# default config #
+##################
+$config = {
+  'config_dir'            => ENV['HOME'] << '/.raggle',
+  'config_path'           => '${config_dir}/config.rb',
+  'feed_list_path'        => '${config_dir}/feeds.yaml',
+  'feed_cache_path'       => '${config_dir}/feed_cache.store',
+  'theme_path'            => '${config_dir}/theme.yaml',
+  'grab_log_path'         => '${config_dir}/grab.log',
+  'cache_lock_path'       => '${config_dir}/lock',
+
+  # feed list handling
+  'load_feed_list'        => true,
+  'save_feed_list'        => true,
+
+  # feed cache handling
+  'load_feed_cache'       => true,
+  'save_feed_cache'       => true,
+
+  # save old feed items indefinitely?
+  # Note: doing this with a lot of high-traffic feeds can make
+  # your feed cache grow very large, very fast.  It's probably better
+  # to use the per-feed --save-items command-line option.
+  'save_feed_items'       => false,
+
+  # theme handling
+  'load_theme'            => true,
+  'save_theme'            => true,
+
+  # feed list, feed cache, and theme lock handling
+  'use_cache_lock'        => true,
+
+  # ui options
+  'focus'                 => 'select', # ['none', 'select', 'auto']
+  'no_desc_auto_focus'    => true,
+  'scroll_wrapping'       => true,
+
+  # Number of list items per "page" (wrt page up/down)
+  # (if < 0, then the height of the window, minus N items)
+  'page_step'             => -3,
+
+  # date formats
+  'item_date_format'      => '%c',
+  'desc_date_format'      => '%c',
+
+  # messages
+  'msg_welcome'           => " Welcome to Raggle #{$VERSION}.",
+  'msg_exit'              => "| Press Q to exit ",
+  'msg_close'             => '[X] ',
+  'msg_load_config'       => 'Raggle: Loading config...',
+  'msg_load_list'         => 'Raggle: Loading feed list...',
+  'msg_save_list'         => 'Raggle: Saving feed list...',
+  'msg_load_cache'        => 'Raggle: Loading feed cache...',
+  'msg_save_cache'        => 'Raggle: Saving feed cache...',
+  'msg_load_theme'        => 'Raggle: Loading theme...',
+  'msg_save_theme'        => 'Raggle: Saving theme...',
+  'msg_thanks'            => 'Thanks for using Raggle!',
+  'msg_term_resize'       => 'Terminal Resize: ',
+
+  # menu bar color
+  'menu_bar_cols'         => 24,
+
+  # input select timeout (in seconds)
+  'input_select_timeout'  => 0.2,
+
+  # feed sleep interval (in seconds)
+  'feed_sleep_interval'   => 60,
+
+  # grab log mode (a == append, w == write)
+  'grab_log_mode'         => 'w',
+
+  # strip html from item contents?
+  'strip_html_tags'       => true,
+
+  # decode html escape sequences?
+  'unescape_html'         => true,
+
+  # replace unicode chars with what?
+  'unicode_munge_str'     => 'ZZ',
+
+  # warn if feed refresh is set to less than this
+  'feed_refresh_warn'     => 30,
+
+  # open new screen window for browser?
+  'use_screen'            => true,
+
+  # screen command
+  'screen_cmd'            => 'screen -t "%s"',
+  
+  # browser options
+  'browser'               => find_browser,
+  'browser_cmd'           => '${browser} %s',
+
+  # lock feed names (don't update feed title from feed)
+  # (you can lock individual feed titles with the --lock-title command)
+  'lock_feed_title'       => false,
+
+  # color palette (referenced by themes)
+  'color_palette'         => [
+    [  1, Ncurses::COLOR_WHITE,    Ncurses::COLOR_BLACK   ],
+    [  2, Ncurses::COLOR_RED,      Ncurses::COLOR_BLACK   ],
+    [  3, Ncurses::COLOR_GREEN,    Ncurses::COLOR_BLACK   ],
+    [  4, Ncurses::COLOR_BLUE,     Ncurses::COLOR_BLACK   ],
+    [  5, Ncurses::COLOR_MAGENTA,  Ncurses::COLOR_BLACK   ],
+    [  6, Ncurses::COLOR_CYAN,     Ncurses::COLOR_BLACK   ],
+    [  7, Ncurses::COLOR_YELLOW,   Ncurses::COLOR_BLACK   ],
+    [ 11, Ncurses::COLOR_BLACK,    Ncurses::COLOR_WHITE   ],
+    [ 12, Ncurses::COLOR_BLACK,    Ncurses::COLOR_RED     ],
+    [ 13, Ncurses::COLOR_BLACK,    Ncurses::COLOR_GREEN   ],
+    [ 14, Ncurses::COLOR_BLACK,    Ncurses::COLOR_BLUE    ],
+    [ 15, Ncurses::COLOR_BLACK,    Ncurses::COLOR_MAGENTA ],
+    [ 16, Ncurses::COLOR_BLACK,    Ncurses::COLOR_CYAN    ],
+    [ 17, Ncurses::COLOR_BLACK,    Ncurses::COLOR_YELLOW  ],
+    [ 21, Ncurses::COLOR_BLACK,    Ncurses::COLOR_WHITE   ],
+    [ 22, Ncurses::COLOR_WHITE,    Ncurses::COLOR_RED     ],
+    [ 23, Ncurses::COLOR_WHITE,    Ncurses::COLOR_GREEN   ],
+    [ 24, Ncurses::COLOR_WHITE,    Ncurses::COLOR_BLUE    ],
+    [ 25, Ncurses::COLOR_WHITE,    Ncurses::COLOR_MAGENTA ],
+    [ 26, Ncurses::COLOR_WHITE,    Ncurses::COLOR_CYAN    ],
+    [ 27, Ncurses::COLOR_WHITE,    Ncurses::COLOR_YELLOW  ],
+    [ 31, Ncurses::COLOR_WHITE,    Ncurses::COLOR_CYAN    ],
+    [ 32, Ncurses::COLOR_RED,      Ncurses::COLOR_CYAN    ],
+    [ 33, Ncurses::COLOR_GREEN,    Ncurses::COLOR_CYAN    ],
+    [ 34, Ncurses::COLOR_BLUE,     Ncurses::COLOR_CYAN    ],
+    [ 35, Ncurses::COLOR_MAGENTA,  Ncurses::COLOR_CYAN    ],
+    [ 36, Ncurses::COLOR_BLACK,    Ncurses::COLOR_CYAN    ],
+    [ 37, Ncurses::COLOR_YELLOW,   Ncurses::COLOR_CYAN    ],
+  ],
+
+  # key bindings
+  'keys'            => {
+    Ncurses::KEY_RIGHT  => proc { |win, key| Key::next_window },
+    ?\t                 => proc { |win, key| Key::next_window },
+
+    Ncurses::KEY_LEFT   => proc { |win, key| Key::prev_window },
+    ?\\                 => proc { |win, key| Key::prev_window },
+
+    Ncurses::KEY_F12    => proc { |win, key| Key::quit },
+    ?q                  => proc { |win, key| Key::quit },
+
+    Ncurses::KEY_UP     => proc { |win, key| Key::scroll_up },
+    Ncurses::KEY_DOWN   => proc { |win, key| Key::scroll_down },
+    Ncurses::KEY_END    => proc { |win, key| Key::scroll_bottom },
+    Ncurses::KEY_PPAGE  => proc { |win, key| Key::scroll_up_page },
+    Ncurses::KEY_NPAGE  => proc { |win, key| Key::scroll_down_page },
+
+    ?\n                 => proc { |win, key| Key::select_win_item },
+    ?\                  => proc { |win, key| Key::select_win_item },
+
+    ?u                  => proc { |win, key| Key::move_item_up },
+    ?d                  => proc { |win, key| Key::move_item_down },
+
+    Ncurses::KEY_RESIZE => proc { |win, key| resize_term },
+  },
+
+  # default theme settings
+  'theme'           => {
+    # theme information
+    'name'          => 'Default Theme',
+    'author'        => 'Paul Duncan <pabs@pablotron.org>',
+    'url'           => 'http://www.pablotron.org/software/raggle/',
+
+    # window order (order for window changes, etc)
+    'window_order'  => ['feed', 'item', 'desc'],
+    
+    # status bar color
+    'status_bar_cols'       => 24,
+
+    # feed window attributes
+    'win_feed'      => {
+      'key'         => 'feed',
+      'title'       => 'Feeds',
+      'coords'      => [0, 0, 25, -1],
+      'type'        => 'list',
+      'colors'      => { 
+        'title'     => 1,
+        'text'      => 1,
+        'h_text'    => 16,
+        'box'       => 4,
+        'a_title'   => 21,
+        # 'a_title'   => 36,
+        'a_box'     => 3,
+        'unread'    => 6,
+        'h_unread'  => 36,
+      },
+    },
+
+    # item window attributes
+    'win_item'      => {
+      'key'         => 'item',
+      'title'       => 'Items',
+      'coords'      => [25, 0, -1, 15],
+      'type'        => 'list',
+      'colors'      => {
+        'title'     => 1,
+        'text'      => 1,
+        'h_text'    => 16,
+        'box'       => 4,
+        'a_title'   => 21,
+        'a_box'     => 3,
+        'unread'    => 6,
+        'h_unread'  => 36,
+      },
+    },
+
+    # desc window attributes
+    'win_desc'      => {
+      'key'         => 'desc',
+      'title'       => 'Description',
+      'coords'      => [25, 15, -1, -1],
+      'type'        => 'text',
+      'colors'      => {
+        'title'     => 1,
+        'text'      => 1,
+        'h_text'    => 16,
+        'box'       => 4,
+        'a_title'   => 21,
+        'a_box'     => 3,
+        'url'       => 6,
+        'date'      => 6,
+      },
+    },
+  },
+
+  # live feeds
+  'feeds'    => FeedList.new,
+
+  # debugging / internal options (don't touch)
+  'use_raw_mode'  => true,
+  'use_noecho'    => true,
+
+  # debugging feeds (these will be removed at some point)
+  'debug_feeds'   => [ ],
+
+  'default_feeds' => [
+    { 'title'     => 'Raggle',
+      'url'       => 'http://www.pablotron.org/software/raggle/help.rss',
+      'site'      => 'http://www.pablotron.org/software/raggle/',
+      'refresh'   => -1,
+      'updated'   => 1055113783,
+      'items'     => [
+        { 'title' => 'Introduction',
+          'url'   => 'http://www.pablotron.org/software/raggle/',
+          'date'  => 1055074823,
+          'read?' => false,
+          'desc'  => 'Welcome to Raggle!
+. .
+Raggle is a command-line RSS aggregator, written in Ruby
+(http://www.ruby-lang.org/).  Raggle is free software; please see the
+file COPYING or the License item in this feed for licensing and
+warranty information.', },
+        { 'title' => 'License',
+          'url'   => 'http://www.pablotron.org/software/raggle/',
+          'date'  => 1055074823,
+          'read?' => false,
+          'desc'  => 'Copyright (C) 2003
+Paul Duncan, and various contributors.
+. . 
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to
+deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+sell copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+. .
+The above copyright notice and this permission notice shall be included in
+all copies of the Software, its documentation and marketing & publicity 
+materials, and acknowledgment shall be given in the documentation, materials
+and software packages that this Software was used.
+. .   
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER 
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+          ', },
+        { 'title' => 'Usage',
+          'url'   => 'http://www.pablotron.org/software/raggle/',
+          'date'  => 1055074823,
+          'read?' => false,
+          'desc'  => 'Keyboard .
+========                            .
+- Tab, <-, -> : Window navigation   .
+- Up, Down : Item navigation        .
+- Home, End : Start, end of list.   .
+- Enter, Space : Select active item .
+- Q, F12 : Exit Raggle              .
+.
+', },
+        { 'title' => 'Keyboard',
+          'url'   => 'http://www.pablotron.org/software/raggle/',
+          'date'  => 1055074823,
+          'read?' => false,
+          'desc'  => 'Keyboard .
+========                            .
+- Tab, <-, -> : Window navigation   .
+- Up, Down : Item navigation        .
+- Home, End : Start, end of list.   .
+- Enter, Space : Select active item .
+- Q, F12 : Exit Raggle              .
+.
+', },
+        { 'title' => 'Reading Feeds',
+          'url'   => 'http://www.pablotron.org/software/raggle/',
+          'date'  => 1055074823,
+          'read?' => false,
+          'desc'  => 'Reading Feeds .
+============= .
+To read a given feed, hilite it in the Feed window and press Enter or
+Space.  The list of items available from that feed will be displayed in
+the Item window.  Unread feed items are marked slightly differently than
+read feed items (the color is adjustable on a per-theme basis).  To view
+the full story linked from a feed item, navigate to the Description
+window (using Tab or the Left and Right arrow keys) and press Space or
+Enter.  If Raggle is running in a screen session, it will invoke your
+browser of choice in a separate screen window (this behavior is
+configurable; see the \'use_screen\' option in the "Configuring Raggle"
+section for additional information).  There are several different window
+navigation modes available, see the \'focus\' "Configuring Raggle"
+section for additional information.
+', },
+        { 'title' => 'Adding Feeds',
+          'url'   => 'http://www.pablotron.org/software/raggle/',
+          'date'  => 1055074823,
+          'read?' => false,
+          'desc'  => 'Adding Feeds .
+============ .
+TODO (right now you have to edit the feed cache manually) .
+.
+', },
+        { 'title' => 'Configuring Raggle',
+          'url'   => 'http://www.pablotron.org/software/raggle/',
+          'date'  => 1055074823,
+          'read?' => false,
+          'desc'  => 'Configuring Raggle .
+================== .
+TODO
+', },
+        { 'title' => 'Reporting Bugs',
+          'url'   => 'http://www.pablotron.org/software/raggle/',
+          'date'  => 1055074823,
+          'read?' => false,
+          'desc'  => 'Reporting Bugs .
+============== .
+Please make sure you\'re using the latest version of Raggle before
+reporting bugs.  That said, you can submit bug reports to
+ragglebug@pablotron.org.
+', },
+      ],
+    },
+    { 'title'     => 'Alternet',
+      'url'       => 'http://www.alternet.org/rss/rss.xml',
+      'site'      => 'http://www.alternet.org/',
+      'desc'      => 'Alternative News and Information.',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'Anandtech (NiF)',
+      'url'       => 'http://www.newsisfree.com/HPE/xml/feeds/61/161.xml',
+      'site'      => 'http://www.anandtech.com/',
+      'desc'      => 'Anandtech',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'Consensus at Lawyerpoint',
+      'url'       => 'http://bpdg.blogs.eff.org/index.rdf',
+      'site'      => 'http://www.eff.org/',
+      'desc'      => 'Consensus at Lawyerpoint',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'Creative Commons',
+      'url'       => 'http://creativecommons.org/weblog/rss',
+      'site'      => 'http://creativecommons.org/',
+      'desc'      => 'Creative Commons',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'Daily Daemon News',
+      'url'       => 'http://daily.daemonnews.org/ddn.rdf.php3',
+      'site'      => 'http://daemonnews.org/',
+      'desc'      => 'Daily Daemon News',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'Digital Theatre',
+      'url'       => 'http://www.dtheatre.com/backend.php?xml=yes',
+      'site'      => 'http://www.dtheatre.com/',
+      'desc'      => 'Digital Theatre',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'EFF News (NiF)',
+      'url'       => 'http://www.newsisfree.com/HPE/xml/feeds/22/3222.xml',
+      'site'      => 'http://www.eff.org/',
+      'desc'      => 'EFF News.',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'Exploding Cigar',
+      'url'       => 'http://www.explodingcigar.com/backend.xml',
+      'site'      => 'http://www.explodingcigar.com/',
+      'desc'      => 'Exploding Cigar',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'FlipCode (NiF)',
+      'url'       => 'http://www.newsisfree.com/HPE/xml/feeds/08/208.xml',
+      'site'      => 'http://www.flipcode.org/',
+      'desc'      => 'FlipCode.',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'FreshMeat',
+      'url'       => 'http://themes.freshmeat.net/backend/fm-newsletter.rdf',
+      'site'      => 'http://www.freshmeat.net/',
+      'desc'      => 'FreshMeat.',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'KernelTrap',
+      'url'       => 'http://kerneltrap.org/module.php?mod=node&op=feed',
+      'site'      => 'http://www.kerneltrap.org/',
+      'desc'      => 'KernelTrap',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'Kuro5hin',
+      'url'       => 'http://www.kuro5hin.org/backend.rdf',
+      'site'      => 'http://www.kuro5hin.org/',
+      'desc'      => 'Kuro5hin',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'Leoville',
+      'url'       => 'http://www.leoville.com/mt/index.xml',
+      'site'      => 'http://www.leoville.com/',
+      'desc'      => 'Leoville',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'Linux Magazine',
+      'url'       => 'http://www.linux-mag.com/lm.rss',
+      'site'      => 'http://www.linux-mag.com/',
+      'desc'      => 'Linux Magazine',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'Linux Weekly News',
+      'url'       => 'http://www.lwn.net/headlines/rss',
+      'site'      => 'http://www.lwn.net/',
+      'desc'      => 'Linux Weekly News',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'MetaFilter',
+      'url'       => 'http://xml.metafilter.com/rss.xml',
+      'site'      => 'http://www.metafilter.com/',
+      'desc'      => 'MetaFilter',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'MovieComments',
+      'url'       => 'http://www.moviecomments.com/recentrev_rss.php',
+      'site'      => 'http://www.moviecomments.com/',
+      'desc'      => 'MovieComments',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'MTV News (NiF)',
+      'url'       => 'http://www.newsisfree.com/HPE/xml/feeds/92/1792.xml',
+      'site'      => 'http://www.mtv.com/',
+      'desc'      => 'MTV News (NiF)',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'O\'Reilly Network',
+      'url'       => 'http://www.oreillynet.com/cs/xml/query/q/295?x-ver=1.0',
+      'site'      => 'http://www.oreillynet.com/',
+      'desc'      => 'O\'Reilly Network',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'Open Sounds',
+      'url'       => 'http://www.opensounds.net/backend.php',
+      'site'      => 'http://www.opensounds.net/',
+      'desc'      => 'John Maguire.',
+      'refresh'   => 60,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'PHP Journal',
+      'url'       => 'http://www.phpj.com/backend.php',
+      'site'      => 'http://www.phpj.com/',
+      'desc'      => 'PHP Journal',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'Pigdog Journal',
+      'url'       => 'http://www.pigdog.org/pigdog.rdf',
+      'site'      => 'http://www.pigdog.org/',
+      'desc'      => 'Pigdog Journal',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'Political Wire',
+      'url'       => 'http://politicalwire.com/headlines.xml',
+      'site'      => 'http://politicalwire.com/',
+      'desc'      => 'Political Wire',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'Slashdot',
+      'url'       => 'http://slashdot.org/slashdot.rss',
+      'site'      => 'http://www.slashdot.org/',
+      'desc'      => 'Slashdot',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'This Modern World',
+      'url'       => 'http://www.thismodernworld.com/index.rdf',
+      'site'      => 'http://www.thismodernworld.com/',
+      'desc'      => 'This Modern World',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'Universal Rule',
+      'url'       => 'http://radio.weblogs.com/0112083/rss.xml',
+      'site'      => 'http://radio.weblogs.com/0112083/',
+      'desc'      => 'Universal Rule',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'use Perl',
+      'url'       => 'http://use.perl.org/useperl.rdf',
+      'site'      => 'http://use.perl.org/',
+      'desc'      => 'Universal Rule',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'W3C',
+      'url'       => 'http://www.w3.org/2000/08/w3c-synd/home.rss',
+      'site'      => 'http://www.w3.org/',
+      'desc'      => 'W3C',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+    { 'title'     => 'Webmonkey',
+      'url'       => 'http://radio.weblogs.com/0112083/rss.xml',
+      'site'      => 'http://radio.weblogs.com/0112083/',
+      'desc'      => 'Webmonkey',
+      'refresh'   => 30,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
+  ],
 }
 
-begin
-  # initialize screen & keyboard
-  Ncurses::initscr
-  Ncurses::raw if $config['use_raw_mode']
-  Ncurses::keypad Ncurses::stdscr, 1
-  Ncurses::noecho if $config['use_noecho']
-  Ncurses::start_color
-  # Ncurses::mousemask(Ncurses::ALL_MOUSE_EVENTS, [])
+# Start
+main
 
-  # exit -1 unless Ncurses::has_colors?
-
-  # initialize color pairs
-  $config['color_palette'].each { |ary| Ncurses::init_pair *ary }
-
-  # get screen coordinates
-  h = []; w = []
-  Ncurses::getmaxyx Ncurses::stdscr, h, w
-  $config['w'] = w[0]
-  $config['h'] = h[0] - 1
-
-  # draw menu bar
-  # c_msg = $config['msg_close']
-  # msg = (' ' * ($config['w'] - c_msg.length)) << c_msg
-  # Ncurses::wcolor_set Ncurses::stdscr, $config['menu_bar_cols'], nil
-  # Ncurses::mvprintw 0, 0, msg
-  # Ncurses::refresh
-
-  # draw status bar
-  $new_status = ''
-  set_status $config['msg_welcome']
-  
-  # create windows
-  $a_win = 0
-  $wins = []
-  $config['theme']['window_order'].each { |i|
-    $wins << Window.new($config['theme']["win_#{i}"])
-    # $wins[-1].draw LONG_STRING
-  }
-  set_active_win(0)
-  
-  $a_feed, $a_item = 0, 0
-  
-  # populate feed window
-  populate_feed_win
-  
-  select_feed(0)
-  set_active_win(0)
-  
-  # trap('WINCH') { resize_term }
-  
-  # main input loop
-  timeout = $config['input_select_timeout']
-  $done = false
-  until $done
-    # handle keyboard input
-    r = select [$stdin], nil, nil, timeout
-    if r && r.size > 0
-      c = Ncurses::getch
-      $config['keys'][c].call($wins[$a_win], c) if $config['keys'].has_key? c
-    end
-
-    # refresh window contents if there's been a feed update
-    if $update_wins
-      $update_wins = false
-      populate_feed_win
-      # wins.each { |win| win.draw_items }
-    end
-
-    set_status $new_status if $new_status != $status
-  end
-ensure
-  # ignore resize signals
-  # trap 'WINCH', 'IGNORE'
-
-  # clean up screen on exit
-  Ncurses::endwin
-
-  # stop feed grabbing thread
-  feed_thread.exit
-
-  # save feed cache
-  save_feed_cache if $config['save_feed_cache']
-
-  # save feed list
-  save_feed_list if $config['save_feed_list']
-
-  # save theme
-  save_theme if $config['save_theme']
-
-  # unlock everything
-  destroy_cache_lock if $config['use_cache_lock'] && $config['cache_lock']
-
-  $stdout.puts $config['msg_thanks']
-end

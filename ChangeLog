@@ -304,4 +304,18 @@
   * raggle: Add -i/--invalidate to usage.
   * raggle.1: Document -i/--invalidate.
 
+* Fri Jun 20 23:03:24 EDT 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Add a FeedList class, and make $config['feeds'] an
+	    instance of it.
+
+* Fri Jun 20 23:15:29 EDT 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Add a Key module, and move routines to be bound to keys into
+            it.
+
+* Fri Jun 20 23:26:16 EDT 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Add default feeds.
+
+* Sat Jun 21 00:07:32 EDT 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Add commands to move items in the item list (u = up, d = down).
+
 

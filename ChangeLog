@@ -706,6 +706,11 @@
             Getopt.  I'm a tool, this fixes the last commit.
   * raggle: Die in the top level exception handler, don't just dump the
             message.
+
+* Thu Jun 26 02:23:17 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Actually set the status line when we encounter a malicious
+            URL, it's "Being a Tool" day here at richlowe towers.
+
 	
 
 

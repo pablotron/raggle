@@ -1851,3 +1851,7 @@
   * README: added FAQ section
   * README: misc formatting cleanups
   * TODO: mark off terminald doc idea (in FAQ now)
+
+* Sat Apr 17 12:22:28 2004, pabs <pabs@pablotron.org>
+  * raggle: hopefully fix feed reap error reported by Grant Bowman 
+    <grantbow@grantbow.com> via the Debian Bug Tracking system

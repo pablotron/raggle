@@ -3645,7 +3645,8 @@ def main
             threads.each { |th| 
               begin
                 if th && th.status && th.alive?
-                  $log.puts "#{Time.now}: Waiting on \"#{th['feed']['title']}\""
+                  th_title = th['feed'] ? th['feed']['title'] : th
+                  $log.puts "#{Time.now}: Waiting on \"#{th_title}\""
                   th.join($config['thread_reap_timeout'] || 2)
                 end
               rescue Exception

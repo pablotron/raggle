@@ -150,7 +150,7 @@ module Path
   # 
   def Path::find_web_ui_root
     if RUBY_PLATFORM =~ /win32/i
-      ENV['PROGRAMFILES'] + '/Raggle'
+      ENV['PROGRAMFILES'] + '/Raggle/web_ui'
     else
       '${config_dir}/web_ui'
     end

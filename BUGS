@@ -44,3 +44,5 @@ Bugs
     and see).
 [*] corrupting international characters? (see
     http://www.raggle.org/files/swedish_char_corruption/)
+[ ] doesn't handle host relative URLs properly (reported by Harry Ohlsen
+    <harryo@qiqsolutions.com>)

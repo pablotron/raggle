@@ -1313,3 +1313,10 @@
 * Thu Sep 04 00:11:03 2003, pabs <pabs@pablotron.org>
   * raggle: added Path::find_web_ui_root (for win32)
 
+* Thu Sep 04 01:34:26 2003, pabs <pabs@pablotron.org>
+  * raggle: fix win32 web_ui path
+  * added extras/win32/raggle.nsi (nullsoft installer script)
+  * added extras/win32/raggle_client.html (client redirect)
+  * added extras/win32/raggle_server.bat (server batch file)
+  * added extras/win32/win32.html (windows documentation)
+

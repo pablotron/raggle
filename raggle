@@ -2817,7 +2817,8 @@ def handle_command_line(opts)
     ['--drb-server', '--drb',                   GetoptLong::NO_ARGUMENT],
     ['--help', '-h', '--usage',                 GetoptLong::NO_ARGUMENT],
     ['--ascii', '-A',                           GetoptLong::NO_ARGUMENT],
-    ['--max-items', '--max',                    GetoptLong::REQUIRED_ARGUMENT]
+    ['--max-items', '--max',                    GetoptLong::REQUIRED_ARGUMENT],
+    ['--find-feeds', '-f',                      GetoptLong::REQUIRED_ARGUMENT]
   )
 
   begin
@@ -2891,6 +2892,9 @@ def handle_command_line(opts)
           else
             die "Missing DRb, can't run DRb Server."
           end
+        when '--find-feeds'
+          ret['mode'] = 'find_feeds'
+          ret['find_str'] = arg
         when '-h', '--help', '--usage'
           print_usage
       end
@@ -2991,6 +2995,37 @@ def ncurses_add_feed
 end
 
 #
+# search for feeds, return array of hashes w/ results
+#
+def find_feeds(str)
+  syn = Raggle::Syndic8.new
+
+  syn.keys -= ['siteurl']
+  syn.max_results = $config['syndic8_max_results']
+
+  # query syndic8
+  ret = syn.find(str)
+
+  # find empty and duplicate results
+  cruft = []
+  ret.each do |feed| 
+    cruft << feed if feed['dataurl'].size == 0
+    cruft << feed if feed['sitename'].size == 0 &&
+    feed['description'].size == 0
+    dups = ret.find_all { |f| f['dataurl'] == feed['dataurl'] }
+    if dups.size > 1
+      dups.shift
+      dups.each { |dup| cruft << dup }
+    end
+  end
+
+  # delete cruft
+  cruft.each { |feed| ret.delete(feed) }
+
+  ret
+end
+
+#
 # search for feeds from ncurses
 # 
 def ncurses_find_feed
@@ -3012,43 +3047,46 @@ def ncurses_find_feed
 
   # if it's not nil, then add it to our list
   if str && str.length > 0
-    # find string using syndic8
-    syn = Raggle::Syndic8.new
-    syn.keys -= ['siteurl']
-    syn.max_results = $config['syndic8_max_results']
-    results = syn.find(str)
+    th = Thread.new do
+      results = find_feeds(str)
+      id = get_win_id('find')
 
-    id = get_win_id('find')
-    if id == -1
-      # determine window height
-      w = $config['w'] - 10
-      h = $config['h'] - 5 
-      h = results.size + 3 if h > results.size + 3
+      if id == -1
+        # determine window height
+        w = $config['w'] - 10
+        h = $config['h'] - 5 
+        h = results.size + 3 if h > results.size + 3
 
-      # create window and add it to window list
-      $wins << win = ListWindow::new({
-        'title'   => $config['msg_find_title'] % [str],
-        'key'     => 'find',
-        'coords'  => [5, 3, w, h],
-        'colors'  => $wins[get_win_id('item')].colors,
-      })
+        # create window and add it to window list
+        $wins << win = ListWindow::new({
+          'title'   => $config['msg_find_title'] % [str],
+          'key'     => 'find',
+          'coords'  => [5, 3, w, h],
+          'colors'  => $wins[get_win_id('item')].colors,
+        })
+      else
+        win = $wins[id]
+      end
 
       # build item list
       win.items.clear
       win.items << { 'title' => "Found #{results.size} feeds matching \"#{str}\"." }
-      results.each_with_index do |feed, i| 
-        title = "#{feed['sitename']} - #{feed['description']}"
-        title = title[0, w - 3] << '...'
+      results.each do |feed| 
+        title = [feed['sitename'],
+                 feed['description'], 
+                 feed['dataurl']
+                ].join ' - '
         win.items << { 'title' => title, 'find' => feed['dataurl'] }
       end
-      win.activate(0)
+      win.activate(2)
 
       # add window to window list and draw item list
       win.draw_items
-    end
 
-    # activate category window
-    set_active_win(get_win_id('find'))
+      # activate category window
+      set_active_win(get_win_id('find'))
+    end
+    th.priority = $config['thread_priority_find']
   end
     
   # redraw status bar
@@ -3527,6 +3565,9 @@ def main
   when 'export_opml'
     OPML::export opts['opml_file']
     exit 0
+  when 'find_feeds'
+    cli_find_feeds(opts['find_str'])
+    exit 0
   end
   
   # enable ascii mode if requested
@@ -3772,6 +3813,7 @@ $config = {
   'thread_priority_grab'  => 0, # child grabbing threads
   'thread_priority_gc'    => 1,
   'thread_priority_http'  => 1,
+  'thread_priority_find'  => 1,
 
   # grab thread reap timeout (wait up to N seconds)
   'thread_reap_timeout'   => 120,
@@ -3895,7 +3937,7 @@ $config = {
   'gc_sleep_interval'     => 600,
 
   # max results to return from syndic8
-  'syndic8_max_results'   => 50,
+  'syndic8_max_results'   => 100,
 
   # grab log mode (a == append, w == write)
   'grab_log_mode'         => 'w',

@@ -1822,3 +1822,11 @@
 
 * Sun Mar 21 11:06:47 2004, pabs <pabs@pablotron.org>
   * TODO: update syndic8, feedster integration, etc
+
+* Sun Mar 21 20:59:28 2004, pabs <pabs@pablotron.org>
+  * raggle: added initial bits for --find-feeds
+  * raggle: created find_feeds() (guts behind feed searching)
+  * raggle: do ncurses feed search in a separate thread, so the
+    GUI doesn't block
+  * raggle: added $config['thread_priority_find'], set to 1 by default
+  * raggle: upped default max results from syndic8 to 100

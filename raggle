@@ -5,6 +5,10 @@ $VERSION = '0.1.0'
 # load ncurses
 require 'ncurses'
 
+# change to 'feeds' for live feeds
+$SRC = 'feeds'
+# $SRC = 'debug_feeds'
+
 # default config
 $config = {
   'config_path'           => ENV['HOME'] << '.raggle/config.rb',
@@ -102,6 +106,54 @@ $config = {
       'date'      => 6,
     },
   },
+
+  # live feeds
+  'feeds'         => [
+    { 'title'     => 'Raggle',
+      'url'       => 'http://www.pablotron.org/software/raggle/help.rss',
+      'refresh'   => -1,
+      'items'     => [
+        { 'title' => 'Introduction',
+          'url'   => 'http://www.pablotron.org/software/raggle/',
+          'date'  => 1055074823,
+          'desc'  => 'Welcome to Raggle!
+. .
+Raggle is a command-line RSS aggregator, written in Ruby
+(http://www.ruby-lang.org/).  Raggle is free software; please see the
+file COPYING or the License item in this feed for licensing and
+warranty information.', },
+        { 'title' => 'License',
+          'url'   => 'http://www.pablotron.org/software/raggle/',
+          'date'  => 1055074823,
+          'desc'  => 'Copyright (C) 2003
+Paul Duncan, and various contributors.
+. . 
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to
+deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+sell copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+. .
+The above copyright notice and this permission notice shall be included in
+all copies of the Software, its documentation and marketing & publicity 
+materials, and acknowledgment shall be given in the documentation, materials
+and software packages that this Software was used.
+. .   
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER 
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+          ', },
+        { 'title' => 'Usage',
+          'url'   => 'http://www.pablotron.org/software/raggle/',
+          'date'  => 1055074823,
+          'desc'  => 'more fun with testing', },
+      ],
+    },
+  ],
 
   # debugging options (don't touch)
   'use_raw_mode'  => true,
@@ -408,9 +460,18 @@ def select_feed(id)
   $wins[item_id].items.clear
 
   fmt = $config['item_date_format']
-  $config['debug_feeds'][id]['items'].each_with_index { |item, i|
-    title = item['title'] + ' (' +
-            Time.at(item['date'].to_i).strftime(fmt) << ')'
+  $config[$SRC][id]['items'].each_with_index { |item, i|
+    # can't depend on the date being in a consistent format, or
+    # being defined at all, for that matter :( :( :(
+    # title = item['title'] + ' (' +
+    #         Time.at(item['date'].to_i).strftime(fmt) << ')'
+
+    if item['date'] && item['date'].size > 0
+      title = "#{item['title']} (#{item['date']})"
+    else 
+      title = item['title'].dup
+    end
+
     $wins[item_id].items << {
       'title' => title,
       'item'  => i,
@@ -434,9 +495,9 @@ def select_item(id)
   $wins[desc_id].items.clear
 
   $wins[desc_id].items << {
-    'title' => $config['debug_feeds'][$a_feed]['items'][id]['desc'],
-    'url'   => $config['debug_feeds'][$a_feed]['items'][id]['url'],
-    'date'  => $config['debug_feeds'][$a_feed]['items'][id]['date'],
+    'title' => $config[$SRC][$a_feed]['items'][id]['desc'],
+    'url'   => $config[$SRC][$a_feed]['items'][id]['url'],
+    'date'  => $config[$SRC][$a_feed]['items'][id]['date'],
   }
   $wins[desc_id].win.clear
   $wins[desc_id].draw_items
@@ -444,6 +505,18 @@ def select_item(id)
   set_active_win(desc_id) if $config['focus'] == 'select' and
                              !$config['no_desc_auto_focus']
 end
+
+
+# start feed grabbing thread
+feed_thread = Thread.new {
+  File.open('asdf.txt', 'a') { |f|
+    loop {
+      f.puts 'asdf: ' << Time.now.to_s
+      f.flush
+      sleep 2
+    }
+  }
+}
 
 begin
   # initialize screen & keyboard
@@ -487,7 +560,7 @@ begin
   
   # populate feed window with debug values
   id = get_win_id 'feed'
-  $config['debug_feeds'].each_with_index { |feed, i|
+  $config[$SRC].each_with_index { |feed, i|
     title = feed['title'] + ' (%d)' % feed['items'].size
     $wins[id].items << {
       'title' => title,
@@ -503,25 +576,28 @@ begin
   done = false
   while !done
     # handle keyboard input
-    case c = Ncurses::getch
-    when Ncurses::KEY_RIGHT
-      set_active_win(($a_win + 1) % $wins.size)
-    when ?\t
-      set_active_win(($a_win + 1) % $wins.size)
-    when Ncurses::KEY_LEFT
-      set_active_win((($a_win - 1 < 0) ? $wins.size : $a_win) - 1)
-    when ?\\
-      set_active_win((($a_win - 1 < 0) ? $wins.size : $a_win) - 1)
-    when Ncurses::KEY_F12
-      done = true
-    when ?q
-      done = true
-    when ?\e
-      done = true
-    when ?
-      resize_wins
-    else  
-      $wins[$a_win].handle_key c
+    r = select [$stdin], nil, nil, 5.0
+    if r && r.size > 0
+      case c = Ncurses::getch
+      when Ncurses::KEY_RIGHT
+        set_active_win(($a_win + 1) % $wins.size)
+      when ?\t
+        set_active_win(($a_win + 1) % $wins.size)
+      when Ncurses::KEY_LEFT
+        set_active_win((($a_win - 1 < 0) ? $wins.size : $a_win) - 1)
+      when ?\\
+        set_active_win((($a_win - 1 < 0) ? $wins.size : $a_win) - 1)
+      when Ncurses::KEY_F12
+        done = true
+      when ?q
+        done = true
+      when ?\e
+        done = true
+      when ?
+        resize_wins
+      else  
+        $wins[$a_win].handle_key c
+      end
     end
   end
 ensure

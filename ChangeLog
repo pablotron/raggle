@@ -33,3 +33,9 @@
 
 * Sun Jun 08 18:21:41 2003, pabs <pabs@pablotron.org>
   * rss_grab.rb: oops
+
+* Sun Jun 08 18:45:57 2003, pabs <pabs@pablotron.org>
+  * raggle: added feed-grabbing thread
+  * raggle: switched to select() with timeout so Ncurses::getch
+    doesn't block ruby threads
+  * raggle: added $config['feeds'] ("live" feeds)

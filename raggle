@@ -1755,9 +1755,9 @@ ENDUSAGE
         #
         def Key::close_window
           case $a_win
-          when NcursesInterface::get_win_id('find'): $wins[$a_win].close('find', true)
-          when NcursesInterface::get_win_id('cat'): $wins[$a_win].close('cat', true)
-          when NcursesInterface::get_win_id('keys'): $wins[$a_win].close('keys', true)
+          when NcursesInterface::get_win_id('find'): $wins[$a_win].close(true)
+          when NcursesInterface::get_win_id('cat'): $wins[$a_win].close(true)
+          when NcursesInterface::get_win_id('keys'): $wins[$a_win].close(true)
           end
         end
 
@@ -1913,7 +1913,7 @@ ENDUSAGE
             NcursesInterface::set_active_win(NcursesInterface::get_win_id('cat'))
           else
             if id == $a_win # window open; toggle to closed
-              NcursesInterface::Key::close_window
+              $wins[id].close(true)
             else # window open but not selected; select it
               NcursesInterface::set_active_win(id)
             end
@@ -1955,7 +1955,7 @@ ENDUSAGE
             NcursesInterface::set_active_win(NcursesInterface::get_win_id('keys'))
           else
             if id == $a_win # window open; toggle to closed
-              NcursesInterface::Key::close_window
+              $wins[id].close
             else # window open but not selected; select it
               NcursesInterface::set_active_win(id)
             end
@@ -2084,11 +2084,10 @@ ENDUSAGE
         #
         # Close and delete an Ncurses window
         #
-        def close(win_name, reset=false)
+        def close(switchwin=false)
           old_wins = $wins.dup
-          @win.del if $a_win == NcursesInterface::get_win_id(win_name)
-          $wins.delete_if { |i| i.key == win_name }
-          NcursesInterface::set_active_win($prev_win) if reset unless old_wins == $wins
+          @win.del; $wins.delete_at(NcursesInterface::get_win_id(@key))
+          NcursesInterface::set_active_win($prev_win) if switchwin unless old_wins == $wins
           $wins.each { |i| i.refresh }
         end
 
@@ -2774,7 +2773,7 @@ ENDUSAGE
         $wins[w_id].activate 0
         
         # delete category window
-        $wins[NcursesInterface::get_win_id('cat')].close('cat')
+        $wins[NcursesInterface::get_win_id('cat')].close
       end
       
       #

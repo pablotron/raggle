@@ -2171,3 +2171,6 @@
   * raggle: added CLI options and Ncurses keys to raise/lower priorities -
     --priority or -p, and R and r respectively, by default
   * raggle: fixed feed sorting to not automatically select first feed
+
+* Sat Dec 18 14:00:00 2004, redshift <redshift@halffull.org>
+  * raggle: cleaned up window closing routines

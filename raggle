@@ -2424,7 +2424,7 @@ ENDUSAGE
           end
 
           # *Much* faster than a total clear each time it scrolls.
-          clearrange(y, h - 2)
+          clearrange(y - 1, h - 2)
           
           refresh(true)
         end

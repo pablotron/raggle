@@ -289,23 +289,18 @@ And probably many, many more, please report any you find to <I<raggle-dev@raggle
 =head1 HISTORY
 
 =item
-
 B<raggle> 0.1 was released on 23 Jun, 2003
 
 =item
-
 B<raggle> 0.2 was released on 17 Aug, 2003 
 
 =head1 AUTHORS
 
 =item
-
 Paul Duncan <I<pabs@pablotron.org>>,
 
 =item
-
 Richard Lowe <I<richlowe@richlowe.net>>,
 
 =item
-
 Ville Aine <I<vaine@cs.helsinki.fi>>

@@ -2683,7 +2683,7 @@ def handle_command_line(opts)
   ret = { 'mode' => 'view' }
 
   gopts = GetoptLong.new(
-    ['--add', '-a',        '--add-feed',        GetoptLong::NO_ARGUMENT],
+    ['--add', '-a',        '--add-feed',        GetoptLong::OPTIONAL_ARGUMENT],
     ['--edit', '-e',       '--edit-feed',       GetoptLong::REQUIRED_ARGUMENT],
     ['--delete', '-d',     '--delete-feed',     GetoptLong::REQUIRED_ARGUMENT],
     ['--invalidate', '-i', '--invalidate-feed', GetoptLong::REQUIRED_ARGUMENT],
@@ -2716,6 +2716,7 @@ def handle_command_line(opts)
       case opt
         when '--add'
           ret['mode'] = 'add'
+          ret['url'] = arg if arg && arg.size > 0
         when '--edit'
           ret['mode'] = 'edit'
           ret['id'] = arg.to_i

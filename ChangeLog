@@ -1673,3 +1673,6 @@
   * raggle: added configurable $config['use_critical_regions'] through
     feed grabbing thread; this is just temporary, for debugging
   * raggle: increase default thread pool size from 6 to 10 threads
+
+* Wed Oct 08 13:48:49 2003, pabs <pabs@pablotron.org>
+  * raggle: --add can take a URL now (optional)

@@ -1,3 +1,6 @@
 * Sat Jun 07 23:04:02 2003, pabs <pabs@pablotron.org>
   * added ChangeLog
   * initial import
+
+* Sat Jun 07 23:09:10 2003, pabs <pabs@pablotron.org>
+  * README: added requirements (YAML?)

@@ -4,3 +4,7 @@ Raggle README
 Raggle is an Ncurses-based RSS aggregator.
 
 
+Requirements: 
+  ncurses-ruby
+  REXML
+  (YAML?)

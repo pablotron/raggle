@@ -29,16 +29,16 @@ Raggle TODO
     would otherwise evade it (by not having spaces in it, say).
 [ ] When selecting a feed, automatically (and optionally) select the
     first item in the feed.
-[ ] OPML import/export support (http://www.opml.org/)
+[*] OPML import/export support (http://www.opml.org/)
 [ ] RSS locator (see link from http://www.pablotron.org/?cid=1154)
 [ ] item delete, mark items as unread, stick (save, hilite?) items, etc
-[ ] proxy support (via ENV['HTTP_PROXY'], etc?)
+[*] proxy support (via ENV['HTTP_PROXY'], etc?)
 [ ] display / dump raw feed output
 [ ] conditional HTTP GET to reduce bandwidth use and increase speed
 [ ] "update this feed now!" option from within Raggle
 [ ] 'manual_update' option and keybinding for modem lusers
 [ ] Select Next Unread (n), should work for feeds as well as items
-[ ] Previous unread item would be useful also (I don't read in order, always)
+[*] Previous unread item would be useful also (I don't read in order, always)
 [ ] Reverse ordering, (on a key) so you can read a big chunk of new
     items in chronological order (most are reverse chron) without
     undue discomfort

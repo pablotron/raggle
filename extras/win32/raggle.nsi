@@ -8,8 +8,8 @@
 !define VER_MAJ 0
 !define VER_MIN 3
 !define VER_REV 0
-!define VER_SUF -pre
-!define MUI_LICENSEPAGE
+!define VER_SUF -pre-20030924
+;!define MUI_LICENSEPAGE
 
 ;--------------------------------
 
@@ -17,7 +17,7 @@
 Name "Raggle ${VER_MAJ}.${VER_MIN}.${VER_REV}${VER_SUF} Installer"
 
 ; The file to write
-OutFile "Raggle-${VER_MAJ}_${VER_MIN}_${VER_REV}${VER_SUF}.exe"
+OutFile "Raggle-${VER_MAJ}.${VER_MIN}.${VER_REV}${VER_SUF}.exe"
 SetCompressor bzip2
 
 ; The default installation directory
@@ -28,13 +28,13 @@ InstallDir $PROGRAMFILES\Raggle
 InstallDirRegKey HKLM SOFTWARE\NSIS_Raggle "Install_Dir"
 
 ; The text to prompt the user to enter a directory
-ComponentText "This will install Raggle on your computer. Select which components to install."
+ComponentText "This will install Raggle on your computer. Please select the components to install."
 
 ; License text (this doesn't work for some reason :/)
 ; LicenseData ..\COPYING.txt
 
 ; The text to prompt the user to enter a directory
-DirText "Choose a directory to install in to:"
+DirText "Please select an installation directory:"
 
 ;--------------------------------
 
@@ -94,6 +94,10 @@ Section "Start Menu Shortcuts"
   
 SectionEnd
 
+Section "Desktop Shortcut"
+  CreateShortCut "$DESKTOP\Raggle.lnk" "$INSTDIR\raggle_server.bat" "" "$INSTDIR\raggle_server.bat" 0
+SectionEnd
+
 ;--------------------------------
 
 ; Uninstaller
@@ -123,4 +127,6 @@ Section "Uninstall"
   RMDir "$SMPROGRAMS\Raggle"
   RMDir /R "$INSTDIR"
 
+  ; remove desktop shortcut
+  Delete "$DESKTOP\Raggle.lnk"
 SectionEnd

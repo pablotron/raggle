@@ -1608,5 +1608,15 @@
     (don't need it any more)
 
 * Wed Sep 24 16:17:04 2003, pabs <pabs@pablotron.org>
-  * extras/web_ui/*: feed => feedFrame, desc => descFrame,
-    item => itemFrame
+  * extras/web_ui/*: feed => feedFrame, desc => descFrame, item => itemFrame
+
+* Wed Sep 24 19:23:48 2003, pabs <pabs@pablotron.org>
+  * raggle: remove silly 1.8 suffix on ruby (gotta stop doing that)
+  * extras/win32/raggle.nsi: comment out MUI_LICENSEPAGE
+  * extras/win32/raggle.nsi: add date to version suffix string
+  * extras/win32/raggle.nsi: _ => . in outfile string
+  * extras/win32/raggle.nsi: minor component text updates
+  * extras/win32/raggle.nsi: add desktop shortcut section
+  * extras/win32/win32.html: no more raggle server/client nonsense
+  * extras/win32/win32.html: update keywords
+  * extras/win32/win32.html: update summary of bugs (remove a few!)

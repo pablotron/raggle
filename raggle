@@ -867,14 +867,14 @@ class TextWindow < Window
       draw(item['real_title'].strip, 1, y, 'f_title', true, false)
       y += 1
     end
-    draw("Link: ", 1, y)
+    draw("Link: ", 0, y)
     # @win.color_set @colors['url'], nil
-    draw(item['url'], 8, y, 'url', true, false)
+    draw(item['url'], 7, y, 'url', true, false)
 
     # don't draw the date if it isn't set (silly RSS)
     if item['date'] && item['date'] != '' && item['date'] != "0"
       y += 1
-      draw("Date: ", 1, y)
+      draw("Date: ", 0, y)
       
       # handle date string shenanigans
       if ((i_val = item['date'].to_i) > 0)
@@ -885,7 +885,7 @@ class TextWindow < Window
       
       # draw date string
       # @win.color_set @colors['date'], nil
-      draw(d_str, 8, y, 'date', true, false)
+      draw(d_str, 7, y, 'date', true, false)
     end
     if item['title']
       y += 2

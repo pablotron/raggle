@@ -722,6 +722,11 @@
 * Thu Jun 26 03:31:33 2003, richlowe <richlowe@richlowe.net>
   * raggle: Don't display dates when they're not in the feed (set to "0").
 
+* Thu Jun 26 03:34:48 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Correctly correctly pad URLs, the title's were being indented,
+            the text was drawn correctly.
+
+
 
 
 

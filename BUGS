@@ -31,6 +31,6 @@ Bugs
     reliably bend the description window over, and bugger it backwards
     with a steam iron.
 [ ] Long descriptions are *very* slow to scroll
-[ ] TextWindow#draw_items draws the title at x=1, but if the rest is
+[*] TextWindow#draw_items draws the title at x=1, but if the rest is
     drawn with x=1 it appears to be drawn one block to the right of the
     title.  Why? (workedaround, but very confusing).

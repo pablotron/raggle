@@ -897,3 +897,9 @@
 	    Richard Zidlicky for the backtrace, for some reason I hadn't
 	    managed to get a non-mangled one previously).
 
+* Tue Jul  8 17:31:30 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Change the regular expressions involving escaped forward
+    slashes '\/', to use %r!! so we don't have the ugly escapes.  I find
+    this more readable.
+
+

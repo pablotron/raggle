@@ -162,7 +162,7 @@ class String
     gsub(/<[^>]+?>/, '')
   end
 
-  def reflow(width = 72, force = false, line_delim_regex = /^(<br[^\/]*>|\.)$/)
+  def reflow(width = 72, force = false, line_delim_regex = %r!^(<br[^/]*>|\.)$!)
     text = ''
     curr_line = ''
     strip.split(/\s+/).each { |word|
@@ -523,7 +523,7 @@ module Feed
     url.gsub!(%r!^\w+?://!, '') if url =~ %r!^\w+?://!
 
     # get host and path portions of url
-    raise "Couldn't parse URL: \"#{url}\"" unless url =~ /^(.+?)\/(.*)$/
+    raise "Couldn't parse URL: \"#{url}\"" unless url =~ %r!/^(.+?)/(.*)$!
     host, path = $1, $2
 
     # check for port in URL

@@ -3123,7 +3123,7 @@ ENDUSAGE
             if cur_item and cur_item['read?'] == false and cur_item['visible'] != false
               NcursesInterface::select_feed(feed) unless feed == $a_feed
               NcursesInterface::select_id(item)
-              feed_win.activate(feed)
+              feed_win.active_item = feed
               item_win.activate(item)
               return 0
             end

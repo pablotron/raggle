@@ -1833,6 +1833,8 @@ ENDUSAGE
             else  # not an existing file or URI
               OPML::export file
             end
+          else
+            NcursesInterface::set_status('')
           end
         end
 

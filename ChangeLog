@@ -1777,3 +1777,7 @@
 
 * Fri Feb 20 04:43:54 2004, pabs <pabs@pablotron.org>
   * releasing version 0.3.0
+
+* Fri Feb 20 04:50:51 2004, pabs <pabs@pablotron.org>
+  * raggle: incremented version number to 0.4.0-test.
+  * README: ditto

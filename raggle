@@ -137,6 +137,9 @@ $config = {
   # replace unicode chars with what?
   'unicode_munge_str'     => 'ZZ',
 
+  # warn if feed refresh is set to less than this
+  'feed_refresh_warn'     => 30,
+
   # open new screen window for browser?
   'use_screen'            => true,
 
@@ -647,6 +650,23 @@ class String
 
   def strip_tags
     gsub(/<[^>]+?>/, '')
+  end
+
+  def reflow(width = 72, line_delim_regex = /^(<br[^\/]*>|\.)$/)
+    text = ''
+    curr_line = ''
+    split(/\s+/).each { |word|
+      if line_delim_regex && word =~ line_delim_regex
+        text << curr_line << "\n" 
+        curr_line = ''
+      elsif curr_line.length + word.length > width - 2
+        text << curr_line << "\n"
+        curr_line = "#{word} "
+      else
+        curr_line << "#{word} "
+      end
+    }
+    text << curr_line << "\n"
   end
 end
 
@@ -1316,6 +1336,8 @@ Options:
   -c, --config                  Specify an alternate config file.
   -d, --delete, --delete-feed   Delete an existing feed.
   -e, --edit, --edit-feed       Edit an existing feed.
+  --force                       Force behavior Raggle won't normally allow.
+                                Use this option with caution.
   -h, --help, --usage           Display this usage screen.
   -l, --list                    List existing feeds (use '--verbose' to 
                                 show URLs as well).
@@ -1393,6 +1415,8 @@ def handle_Command_line(opts)
       ret['mode'] = 'delete'
       grab_next = 1
       ret['id'] = opts[i + 1]
+    when '--force'
+      ret['force'] = true
     when '-l'
       ret['mode'] = 'list'
     when '--list'
@@ -1478,6 +1502,7 @@ def list_feeds
 end
 
 def add_feed(opts)
+  refresh_interval_check opts['refresh'] unless opts['force']
   $config[$SRC] << {
     'title'     => opts['title'],
     'url'       => opts['url'],
@@ -1493,7 +1518,21 @@ def delete_feed(id)
   die "Unknown feed id #{id}." unless $config[$SRC].delete_at(id)
 end
 
+def refresh_interval_check(interval)
+  if interval > 0 && interval < $config['feed_refresh_warn']
+    err = <<ENDWARNING
+Using a refresh interval of less than #{$config['feed_refresh_warn']} minutes
+_really_ irritates some system administrators.  If you're sure you want to do
+this, use the '--force' option to bypass this warning.
+ENDWARNING
+    $stderr.puts err.reflow
+    exit -1
+  end
+end
+
 def edit_feed(id, opts)
+  refresh_interval_check opts['refresh'] if !opts['force'] && 
+                                             opts.has_key?('refresh')
   %w{title url refresh}.each { |key|
     $config[$SRC][id][key] = opts[key] if opts.has_key? key
   }

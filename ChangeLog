@@ -215,3 +215,8 @@
     and finally a truncated url
   * raggle: strip newlines from status strings
   * raggle: changed unicode munge str to 'ZZ'
+
+* Thu Jun 19 06:55:22 2003, pabs <pabs@pablotron.org>
+  * raggle: don't allow someone to set a feed refresh of less than 30
+    minutes without passing the '--force' option on the command-line
+  * raggle: added String#reflow

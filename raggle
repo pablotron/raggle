@@ -2464,6 +2464,11 @@ def ncurses_add_feed
     add_feed({ 'url' => str })
     populate_feed_win
   end
+    
+  # redraw status bar
+  $new_status = $status
+  $status = msg
+  set_status($new_status)
 end
 
 #

@@ -1201,3 +1201,5 @@
     ctrl-c makes it die horribly, it doesn't refresh the status bar
     after the update
 
+* Sun Aug 31 14:45:52 2003, pabs <pabs@pablotron.org>
+  * raggle: refresh statusb ar after adding feed from gui

@@ -1988,69 +1988,7 @@ def expand_config
   }
 end
 
-#
-# describe the highlighted feed
-# 
-def describe_feed(id)
-  d_win = $wins[get_win_id('desc')]
-  d_win.active_item = 0
-  d_win.items.clear
-  d_win.clear
 
-  y = 0
-  feed = $config['feeds'].get(id)
-
-  # print title
-  str = feed['title'].strip
-  d_win.draw(str, 1, y += 1, 'f_title')
-
-  # print last update
-  if feed.has_key?('updated') && feed['updated'] > 0
-    if feed['updated'].is_a? Fixnum
-      date_str = Time.at(feed['updated']).to_s
-    else
-      date_str = 'never'
-    end
-
-    str = 'Updated: ' << date_str
-    d_win.draw(str, 1, y += 1, 'f_update')
-  end
-  
-  # print site url
-  if $config['desc_show_site'] &&
-     feed.has_key?('site') && feed['site'].length > 0
-    str = feed['site']
-    d_win.draw(str, 1, y += 1, 'f_site')
-  end
-
-  # print site url
-  if $config['desc_show_url'] &&
-     feed.has_key?('site') && feed['site'].length > 0
-    str = feed['url']
-    d_win.draw(str, 1, y += 1, 'f_url')
-  end
-
-  # draw poor man's divider
-  if $config['desc_show_divider']
-    d_win.draw('-  ' * 100, 1, y += 2, 'box', true, false)
-  end
-
-  # print error
-  if feed.has_key?('error')
-    d_win.draw(feed['error'], 1, y += 2, 'f_error')
-  else 
-    # print description
-    if feed['desc'] && feed['desc'].length > 0
-      str = feed['desc']
-      d_win.draw(str, 1, y += 2, 'f_desc')
-    end
-  end
-  
-  # refresh window
-  d_win.refresh
-end
-
-#
 # set active feed by id
 #
 def select_feed(id)

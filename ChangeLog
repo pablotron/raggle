@@ -2081,3 +2081,7 @@
   <tjkirch@rochester.rr.com> to fix several get_win_id messups, and also
   reselect the currnt window item when deleting feeds (to prevent
   stale data in the feeds window)
+
+* Fri Nov 19 18:31:51 2004, pabs <pabs@pablotron.org>
+  * raggle: check for ENV['RAGGLE_WEB_DATA'] in find_web_ui_root
+    (suggested by Hans Hagen <pragma@wxs.nl>)

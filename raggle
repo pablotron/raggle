@@ -343,7 +343,9 @@ module Raggle
     #   Path::find_web_ui_root #=> '/home/pabs/.raggle/web_ui'
     # 
     def Path::find_web_ui_root
-      if RUBY_PLATFORM =~ /win32/i
+      if ENV['RAGGLE_WEB_DATA']
+        ENV['RAGGLE_WEB_DATA']
+      elsif RUBY_PLATFORM =~ /win32/i
         ENV['PROGRAMFILES'] + '/Raggle/web_ui'
       else
         '${config_dir}/web_ui'

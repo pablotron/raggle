@@ -1463,6 +1463,18 @@ def handle_Command_line(opts)
       ret['mode'] = 'delete'
       grab_next = 1
       ret['id'] = opts[i + 1]
+    when '-i'
+      ret['mode'] = 'invalidate'
+      grab_next = 1
+      ret['id'] = opts[i + 1]
+    when '--invalidate'
+      ret['mode'] = 'invalidate'
+      grab_next = 1
+      ret['id'] = opts[i + 1]
+    when '--invalidate-feed'
+      ret['mode'] = 'invalidate'
+      grab_next = 1
+      ret['id'] = opts[i + 1]
     when '--force'
       ret['force'] = true
     when '-l'
@@ -1605,6 +1617,14 @@ def delete_feed(id)
   die "Unknown feed id #{id}." unless $config[$SRC].delete_at(id)
   # clean up the feed cache here
   purge_feed_cache
+end
+
+#
+# Invalidate a feed by id
+#
+def invalidate_feed(id)
+  die "Unknown feed id #{id}." unless $config[$SRC].size >= id
+  $config[$SRC][id]['updated'] = 0
 end
 
 # 
@@ -1793,6 +1813,10 @@ when 'add'
   exit 0
 when 'delete'
   delete_feed opts['id'].to_i
+  save_feed_list
+  exit 0
+when 'invalidate'
+  invalidate_feed opts['id'].to_i
   save_feed_list
   exit 0
 when 'edit'

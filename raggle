@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+#!/usr/bin/env ruby1.8
 # -*- Mode: Ruby -*-
 
 #######################################################################
@@ -2441,7 +2441,17 @@ end
 # save feed list 
 #
 def save_feed_list
-  File::open($config['feed_list_path'], 'w') { |f|
+  path = $config['feed_list_path']
+  new_path = path + '~'
+
+  # rename old feed list
+  begin 
+    File::rename path, new_path if test ?e, path
+  rescue
+  end
+  
+  # save feed list
+  File::open(path, 'w') { |f|
     $stdout.puts $config['msg_save_list'] if $config['raggle_mode'] == 'view'
     $stdout.flush
 
@@ -3325,27 +3335,25 @@ def main
         set_status $new_status if $new_status != $status
       end
     end
-  ensure
     
+    # clean up screen on exit (unless running HTTP server)
+    Ncurses::endwin unless $config['run_http_server']
+
+    # stop feed grabbing thread
+    $feed_thread.exit if $feed_thread.alive?
+
+    # save feed cache, feed list, and theme
+    save_feed_cache if $config['save_feed_cache']
+    save_feed_list if $config['save_feed_list']
+    save_theme if $config['save_theme']
+  ensure
     # clean up either screen or HTTP server on exit
     if $config['run_http_server']
       $http_server.shutdown
     else
-      Ncurses::endwin
+      Ncurses::endwin unless $done
     end
       
-    # stop feed grabbing thread
-    $feed_thread.exit
-    
-    # save feed cache
-    save_feed_cache if $config['save_feed_cache']
-    
-    # save feed list
-    save_feed_list if $config['save_feed_list']
-    
-    # save theme
-    save_theme if $config['save_theme']
-    
     # unlock everything
     destroy_cache_lock if $config['use_cache_lock'] && $config['cache_lock']
     

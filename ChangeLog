@@ -1527,3 +1527,8 @@
   * added extras/web_ui/inc/default.css (merge *.css into default.css)
   * extras/web_ui/quit.html: added body class
   * extras/web_ui/quit.html: point at default.css
+
+* Tue Sep 23 16:39:31 2003, pabs <pabs@pablotron.org>
+  * raggle: don't save feed list and feed cache on crash (I don't like
+    this behavior, but hey)
+  * raggle: back-up feeds.yaml before saving it (to feeds.yaml~)

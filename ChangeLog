@@ -1631,3 +1631,11 @@
 	    feel free to revert and berrate me :)
   * TODO: Mark the `abort_on_exception' item as done.
 
+* Thu Sep 25 20:52:22 2003, pabs <pabs@pablotron.org>
+  * raggle: make abort_on_exception an option (disabled by dfeault)
+  * raggle: add save_on_crash option (also disabled by default)
+  * raggle: change behavior of loading config.rb, now instead of
+    replacing the default $config, it does a $config.update user_config
+    (this you can have a config with only one or two options instead
+    and it'll fall back to defaults for everything else)
+

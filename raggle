@@ -3105,9 +3105,19 @@ def main
   # if $HOME/.raggle doesn't exist, then create it
   Dir::mkdir $config['config_dir'] unless test ?d , $config['config_dir']
   
+  # save default config
+  default_config = $config
+
   # load user config ($HOME/.raggle/config.rb)
   puts $config['msg_load_config'] if opts['mode'] == 'view'
   load $config['config_path'], false if test ?e, $config['config_path']
+
+  # save user config, switch to default config, and update from
+  # user config
+  user_config = $config
+  $config = default_config
+  $config.update user_config
+  
   expand_config
   
   # load feed list
@@ -3347,8 +3357,8 @@ def main
     $http_thread.priority  = $config['thread_priority_http'] || 1
   end
 
-  # set abort on exception
-  $feed_thread.abort_on_exception = true
+  # set abort on exception for feed grabbing thread
+  $feed_thread.abort_on_exception = $config['abort_on_exception']
 
   begin
     if $config['run_http_server']
@@ -3388,11 +3398,20 @@ def main
     save_feed_list if $config['save_feed_list']
     save_theme if $config['save_theme']
   ensure
-    # clean up either screen or HTTP server on exit
-    if $config['run_http_server']
-      $http_server.shutdown unless $done
-    else
-      Ncurses::endwin unless $done
+    unless $done # if done is set then we're exiting cleanly
+      # clean up either screen or HTTP server on exit
+      if $config['run_http_server']
+        $http_server.shutdown
+      else
+        Ncurses::endwin 
+      end
+      
+      # save feed cache, feed list, and theme (if requested)
+      if $config['save_on_crash']
+        save_feed_cache if $config['save_feed_cache']
+        save_feed_list if $config['save_feed_list']
+        save_theme if $config['save_theme']
+      end
     end
       
     # unlock everything
@@ -3433,6 +3452,12 @@ $config = {
   # theme handling
   'load_theme'            => true,
   'save_theme'            => true,
+
+  # save stuff on crash?
+  'save_on_crash'         => false,
+
+  # abort feed thread on exception?
+  'abort_on_exception'    => false,
 
   # feed list, feed cache, and theme lock handling
   'use_cache_lock'        => true,

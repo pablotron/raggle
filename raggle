@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+#!/usr/bin/env ruby1.8
 # -*- Mode: Ruby -*-
 
 #######################################################################
@@ -997,8 +997,8 @@ module Feed
     # initialize http connection
     http = Net::HTTP::new(host, port, proxy['host'], proxy['port'])
     http.use_ssl = use_ssl if $HAVE_LIB['ssl']
-    http.open_timeout = $config['http_open_timeout'] || 10
-    http.read_timeout = $config['http_read_timeout'] || 20
+    # http.open_timeout = $config['http_open_timeout'] || 30
+    # http.read_timeout = $config['http_read_timeout'] || 120
     http.start
     raise "Couldn't connect to host \"#{host}:#{port}\"" unless http
 

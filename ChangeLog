@@ -719,6 +719,10 @@
   * raggle: Correctly Pad URLs and Dates away from the name tag in the
             description window (they don't butt the colon now).
 
+* Thu Jun 26 03:31:33 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Don't display dates when they're not in the feed (set to "0").
+
+
 
 
 	

@@ -872,7 +872,7 @@ class TextWindow < Window
     draw(item['url'], 8, y, 'url', true, false)
 
     # don't draw the date if it isn't set (silly RSS)
-    if item['date'] && item['date'] != ''
+    if item['date'] && item['date'] != '' && item['date'] != "0"
       y += 1
       draw("Date: ", 1, y)
       

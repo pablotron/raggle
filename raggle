@@ -2304,10 +2304,8 @@ def resize_term
     coords[2] = $config['w'] - coords[0] if coords[2] == -1
     coords[3] = $config['h'] - coords[1] if coords[3] == -1
 
-    # delete old window, create new one
-    win.win.del
-    win.win = Ncurses::newwin coords[3], coords[2],
-                              coords[1], coords[0]
+    win.win.move(coords[1], coords[0])
+    win.win.resize(coords[3], coords[2])
 
     # refresh window
     win.refresh

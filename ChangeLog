@@ -1105,3 +1105,7 @@
 * Sun Aug 17 12:34:35 2003, pabs <pabs@pablotron.org>
   * raggle: incrementing versoin number to 0.3.0
   * README: ditto
+
+* Mon Aug 18 11:35:41 2003, pabs <pabs@pablotron.org>
+  * raggle: apply patch from Ville to fix terminal resize bug reported
+    by mgarriss@earthlink.net

@@ -1771,6 +1771,10 @@ ENDUSAGE
           $feed_thread.run
         end
 
+        def Key::manual_save
+          Engine::save_config(quit=false)
+        end
+
         def Key::find_entry(win)
           NcursesInterface::find_entry(win)
         end
@@ -2447,15 +2451,17 @@ ENDUSAGE
       # set active feed by id
       #
       def NcursesInterface::select_feed(id)
+        $old_feed = $a_feed || 0
         $a_feed = id
         $a_item = 0
-      
+
         # clear item window
         item_win = $wins[NcursesInterface::get_win_id('item')]
         item_win.offset = 0
-        item_win.active_item = 0
+        # don't reset active item unless feed actually changed
+        item_win.active_item = 0 unless $old_feed == $a_feed
         item_win.items.clear
-      
+
         $wins[NcursesInterface::get_win_id('desc')].offset = 0
         
         # unused.. remove it?
@@ -2563,11 +2569,12 @@ ENDUSAGE
       # set active item by id
       #
       def NcursesInterface::select_item(id)
+        $old_item = $a_item || 0
         $a_item = id
       
         desc_win = $wins[NcursesInterface::get_win_id('desc')]
         item_win = $wins[NcursesInterface::get_win_id('item')]
-      
+
         # clear description window
         desc_win.active_item = 0
         desc_win.items.clear
@@ -2618,12 +2625,12 @@ ENDUSAGE
           'date'        => feed['items'][id]['date'],
           'read?'       => feed['items'][id]['read?'],
         }
-      
+
         # redraw feed window
         NcursesInterface::populate_feed_win
       
         # redraw description window
-        desc_win.offset = 0
+        desc_win.offset = 0 unless $old_item == $a_item
         desc_win.draw_items
       
         # activate description window
@@ -2706,10 +2713,14 @@ ENDUSAGE
       #
       # save theme
       #
-      def NcursesInterface::save_theme
+      def NcursesInterface::save_theme(quit=true)
         File::open($config['theme_path'], 'w') { |f|
-          $stdout.puts $config['msg_save_theme']
-          $stdout.flush
+          if quit
+            $stdout.puts $config['msg_save_theme']
+            $stdout.flush
+          else
+            $new_status = $config['msg_save_theme']
+          end
           f.puts $config['theme'].to_yaml
         }
       end
@@ -2742,18 +2753,21 @@ ENDUSAGE
         Ncurses::refresh
       
         # if it's not nil, then add it to our list
+        added = false
         if str && str.length > 0
-          Engine::add_feed({ 'url' => str })
+          added = Engine::add_feed({ 'url' => str })
           NcursesInterface::populate_feed_win
         end
-          
-        # redraw status bar
-        $new_status = $status
-        $status = msg
-        NcursesInterface::set_status($new_status)
-      
-        # force update now
-        $feed_thread.run if $config['update_after_add']
+
+        if added
+          # redraw status bar
+          $new_status = $status
+          $status = msg
+          NcursesInterface::set_status($new_status)
+
+          # force update now
+          $feed_thread.run if $config['update_after_add']
+        end
       end
       
       #
@@ -3358,7 +3372,7 @@ ENDUSAGE
           $config['feeds'].feeds.size
         end
 
-        def add_feed(oots)
+        def add_feed(opts)
           main::add_feed(opts)
         end
 
@@ -3434,9 +3448,8 @@ ENDUSAGE
         Raggle::Interfaces::NcursesInterface::populate_feed_win
         Raggle::Interfaces::NcursesInterface::select_feed 0
         Raggle::Interfaces::NcursesInterface::set_active_win(Raggle::Interfaces::NcursesInterface::get_win_id('feed'))
+        Raggle::Interfaces::NcursesInterface::set_status "Loading feed cache... done"
       end
-    
-      Raggle::Interfaces::NcursesInterface::set_status "Loading feed cache... done"
     end
     
     #
@@ -3452,7 +3465,7 @@ ENDUSAGE
     #
     # save feed list 
     #
-    def Engine::save_feed_list
+    def Engine::save_feed_list(quit=true)
       path = $config['feed_list_path']
       new_path = path + '~'
     
@@ -3464,9 +3477,12 @@ ENDUSAGE
       
       # save feed list
       File::open(path, 'w') do |f|
-        $stdout.puts $config['msg_save_list'] if $config['raggle_mode'] == 'view'
-        $stdout.flush
-    
+        if quit
+          $stdout.puts $config['msg_save_list'] if $config['raggle_mode'] == 'view'
+          $stdout.flush
+        else $new_status = $config['msg_save_list'] if $config['raggle_mode'] == 'view'
+        end
+
         # save feed items before clearing them (for web interface)
         tmp = []
         $config['feeds'].each { |feed| tmp << feed['items']; feed['items'] = [] }
@@ -3482,15 +3498,26 @@ ENDUSAGE
     # add a new feed
     #
     def Engine::add_feed(opts)
-      %w{title refresh}.each { |i| opts[i] ||= $config["default_feed_#{i}"] }
-      $config['feeds'].add(opts['title'], opts['url'], opts['refresh'],
-                           opts['lock_title?'], opts['save_items?'],
-                           '', '', [], nil, nil, opts['force'])
+      matching_feed = false
+      $config['feeds'].each { |feed|
+        matching_feed = true if feed['url'] == opts['url']
+      }
+      # do not add duplicate feeds
+      unless matching_feed
+        %w{title refresh}.each { |i| opts[i] ||= $config["default_feed_#{i}"] }
+        $config['feeds'].add(opts['title'], opts['url'], opts['refresh'],
+                             opts['lock_title?'], opts['save_items?'],
+                             '', '', [], nil, nil, opts['force'])
     
-      # can't keep adding params to Feed::List#add forever :/
-      if opts['max_items']
-        $config['feeds'][-1]['max_items'] = opts['max_items']
+        # can't keep adding params to Feed::List#add forever :/
+        if opts['max_items']
+          $config['feeds'][-1]['max_items'] = opts['max_items']
+        end
+      else
+        $new_status = $config['msg_added_existing']
       end
+      # return whether we successfully added the feed
+      !matching_feed
     end
 
     #
@@ -3548,6 +3575,7 @@ ENDUSAGE
     def Engine::set_thread_priorities
       Thread::main.priority = $config['thread_priority_main'] || 5
       $feed_thread.priority = $config['thread_priority_feed'] || 0
+      $save_thread.priority = $config['thread_priority_save'] || 0
 
       if $config['run_http_server']
         $http_thread.priority  = $config['thread_priority_http'] || 1
@@ -3557,17 +3585,19 @@ ENDUSAGE
         $drb_thread.priority = $config['thread_priority_drb'] || 1
       end
 
-      # set abort on exception for feed grabbing thread
+      # set abort on exception for saving and feed grabbing threads
       $feed_thread.abort_on_exception = $config['abort_on_exception']
+      $save_thread.abort_on_exception = $config['abort_on_exception']
     end
 
     #
     # Save configuration (feed cache, feed list, and possibly theme)
     #
-    def Engine::save_config
+    def Engine::save_config(quit=true)
       Raggle::Engine::save_feed_cache if $config['save_feed_cache']
-      Raggle::Engine::save_feed_list if $config['save_feed_list']
-      Raggle::Interfaces::NcursesInterface::save_theme if $config['save_theme']
+      Raggle::Engine::save_feed_list(quit) if $config['save_feed_list']
+      Raggle::Interfaces::NcursesInterface::save_theme(quit) if $config['save_theme']
+      $new_status = $config['msg_save_done'] unless quit
     end
 
     #
@@ -4076,6 +4106,24 @@ ENDUSAGE
       ret 
     end
 
+    def Engine::start_save_thread
+      ret = Thread.new do
+        first_iteration = true
+        interval = $config['save_sleep_interval'] || 300
+        loop do
+          unless first_iteration
+            Raggle::Engine::save_config(quit=false)
+            $new_status = $config['msg_save_done'] unless $config['msg_save_done'].empty?
+          end
+          first_iteration = false
+          sleep interval
+        end
+      end
+
+      # return thread
+      ret 
+    end
+
     #
     # search for feeds, return array of hashes w/ results
     #
@@ -4148,6 +4196,9 @@ def main
   # start feed grabbing thread
   $feed_thread = Raggle::Engine::start_feed_thread
 
+  # start config saving thread
+  $save_thread = Raggle::Engine::start_save_thread
+
   # set up HTTP or DRb server
   if $HAVE_LIB['webrick'] && $config['run_http_server']
     $http_thread = Raggle::Interfaces::HTTPServerInterface::init
@@ -4173,6 +4224,9 @@ def main
 
     # stop feed grabbing thread
     $feed_thread.exit if $feed_thread.alive?
+
+    # stop config-saving thread
+    $save_thread.exit if $save_thread.alive?
 
     # save feed cache, feed list, and theme
     Raggle::Engine::save_config
@@ -4261,6 +4315,7 @@ $config = {
   'thread_priority_gc'    => 1,
   'thread_priority_http'  => 1,
   'thread_priority_find'  => 1,
+  'thread_priority_save'  => 0,
 
   # grab thread reap timeout (wait up to N seconds)
   'thread_reap_timeout'   => 120,
@@ -4362,6 +4417,8 @@ $config = {
   'msg_cat_title'         => 'Display Category',
   'msg_find_feed'         => 'Find Feeds:',
   'msg_find_title'        => 'Search Results for "%s" - %s matching feeds',
+  'msg_added_existing'    => 'Warning: added existing feed',
+  'msg_save_done'         => 'Configuration saved',
 
   # menu bar color
   'menu_bar_cols'         => 24,
@@ -4379,6 +4436,9 @@ $config = {
 
   # thread sleep intervals (in seconds)
   'feed_sleep_interval'   => 60,
+
+  # save thread sleep interval (in seconds)
+  'save_sleep_interval'   => 300,
 
   # gc thread sleep interval (in seconds)
   'gc_sleep_interval'     => 600,
@@ -4527,6 +4587,7 @@ $config = {
     ?n                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::select_next_unread },
 
     ?U                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::manual_update },
+    ?S                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::manual_save },
     ?a                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::gui_add_feed },
 
     # i know this is using 'c'.. we'll see if this fucks us (see note

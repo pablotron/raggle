@@ -162,11 +162,11 @@ class String
       if line_delim_regex && word =~ line_delim_regex
         text << curr_line << "\n" 
         curr_line = ''
-      elsif curr_line.length + word.length > width - 2
-        if curr_line.length > width - 2 and force
-          fline = curr_line[0, width - 4] << "\\ \n"
+      elsif curr_line.length + word.length > width
+        if curr_line.length > width and force
+          fline = curr_line[0, width - 2] << "\\ \n"
           text << fline
-          curr_line = curr_line[width - 4, curr_line.length]
+          curr_line = curr_line[width - 2, curr_line.length]
         else
           text << curr_line << "\n"
           curr_line = "#{word}"
@@ -662,7 +662,7 @@ class Window
 
   def reflow_string(str)
     w = dimensions[0]
-    str.dup.reflow(w)
+    str.dup.reflow(w - 4)
   end
   
   def method_missing(id)
@@ -834,7 +834,7 @@ end
 class TextWindow < Window
   def reflow_string(str)
     w = dimensions[0]
-    str.dup.reflow(w, $config['force_text_wrap'])
+    str.dup.reflow(w - 4, $config['force_text_wrap'])
   end
        
   def draw_items

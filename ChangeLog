@@ -614,3 +614,7 @@
             have 4 taken from it. (the fix is wrong, expect the right one in a
             minute or two.
 
+* Tue Jun 24 10:45:31 2003, richlowe <richlowe@richlowe.net>
+  * raggle: The afformentioned fix, plus some cosmetic adjustments to the
+            wrap width.
+

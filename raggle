@@ -3035,7 +3035,13 @@ def main
     }
   }
 
+  # set up HTTP server
   if $HAVE_LIB['webrick'] && $config['run_http_server']
+    # check to make sure web ui dir exists
+    die "Missing Web UI Root directory \"#{$config['web_ui_root_path']}\"." \
+      unless test ?e, $config['web_ui_root_path']
+
+    # start HTTP server thread
     http_thread = Thread.new {
       $http_server = Raggle::HTTPServer::new($config['http_server'])
       $http_server.start

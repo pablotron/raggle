@@ -1020,3 +1020,6 @@
 * Sat Aug 16 20:05:07 2003, pabs <pabs@pablotron.org>
   * raggle: added $config['use_http_headers'], to ward off the inevitable
   * raggle: removed REXML and YAML version from user-agent header
+
+* Sat Aug 16 20:07:54 2003, pabs <pabs@pablotron.org>
+  * raggle: fix 1.8 encoding bug reported by srl

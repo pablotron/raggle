@@ -2580,7 +2580,7 @@ $config = {
   'http_headers'  => {
     'Accept'              => 'text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,*/*;q=0.1',
     'Accept-Charset'      => if REXML::constants.include?('Encoding')
-      (REXML::Encoding::ENCODING_CLAIMS.values.sort + '*;q=0.1').join(',')
+      (REXML::Encoding::ENCODING_CLAIMS.values.sort + ['*;q=0.1']).join(',')
     else
       'ISO-8859-1,UTF-8;q=0.7,*;q=0.7'
     end,

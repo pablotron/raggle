@@ -2193,3 +2193,6 @@
 * Wed Dec 22 10:55:00 2004, redshift <redshift@halffull.org>
   * raggle: updated uses of $config['feeds'][id] to .get(id) for safety
   * raggle: updated Freshmeat rss address
+
+* Wed Dec 22 12:16:00 2004, redshift <redshift@halffull.org>
+  * raggle: fixed scrolling in description window to skip blank lines

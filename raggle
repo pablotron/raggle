@@ -2464,7 +2464,8 @@ ENDUSAGE
           item = @items[0]
           s = item['fmt_content_num_lines'] ||
               reflow_string(item['content']).lines
-          @offset += 1 if @offset < s - 1
+          # this skips the blank lines at the end of the description
+          @offset += 1 if @offset < s - 7
           draw_items
         end
 
@@ -2480,7 +2481,7 @@ ENDUSAGE
           s += item['fmt_content_num_lines'] ||
                reflow_string(item['content']).lines
           s += 1
-          @offset = s - (h - 2)
+          @offset = s - (h - 1)
           draw_items
         end
 

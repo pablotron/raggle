@@ -1662,3 +1662,14 @@
 
 * Fri Sep 26 00:48:32 2003, pabs <pabs@pablotron.org>
   * raggle: make edit accept -1 for batch operations
+
+* Sat Sep 27 12:20:41 2003, pabs <pabs@pablotron.org>
+  * raggle: added preliminary DRb interface (--drb-server to enable,
+    requires drb, see Raggle::DRbInterface for available methods)
+  * raggle: removed commented GC thread cruft
+  * raggle: wrapped REXML::Document.new in Thread::critical; the
+    crash [BUG] i'm seeing with thread pools _always_ happens in 
+    REXML (either a bug in Ruby threads, or REXML isn't thread safe)
+  * raggle: added configurable $config['use_critical_regions'] through
+    feed grabbing thread; this is just temporary, for debugging
+  * raggle: increase default thread pool size from 6 to 10 threads

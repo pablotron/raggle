@@ -83,6 +83,7 @@ require 'pstore'
   'yaml'    => ['yaml',           'YAML',         true ],
   'ssl'     => ['net/https',      'OpenSSL-Ruby', false],
   'webrick' => ['webrick',        'WEBrick',      false],
+  'drb'     => ['drb',            'DRb',          false],
 }.each { |key, info|
   path, title, required = info[0, 3]
   $HAVE_LIB ||= {}
@@ -1285,7 +1286,9 @@ module Feed
           $config['strip_external_entities'] && content =~ /<!ENTITY %.*?>/m
 
         # parse URL content
+        Thread::critical = true
         doc = REXML::Document.new content
+        Thread::critical = false
 
         # get channel info
         e = nil
@@ -2153,6 +2156,57 @@ module Raggle
       ret
     end
   end
+
+  class DRbInterface
+    def config(key)
+      $config[key]
+    end
+
+    def set_config(key, val)
+      $config[key] = val
+    end
+
+    def config_keys
+      $config.keys
+    end
+
+    def feeds
+      $config['feeds'].feeds
+    end
+
+    def feeds_size
+      $config['feeds'].feeds.size
+    end
+
+    def add_feed(oots)
+      main::add_feed(opts)
+    end
+
+    def [](id)
+      $config['feeds'][id]
+    end
+
+    def version
+      $VERSION
+    end
+
+    def quit
+      exit 0
+    end
+  end
+
+  class DRbServer
+    attr_accessor :opts, :interface
+    def initialize(opts)
+      @opts = opts
+      @interface = Raggle::DRbInterface.new
+    end
+
+    def start
+      DRb::start_service(@opts['bind_url'], @interface)
+      DRb::thread.join
+    end
+  end
 end
     
 
@@ -2162,7 +2216,7 @@ end
 def set_status(str)
   str ||= ''
 
-  if $config['run_http_server']
+  if $config['run_http_server'] || $config['run_drb_server']
     $stderr.puts "Raggle: #{str}"
   else
     w, e_msg = $config['w'], $config['msg_exit']
@@ -2473,7 +2527,7 @@ def load_feed_cache
     }
   }
 
-  unless $config['run_http_server']
+  unless $config['run_http_server'] || $config['run_drb_server']
     populate_feed_win
     select_feed 0
     set_active_win get_win_id('feed')
@@ -2651,6 +2705,7 @@ def handle_command_line(opts)
     ['--export-opml',                           GetoptLong::REQUIRED_ARGUMENT],
     ['--diag',                                  GetoptLong::NO_ARGUMENT],
     ['--server',                                GetoptLong::OPTIONAL_ARGUMENT],
+    ['--drb-server', '--drb',                   GetoptLong::NO_ARGUMENT],
     ['--help', '-h', '--usage',                 GetoptLong::NO_ARGUMENT],
     ['--ascii', '-A',                           GetoptLong::NO_ARGUMENT],
     ['--max-items', '--max',                    GetoptLong::REQUIRED_ARGUMENT]
@@ -2719,6 +2774,12 @@ def handle_command_line(opts)
               if $config['http_server'] && arg && arg.to_i > 0
           else
             die 'Missing WEBrick, can\'t run HTTP Server.'
+          end
+        when '--drb-server'
+          if $HAVE_LIB['drb']
+            $config['run_drb_server'] = true
+          else
+            die "Missing DRb, can't run DRb Server."
           end
         when '-h', '--help', '--usage'
           print_usage
@@ -3200,11 +3261,12 @@ def main
     $config['theme'] = YAML::load(File::open($config['theme_path']))
   end
 
-  $config['run_http_server'] = true unless $HAVE_LIB['ncurses']
+  $config['run_http_server'] = true unless $HAVE_LIB['ncurses'] ||
+                                           $HAVE_LIB['drb']
 
   # Draw windows and such.
   # (unless we're running as a daemon)
-  setup_win unless $config['run_http_server']
+  setup_win unless $config['run_http_server'] || $config['run_drb_server']
   
   # load feed cache
   load_feed_cache if $config['load_feed_cache'] &&
@@ -3253,6 +3315,7 @@ def main
                 # update feed attributes
                 if !chan.last_modified ||
                    chan.last_modified != feed['last_modified']
+                  Thread::critical = $config['use_critical_regions']
                   feed['title'] = chan.title unless $config['lock_feed_title'] ||
                                                     feed['lock_title?'] == true
                   feed['desc'] = chan.desc
@@ -3264,14 +3327,17 @@ def main
                   # because we're using it as a token, not as a timestamp
                   # -- paul
                   feed['last_modified'] = chan.last_modified
+                  Thread::critical = false
                   
                   # hash the urls, save the read status
                   urls = {}
                   feed['items'].each { |item| urls[item['url']] = item['read?'] }
 
                   # clear the list if we're not saving feed items
+                  Thread::critical = $config['use_critical_regions']
                   feed['items'].clear unless $config['save_feed_items'] ||
                                              feed['save_items?']
+                  Thread::critical = false
                   
                   # insert new items
                   new_items = []
@@ -3293,6 +3359,7 @@ def main
                   
                   # if we're saving old items, then prepend the new items
                   # otherwise, replace the old list
+                  Thread::critical = $config['use_critical_regions']
                   if $config['save_feed_items'] || feed['save_items?']
                     feed['items'] = new_items + feed['items']
 
@@ -3304,6 +3371,7 @@ def main
                   else
                     feed['items'] = new_items
                   end
+                  Thread::critical = false
                 else 
                   feed['updated'] = t.to_i
                   log.puts "Feed \"#{feed['title']}\" hasn't changed."
@@ -3313,7 +3381,7 @@ def main
                 # so it's contents are updated
                 # TODO: make this select the currently selected item again
                 # (assuming it still exists)
-                if !$config['run_http_server'] &&
+                if !$config['run_http_server'] && !$config['run_drb_server'] &&
                    $config['feeds'][$a_feed]['url'] == feed['url']
                   $wins[get_win_id('feed')].select_win_item
                 end
@@ -3326,8 +3394,8 @@ def main
                  !$config['grab_in_parallel']
                 # thread.join            
               end
-              until Thread::list.size < ($config['max_threads'] || 6)
-                $log.puts 'waiting for threads'
+              until Thread::list.size < ($config['max_threads'] || 10)
+                $log.puts 'DEBUG: waiting for threads'
                 sleep 5
               end
             }
@@ -3363,14 +3431,25 @@ def main
       $http_server = Raggle::HTTPServer::new($config['http_server'])
       $http_server.start
     }
+  elsif $HAVE_LIB['drb'] && $config['run_drb_server']
+    # start DRb server thread
+    $drb_thread = Thread::new {
+      $drb_server = Raggle::DRbServer::new($config['drb_server'])
+    }
   end
 
-  # set thread priorities
+  #########################
+  # set thread priorities #
+  #########################
   Thread::main.priority = $config['thread_priority_main'] || 5
   $feed_thread.priority = $config['thread_priority_feed'] || 0
-  # gc_thread.priority    = $config['thread_priority_gc']   || 1
+
   if $config['run_http_server']
     $http_thread.priority  = $config['thread_priority_http'] || 1
+  end
+
+  if $config['run_drb_server']
+    $drb_thread.priority = $config['thread_priority_drb'] || 1
   end
 
   # set abort on exception for feed grabbing thread
@@ -3379,7 +3458,9 @@ def main
   begin
     if $config['run_http_server']
       $http_thread.join
-    else
+    elsif $config['run_drb_server']
+      $drb_server.start # (this does a join)
+    else # ncurses interface
       # main input loop
       timeout = $config['input_select_timeout']
       $done = false
@@ -3404,7 +3485,8 @@ def main
     end
     
     # clean up screen on exit (unless running HTTP server)
-    Ncurses::endwin unless $config['run_http_server']
+    Ncurses::endwin unless $config['run_http_server'] ||
+                           $config['run_drb_server']
 
     # stop feed grabbing thread
     $feed_thread.exit if $feed_thread.alive?
@@ -3418,6 +3500,8 @@ def main
       # clean up either screen or HTTP server on exit
       if $config['run_http_server']
         $http_server.shutdown
+      elsif $config['run_drb_server']
+        nil
       else
         Ncurses::endwin 
       end
@@ -3568,6 +3652,12 @@ $config = {
     # NOTE:
     # document root is set as $config['web_ui_root_path'], and the
     # access log is set via $config['web_ui_log_path']
+  },
+
+  # raggle drb server settings
+  'run_drb_server'        => false,
+  'drb_server'            => {
+    'bind_url'            => 'druby://localhost:1234',
   },
 
   # messages

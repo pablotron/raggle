@@ -1129,7 +1129,7 @@
     mgarriss@earthlink.net
   * raggle: clean up Ville's evil tabbing ;).
   * raggle: fix thread_priority_* unset in config bug reported by
-    Richard Zidlicky <rz@linux-m68k.org
+    Richard Zidlicky <rz@linux-m68k.org>
 
 * Wed Aug 20 16:50:22 2003, pabs <pabs@pablotron.org>
   * raggle: explicitly invoke the GC at user-defined interval
@@ -1228,3 +1228,6 @@
     --version, --usage and --server to Synopsis. Removed --list-feeds
     from Synopsis. Added explanation of using -1 with --invalidate. Added
     --invalidate-feed and --server to Description.
+
+* Tue Sep 02 10:22:40 2003, pabs <pabs@pablotron.org>
+  * TODO: added some new ideas

@@ -45,3 +45,12 @@ Raggle TODO
 [ ] Reverse ordering, (on a key) so you can read a big chunk of new
     items in chronological order (most are reverse chron) without
     undue discomfort
+[ ] Full HTML support is hard, but we at least need to do the right
+    thing with <PRE>, this is entirely possible within String#reflow
+    o Remove all calls to strip_tags (and have Window#text_draw do it
+      *after* the reflow)
+    o Watche for <pre[^>]*> </pre[^>]*> in String#reflow
+    o Prevent reflow when between the two tags, just pass it word for
+      word to text, sticking a \n in when one appears (which you can't
+      see, because of the way #reflow is implemented, hence why I'm
+      not doing it.

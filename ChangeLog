@@ -2047,3 +2047,10 @@
     duplicate links.
   * extras/test_html_renderer.rb: Fix broken tests and
     add test for the new reference reusing.
+
+* Sat Oct 16 19:01:18 2004, heap <vaine@cs.helsinki.fi>
+  * raggle: Fix rendering of links inside <pre>.
+    See RSS version of http://www.paulduncan.org/?id=275
+    for example.
+  * extras/test_html_renderer.rb: Add test for links
+    inside <pre>.

@@ -627,12 +627,15 @@ module Raggle
         @context = []
         
         Parser::each_token(@source) do |token, data, attributes|
-        #puts "C: #{context[-1]} T: #{token} D: <#{data}> L: #{lines.inspect}"
+        #puts "C: #{@context[-1]} T: #{token} D: <#{data}> L: #{@lines.inspect}"
         case token
         when :TEXT
           if @context[-1] == :in_pre
-            @lines.pop if @lines[-1] == ""
-            @lines += data.split("\n", -1)
+            tmp = data.split("\n", -1)
+            if @lines[-1]
+              @lines[-1] << tmp.shift
+            end
+            @lines += tmp
           else
             reflow_text(data)
           end

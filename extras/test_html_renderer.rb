@@ -278,7 +278,22 @@ class TestRenderer < Test::Unit::TestCase
     assert_match %r{^ 1. http://example.com/0$}, lines, 'references are padded'
     assert_match %r{^10. http://example.com/9$}, lines, 'no padding needed'
   end
-  
+
+  def test_links_shouldnt_add_newlines_inside_pre
+    expexted =
+      "\n" + 
+      "17:32 <bma[1]> http://tynian.net/grill.jpg[2]\n" +
+      "\n" +
+      "Links:\n" +
+      "1. http://tynian.net/\n" +
+      "2. http://tynian.net/grill.jpg\n"
+    html = "<pre>\n" +
+      "17:32 &lt;<a href='http://tynian.net/'>bma</a>&gt; <a href='http://tynian.net/grill.jpg'>http://tynian.net/grill.jpg</a>\n" +
+      "</pre>\n"
+      
+    assert_equal expexted, render(html)
+  end
+
   def test_h1_behaves_like_p
     assert_equal "foo bar\n\nb\n", render("<h1>foo bar</h1>b"), "H1"
   end

@@ -23,3 +23,8 @@ Raggle TODO
     right now.  But takes surgery, which can wait until morning, if
     you read this more than a week after I commit it, email me and
     tell me to at the very least ammend this, to say why it's taken so long
+[ ] Add a focus mode 'focus_smart'(?) that will select a feed when you
+    flip from feeds into items (such that you don't have one feed by all
+    visual accounts "Highlighted", but the items from another, since
+    just because a feed is highlighted, doesn't mean it's *selected*
+    too (though possibly it should, but that's what this is all about).

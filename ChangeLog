@@ -1342,3 +1342,6 @@
     broken REXML 2.7.1 external entity behavior)
   * raggle: don't buffer feed log output
   * raggle: wrap feed grabbing in begin/rescue pair
+
+* Fri Sep 05 17:58:06 2003, pabs <pabs@pablotron.org>
+  * extras/web_ui/inc/item.html: ITEM_ID => INDEX

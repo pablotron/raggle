@@ -1246,3 +1246,10 @@
 
 * Tue Sep 02 19:09:10 2003, pabs <pabs@pablotron.org>
   * TODO: more ideas!!!
+
+* Tue Sep 02 20:16:43 2003, pabs <pabs@pablotron.org>
+  * raggle: handle http 1.0 basic authentication
+  * raggle: handle http 304 (hasn't changed) responses
+  * raggle: send http headers with last-modified HEAD request
+  * raggle: send if-modified-since with last-modified HEAD requeste
+

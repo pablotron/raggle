@@ -913,6 +913,7 @@ module Feed
   def Feed::get_http_url(url, last_modified = nil)
     port = 80
     use_ssl = false
+    user, pass = nil, nil
 
     # work with a copy of the url
     url = url.dup
@@ -926,9 +927,16 @@ module Feed
     # strip 'http://' prefix from URL
     url.gsub!(/^\w+?:\/\//, '') if url =~ /^\w+?:\/\//
 
+    # get user and pass from URL
+    if url =~ /^([^:]*):([^@]*)@/
+      user, pass = $1, $2
+      url.gsub(/^.+?@/, '')
+    end
+
     # get host and path portions of url
     raise "Couldn't parse URL: \"#{url}\"" unless url =~ /^(.+?)\/(.*)$/
     host, path = $1, $2
+
 
     # check for port in URL
     if host =~ /:(\d+)$/
@@ -948,7 +956,21 @@ module Feed
     begin 
       # check last-modified header first
       if last_modified
-        resp = http.head('/' << path)
+        # build headers
+        headers = $config['use_http_headers'] ? $config['http_headers'] : {}
+        headers['If-Modified-Since'] = last_modified
+        
+        # handle basic http authentication
+        if user
+          pass ||= ''
+          headers['Authorization'] = 'Basic ' <<
+                                     ["#{user}:#{pass}"].pack('m').strip
+        end
+
+        # get response
+        resp = http.head('/' << path, headers)
+
+        # check header
         if last_modified == resp['last-modified']
           # it's the same as the old content
           ret = [nil, last_modified]
@@ -958,15 +980,26 @@ module Feed
         end
       else
         # no cache, just get the result
-        headers = $config['use_http_headers'] ? $config['http_headers'] : nil
+        headers = $config['use_http_headers'] ? $config['http_headers'] : {}
+
+        # handle basic http authentication
+        if user
+          pass ||= ''
+          headers['Authorization'] = 'Basic ' <<
+                                     ["#{user}:#{pass}"].pack('m').strip
+        end
+
+        # get the result
         resp, content = http.get(('/' << path), headers)
         ret = [content, resp['last-modified']]
       end
     rescue 
       resp = $!.response
 
-      # handle redirects
-      if resp.code =~ /3\d{2}/
+      # handle unchanged content and redirects
+      if resp.code.to_i == 304      # hasn't changed
+        ret = [nil, last_modified]
+      elsif resp.code =~ /3\d{2}/   # redirect
         # handle host-relative redirects
         location = resp['location']
         if location =~ /^\//

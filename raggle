@@ -895,7 +895,7 @@ module Raggle
           doc = REXML::Document.new(contents)
           doc.root.elements.each('//outline') do |outline|
             title = outline.attributes['title'] || $config['default_feed_title']
-            url = outline.attributes['xmlUrl'] || outline.attributes['xmlurl']
+            url = outline.attributes['xmlUrl'] || outline.attributes['xmlurl'] || outline.attributes['url']
             site = outline.attributes['htmlUrl'] || outline.attributes['htmlurl'] || ''
             desc = outline.attributes['description'] || ''
             cat = outline.attributes['category'] || nil

@@ -2160,3 +2160,5 @@
 
 * Fri Dec 17 14:05:00 2004, redshift <redshift@halffull.org>
   * raggle: minor fixes to String functions
+  * raggle: fixed get_key_bindings to not show parameters
+  * raggle: more accurate line counting for String#lines

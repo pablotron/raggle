@@ -205,7 +205,7 @@ class String
   #  "a\nb".lines #=> 2
   #
   def lines
-    split(/\n/).size
+    count("\n") + 1
   end
   
   #

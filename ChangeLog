@@ -978,3 +978,10 @@
 
 * Fri Aug 15 19:13:18 2003, pabs <pabs@pablotron.org>
   * raggle: handle &copy; and &trade; entities
+
+* Fri Aug 15 19:17:36 2003, pabs <pabs@pablotron.org>
+  * README: added Ville Aine as an author.
+  * AUTHORS: updated Ville Aine's entry (added HTML renderer)
+  * README: added RSS feeds for Richard and myself.
+  * raggle: added RSS feeds for Richard and myself.
+  (Ville, do you have a web site?)

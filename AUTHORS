@@ -30,6 +30,7 @@ Ville Aine <vaine@cs.helsinki.fi>
 * select_{next,prev}_unread wraparound
 * support for content:encoded element
 * make --add and OPML import use refresh checking
+* HTML rendering
 
 Richard Zidlicky <rz@linux-m68k.org>
 * preliminary HTTP proxy support

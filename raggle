@@ -1856,10 +1856,14 @@ Examples:
   
 About the Authors:
 Paul Duncan <pabs@pablotron.org>
-http://www.pablotron.org/
+http://www.pablotron.org/  (RSS: http://www.pablotron.org/rss/)
+http://www.paulduncan.org/ (RSS: http://www.paulduncan.org/rss/)
 
 Richard Lowe <richlowe@richlowe.net>
 http://www.richlowe.net/
+http://www.richlowe.net/ (RSS: http://www.richlowe.net/index.cgi/index.rss)
+
+Ville Aine <vaine@cs.helsinki.fi>
 ENDUSAGE
 
   exit(0)

@@ -2,7 +2,7 @@ Raggle TODO
 ===========
 [*] scrolling
 [*] sanitize window modes (remove text reflow from draw())
-[ ] clean up code (move methods to modules, eliminate globals, etc)
+[*] clean up code (move methods to modules, eliminate globals, etc)
 [ ] modularize code to make it suitable for reuse
 [*] finish inline documentation
 [*] command-line options
@@ -51,3 +51,5 @@ Raggle TODO
       word to text, sticking a \n in when one appears (which you can't
       see, because of the way #reflow is implemented, hence why I'm
       not doing it.
+[ ] extended RSS support (1.0 modules, including Dublin Core and
+    Syndication support, etc)

@@ -1069,7 +1069,13 @@ def describe_feed(id)
 
   # print last update
   if feed.has_key?('updated') && feed['updated'] > 0
-    str = 'Updated: ' << Time.at(feed['updated']).to_s
+    if feed['updated'].is_a? Fixnum
+      date_str = Time.at(feed['updated']).to_s
+    else
+      date_str = 'never'
+    end
+
+    str = 'Updated: ' << date_str
     d_win.draw(str, 1, y += 1, 'f_update')
   end
   

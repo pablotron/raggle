@@ -638,8 +638,10 @@
             happens as you would expect now.
 
 * Tue Jun 24 15:37:52 2003, pabs <pabs@pablotron.org>
-  * raggle: applied HOME and END patch reported by Ville Aine
-    (vaine@cs.helsinki.fi).
+	Pull patch from RAGGLE-0-1
+  * raggle: The Key:: function the home and end keys are bound to, calls a
+            function that doesn't exist.  Apply fix from Ville Aine
+            (vaine@cs.helsinki.fi). 
   * AUTHORS: add Ville Aine to AUTHORS
 
 * Tue Jun 24 18:09:34 2003, richlowe <richlowe@richlowe.net>
@@ -659,6 +661,12 @@
 	refinement), URLs matching this regex are ignored, and an error is
 	displayed in the status line
 	*********************
+
+* Tue Jun 24 23:12:21 2003, richlowe <richlowe@richlowe.net>
+	Pull patch from RAGGLE-0-1. 
+  * raggle (FeedList#describe): Handle the possibility of describing a
+           feed that has never been updated (and thus feed['updated']
+	   being nil), reported by Brian Almeida (bma@tynian.net).
 
 
 

@@ -920,8 +920,9 @@ module Feed
     proxy = find_proxy(host) || { }
     
     # initialize http connection
-    http = Net::HTTP::start(host, port, proxy['host'], proxy['port'])
+    http = Net::HTTP::new(host, port, proxy['host'], proxy['port'])
     http.use_ssl = use_ssl if $HAVE_SSL
+    http.start
     raise "Couldn't connect to host \"#{host}:#{port}\"" unless http
 
     begin 

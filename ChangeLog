@@ -1378,3 +1378,6 @@
   * raggle: strip CDATA from descriptions before rendering (i'm worried
     this fix might cause problems later on.  comments anyone?)
 
+* Tue Sep 09 16:31:07 2003, pabs <pabs@pablotron.org>
+  * raggle: redraw item window after selecting item, so item is marked
+    as read before next refresh

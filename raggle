@@ -2118,6 +2118,9 @@ def select_item(id)
   item_win.items[$a_item]['read?'] = true
   $config['feeds'].get($a_feed)['items'][id]['read?'] = true
 
+  # redraw item window items (to mark selected item as read)
+  item_win.draw_items
+
   desc_win.offset = 0
   
   # load item

@@ -804,6 +804,15 @@
   * raggle: applied Ville Aine's import/export OPML patch
   * raggle.1: applied Ville Aine's import/export OPML patch
 
+* Tue Jul  1 04:55:56 2003, richlowe <richlowe@richlowe.net>
+  * extras/feed_dump.rb: Occaisional misshaps mean I lose my feedlist
+                         (note: not due to raggle bugs, generally my
+			 incompetance) This will dump title, url from the 
+			 feed cache, and make it *much* easier to recreate
+			 the feedlist.  (dumps raggle command lines to add
+			 the feeds found in the feed cache)
+
+
 
 
 

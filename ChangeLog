@@ -1725,3 +1725,13 @@
     potential race issues
   * raggle: disable non-parallel feed grabbing for the time being
 
+* Sat Jan 31 09:54:00 2004, pabs <pabs@pablotron.org>
+  * raggle: removed unnecessary thread code
+  * raggle: set thread title and priority in grab_feed()
+  * raggle: wait on each grabbing thread for up to
+    $config['thread_reap_timeout'] seconds (then just give up and
+    leave them running indefinitely.. probably not the smartest thing to
+    do at the moment :/)
+  * raggle: added $config['thread_priority_grab']
+  * raggle: added $config['max_threads']
+  * doc/pauls_feeds.opml.gz: updated to the latest and greatest

@@ -3171,8 +3171,15 @@ def setup_win
     set_active_win(0)
 end
 
+#
+# grab individual feed Ccalled by feed grabbing thread)
+#
 def grab_feed(feed)
   t = Time.now
+  
+  # set the name and priority of the current thread
+  Thread::current['feed'] = feed
+  Thread::current.priority = $config['thread_priority_feed']
   
   $new_status = " Checking feed \"#{feed['title']}\"..."
   $log.puts "#{Time.now}: Checking feed \"#{feed['title']}\""
@@ -3393,17 +3400,20 @@ def main
       loop {
         if !first_iteration || $config['update_on_startup']
           begin
+            threads = []
             $config['feeds'].each { |the_feed|
-              Thread::new(the_feed) { |feed| grab_feed(feed) }
-# 
-#               if thread && thread.status == 'run' &&
-#                  !$config['grab_in_parallel']
-#                 # thread.join            
-#               end
-# 
-              until Thread::list.size < ($config['max_threads'] || 10)
-                $log.puts 'DEBUG: waiting for threads'
+              threads << Thread::new(the_feed) { |feed| grab_feed(feed) }
+              until Thread::list.size < ($config['max_threads'] || 60)
+                $log.puts 'DEBUG: Waiting for threads'
                 sleep 5
+              end
+            }
+
+            # wait for outstanding feed grabbing threads to finish
+            threads.each { |th| 
+              if th && th.status
+                $log.puts "#{Time.now}: Waiting on \"#{th['feed']['title']}\""
+                th.join($config['thread_reap_timeout'] || 2)
               end
             }
           rescue
@@ -3580,11 +3590,18 @@ $config = {
   # use ASCII for window borders instead of ANSI?
   'use_ascii_only?'       => false,
 
+  # maximum number of threads (don't set to less than 5!)
+  'max_threads'           => 10,
+
   # thread priorities (best to leave these alone)
-  'thread_priority_main'  => 5,
-  'thread_priority_feed'  => 0,
+  'thread_priority_main'  => 10,
+  'thread_priority_feed'  => 1, # parent feed grabbing thread
+  'thread_priority_grab'  => 0, # child grabbing threads
   'thread_priority_gc'    => 1,
   'thread_priority_http'  => 1,
+
+  # grab thread reap timeout (wait up to N seconds)
+  'thread_reap_timeout'   => 120,
 
   # don't check every 60 seconds, wait for the update
   # key to be pressed (for modem users, slow computers, etc)

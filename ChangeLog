@@ -1309,3 +1309,7 @@
 
 * Wed Sep 03 22:23:15 2003, pabs <pabs@pablotron.org>
   * in http server mode, die unless web_ui root dir exists
+
+* Thu Sep 04 00:11:03 2003, pabs <pabs@pablotron.org>
+  * raggle: added Path::find_web_ui_root (for win32)
+

@@ -146,6 +146,17 @@ module Path
   end
   
   #
+  # Find web root (in win32 it's located in the program dir by default) 
+  # 
+  def Path::find_web_ui_root
+    if RUBY_PLATFORM =~ /win32/i
+      ENV['PROGRAMFILES'] + '/Raggle'
+    else
+      '${config_dir}/web_ui'
+    end
+  end
+  
+  #
   # Find browser
   #
   def Path::find_browser
@@ -3129,7 +3140,7 @@ $config = {
   'theme_path'            => '${config_dir}/theme.yaml',
   'grab_log_path'         => '${config_dir}/grab.log',
   'cache_lock_path'       => '${config_dir}/lock',
-  'web_ui_root_path'      => '${config_dir}/web_ui',
+  'web_ui_root_path'      => Path::find_web_ui_root,
 
   # feed list handling
   'load_feed_list'        => true,

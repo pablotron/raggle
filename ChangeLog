@@ -800,6 +800,9 @@
   * AUTHORS: updated Ville's entry and Richard's entry, added Richard
     Zidlicky
 
+* Mon Jun 30 22:56:03 2003, pabs <pabs@pablotron.org>
+  * raggle: applied Ville Aine's import/export OPML patch
+  * raggle.1: applied Ville Aine's import/export OPML patch
 
 
 

@@ -269,6 +269,95 @@ module Key
   end
 end
 
+# Very simple OPML importer/exporter
+module OPML
+  # Import OPML file
+  # file_name::  OPML file
+  # refresh::    refresh rate used for all imported feeds.
+  #              If nil, then value of option +feed_default_value+
+  #              is used.
+  # lock_title:: If true, then all title's of imported feeds
+  #              will be locked
+  # save_items:: If true, then all imported feeds' items will be saved.
+  def OPML::import(file_name, refresh=nil, lock_title=false, save_items=false)
+    refresh = $config['feed_default_refresh'] unless refresh
+    feed_list = $config['feeds']
+
+    begin
+      doc = File.open(file_name) do |f|
+	doc = REXML::Document.new(f)
+	doc.root.elements.each('//outline') do |outline|
+	  title = outline.attributes['title']
+	  url = outline.attributes['xmlUrl']
+	  site = outline.attributes['htmlUrl'] || ''
+	  desc = outline.attributes['description'] || ''
+
+	  if title.nil? || url.nil?
+	    $stderr.puts "Warning: skipping incomplete OPML entry: #{outline}"
+	    next
+	  end
+
+	  feed_list.add(title, url, refresh, lock_title, save_items, site, desc)
+	end
+      end
+    rescue REXML::ParseException
+      die "Parsing #{file_name} failed: #{$!.message}"
+    rescue
+      die $!.message
+    end
+  end
+
+
+  # Export all feeds to OPMl format
+  def OPML::export(file_name)
+    begin
+      feed_list = $config['feeds']
+
+      opml = REXML::Element.new("opml")
+      opml.attributes['version'] = '1.1'
+
+      opml.add_element(opml_head)
+      
+      body = REXML::Element.new('body')
+      opml.add_element(body)
+      feed_list.each do |feed|
+	body.add_element(feed_to_outline(feed))
+      end
+
+      doc = REXML::Document.new
+      doc << REXML::Document::DECLARATION
+      doc.add(opml)
+
+      File.open(file_name, 'w') do |f|
+	doc.write(f, 0)
+      end
+    rescue
+      die $!.message
+    end
+  end
+
+  # Generate OPML header
+  def OPML::opml_head
+    head = REXML::Element.new('head')
+    title = REXML::Element.new('title')
+    title.text = 'Raggle subscriptions'
+    head.add_element(title)
+    head
+  end
+
+  # Convert feed hash to outline-element
+  def OPML::feed_to_outline(feed)
+    outline = REXML::Element.new('outline')
+    outline.attributes['title'] = feed['title'] || ''
+    outline.attributes['description'] = feed['desc'] || ''
+    outline.attributes['xmlUrl'] = feed['url'] || ''
+    outline.attributes['htmlUrl'] = feed['site'] if feed.has_key?('site')
+    outline.attributes['version'] = 'RSS'
+    outline.attributes['type'] = 'rss'
+    outline
+  end
+end
+
 class FeedList
   attr_accessor :feeds
   def initialize
@@ -1368,9 +1457,11 @@ Options:
   -c, --config                  Specify an alternate config file.
   -d, --delete, --delete-feed   Delete an existing feed.
   -e, --edit, --edit-feed       Edit an existing feed.
+  --export-opml                 Export feeds to OPML.  
   --force                       Force behavior Raggle won't normally allow.
                                 Use this option with caution.
   -h, --help, --usage           Display this usage screen.
+  --import-opml                 Import feeds from an OPML file.
   -i, --invalidate              Invalidate a feed (force an update).
   -l, --list                    List existing feeds (use '--verbose' to 
                                 show URLs as well).
@@ -1444,6 +1535,8 @@ def handle_command_line(opts)
     ['--save-items',                            GetoptLong::NO_ARGUMENT],
     ['--unsave-items',                          GetoptLong::NO_ARGUMENT],
     ['--verbose',                               GetoptLong::NO_ARGUMENT],
+    ['--import-opml',                           GetoptLong::REQUIRED_ARGUMENT],
+    ['--export-opml',                           GetoptLong::REQUIRED_ARGUMENT],
     ['--diag',                                  GetoptLong::NO_ARGUMENT],
     ['--help', '-h', '--usage',                 GetoptLong::NO_ARGUMENT]
   )
@@ -1489,6 +1582,12 @@ def handle_command_line(opts)
           ret['save_items?'] = false
         when '--verbose'
           $config['verbose'] = true
+        when '--import-opml'
+          ret['mode'] = 'import_opml'
+          ret['opml_file'] = arg
+        when '--export-opml'
+          ret['mode'] = 'export_opml'
+          ret['opml_file'] = arg
         when '--diag'
           $config['diag'] = true
         when '-h', '--help', '--usage'
@@ -1769,6 +1868,13 @@ def main
     exit 0
   when 'purge'
     purge_feed_cache
+    exit 0
+  when 'import_opml'
+    OPML::import opts['opml_file'], opts['refresh'], opts['lock_title?'], opts['save_items']
+    save_feed_list
+    exit 0
+  when 'export_opml'
+    OPML::export opts['opml_file']
     exit 0
   end
   
@@ -2061,6 +2167,9 @@ $config = {
 
   # warn if feed refresh is set to less than this
   'feed_refresh_warn'     => 60,
+
+  # default refresh rate
+  'feed_default_refresh'  => 120,
 
   # open new screen window for browser?
   'use_screen'            => true,

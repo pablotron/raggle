@@ -22,6 +22,7 @@ Bugs
     though I don't know if that's related), the behaviour being
     correct under Linux suggests either a curses bug in the platform
     I'm testing on, or Linux being kinder to the code in this specific case.
-[ ] One feed (actually, the same one that triggers the above) will
+[*] One feed (actually, the same one that triggers the above) will
     reliably bend the description window over, and bugger it backwards
     with a steam iron.
+[ ] Long descriptions are *very* slow to scroll

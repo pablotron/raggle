@@ -2154,39 +2154,7 @@ ENDUSAGE
             elsif @items[@active_item].has_key? 'cat'
               NcursesInterface::select_cat @items[@active_item]['cat']
             elsif @items[@active_item].has_key? 'url'
-              # are we opening new screen windows?
-              use_screen = $config['use_screen'] && in_screen?
-
-              # drop out of curses mode
-              NcursesInterface::save_screen unless use_screen
-
-              # get browser command
-              cmd = $config['browser_cmd'].map do |cmd_part|
-              case cmd_part
-                when /%s/:  cmd_part % @items[@active_item]['url'].escape
-                when '${browser}':  $config['browser']
-                else cmd_part
-                end
-              end
-
-              # prepend screen command if we're using it
-              if use_screen
-                screen_cmd = $config['screen_cmd'].map do |cmd_part|
-                  if cmd_part =~ /%s/
-                    cmd_part % @items[@active_item]['title']
-                  else
-                    cmd_part
-                  end
-                end
-
-                # build new command
-                cmd.unshift(*screen_cmd) 
-              end
-
-              system(*cmd)
-        
-              # reset screen
-              NcursesInterface::restore_screen unless use_screen
+              NcursesInterface::open_url @items[@active_item]
             end
           end
         end
@@ -2822,6 +2790,43 @@ ENDUSAGE
         
         # delete category window
         $wins[NcursesInterface::get_win_id('cat')].close
+      end
+
+      #
+      # open an item's url in Ncurses mode
+      #
+      def NcursesInterface::open_url(item)
+        return unless item['title'] and item['url']  # need item info
+
+        # are we opening new screen windows?
+        use_screen = $config['use_screen'] && in_screen?
+
+        # drop out of curses mode
+        NcursesInterface::save_screen unless use_screen
+
+        # get browser command
+        cmd = $config['browser_cmd'].map { |cmd_part|
+        case cmd_part
+          when /%s/:  cmd_part % item['url'].escape
+          when '${browser}':  $config['browser']
+          else cmd_part
+          end
+        }
+
+        if use_screen  # prepend screen command if we're using it
+          screen_cmd = $config['screen_cmd'].map do |cmd_part|
+            if cmd_part =~ /%s/
+              cmd_part % item['title']
+            else
+              cmd_part
+            end
+          end
+          cmd.unshift(*screen_cmd)  # build new command
+        end
+
+        system(*cmd)
+  
+        NcursesInterface::restore_screen unless use_screen  # reset screen
       end
       
       #

@@ -2220,3 +2220,7 @@
   * raggle: 'n' and 'p' will now span feeds to find unread items
   * raggle: added select_id to select item by id from feed list, rather
     than by id in item window list (includes invisible items)
+
+* Mon Dec 27 10:32:00 2004, redshift <redshift@halffull.org>
+  * raggle: moved url opening code to separate method, which cleaned up
+    select_win_item and can be used for (future) description url opening code

@@ -39,3 +39,21 @@
   * raggle: switched to select() with timeout so Ncurses::getch
     doesn't block ruby threads
   * raggle: added $config['feeds'] ("live" feeds)
+
+* Sun Jun 08 18:58:51 2003, pabs <pabs@pablotron.org>
+  * raggle: added feed cache (uses YAML)
+  * raggle: loads and saves from feed cache
+
+* Sun Jun 08 20:04:43 2003, pabs <pabs@pablotron.org>
+  * raggle: added YAML dependency (for feed cache)
+  * raggle: added expand_config() (primitive macro expansion)
+  * raggle: $config['{feed_cache,config}_path'] are now derived from
+    $config['config_dir']
+  * raggle: added '{load,save}_feed_cache' options
+  * raggle: added 'input_select_timeout' option
+  * raggle: added 'updated' field to feed hash
+  * raggle: added 'read?' field to feed hash
+  * raggle: added Alternet feed (pardon my political bias)
+  * raggle: don't crash on empty feeds any more
+  * raggle: slightly more informative comments
+  * raggle: feed title now includes number of unread items

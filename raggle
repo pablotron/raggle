@@ -4,6 +4,7 @@ $VERSION = '0.1.0'
 
 # load ncurses
 require 'ncurses'
+require 'yaml'
 
 # change to 'feeds' for live feeds
 $SRC = 'feeds'
@@ -11,7 +12,13 @@ $SRC = 'feeds'
 
 # default config
 $config = {
-  'config_path'           => ENV['HOME'] << '.raggle/config.rb',
+  'config_dir'            => ENV['HOME'] << '/.raggle',
+  'config_path'           => '${config_dir}/config.rb',
+  'feed_cache_path'       => '${config_dir}/feed_cache.yaml',
+
+  # feed cache handling
+  'load_feed_cache'       => true,
+  'save_feed_cache'       => true,
 
   # ui options
   'focus'                 => 'select', # ['none', 'select', 'auto']
@@ -31,6 +38,9 @@ $config = {
 
   # status bar color
   'status_bar_cols'       => 24,
+
+  # input select timeout (in seconds)
+  'input_select_timeout'  => 5.0,
 
   # color palette (referenced by window attributes)
   'color_palette'         => [
@@ -112,10 +122,12 @@ $config = {
     { 'title'     => 'Raggle',
       'url'       => 'http://www.pablotron.org/software/raggle/help.rss',
       'refresh'   => -1,
+      'updated'   => 1055113783,
       'items'     => [
         { 'title' => 'Introduction',
           'url'   => 'http://www.pablotron.org/software/raggle/',
           'date'  => 1055074823,
+          'read?' => false,
           'desc'  => 'Welcome to Raggle!
 . .
 Raggle is a command-line RSS aggregator, written in Ruby
@@ -125,6 +137,7 @@ warranty information.', },
         { 'title' => 'License',
           'url'   => 'http://www.pablotron.org/software/raggle/',
           'date'  => 1055074823,
+          'read?' => false,
           'desc'  => 'Copyright (C) 2003
 Paul Duncan, and various contributors.
 . . 
@@ -150,8 +163,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         { 'title' => 'Usage',
           'url'   => 'http://www.pablotron.org/software/raggle/',
           'date'  => 1055074823,
+          'read?' => false,
           'desc'  => 'more fun with testing', },
       ],
+    },
+    { 'title'     => 'Alternet',
+      'url'       => 'http://www.alternet.org/',
+      'desc'      => 'Alternative News and Information.',
+      'refresh'   => -1,
+      'updated'   => 1055113783,
+      'items'     => [ ],
     },
   ],
 
@@ -265,11 +286,34 @@ writer).
   ],
 }
 
+# 
+# expand path macros in $config
+#
+def expand_config
+  $config.each { |key, val| 
+    next unless val.class == String && val =~ /\${(.+?)}/
+    orig_val = val.dup
+    val.gsub!(/\${(.+?)}/, $config[$1])
+    # puts "\"#{orig_val}\" expands to \"#{val}\""
+  }
+end
+
+expand_config
+
 # parse command-line options
 # TODO
 
+# if $HOME/.raggle doesn't exist, then create it
+Dir::mkdir $config['config_dir'] unless test ?d , $config['config_dir']
+
 # load user config ($HOME/.raggle/config.rb)
 load $config['config_path'], false if test ?e, $config['config_path']
+expand_config
+
+# load feed cache
+if $config['load_feed_cache'] && test(?e, $config['feed_cache_path'])
+  $config[$SRC] = YAML::load(File::open($config['feed_cache_path']))
+end
 
 class Window
   attr_accessor :win, :win_type, :title, :key, :colors, :active, :items, :active_item
@@ -380,12 +424,15 @@ class Window
   # select currently hilited window item
   #
   def select_win_item
-    if @items[@active_item].has_key? 'feed'
-      select_feed @items[@active_item]['feed']
-    elsif @items[@active_item].has_key? 'item'
-      select_item @items[@active_item]['item']
-    elsif @items[@active_item].has_key? 'url'
-      # exec ['Eterm', '-e', 'links', @items[@active_item]['url']] if fork == 0
+    if @items && @items.size > 0
+      if @items[@active_item].has_key? 'feed'
+        select_feed @items[@active_item]['feed']
+      elsif @items[@active_item].has_key? 'item'
+        select_item @items[@active_item]['item']
+      elsif @items[@active_item].has_key? 'url'
+        # exec ['Eterm', '-e', 'links', 
+        #       @items[@active_item]['url']] if fork == 0
+      end
     end
   end
 
@@ -455,17 +502,25 @@ def select_feed(id)
   $a_feed = id
   $a_item = 0
 
+  # clear item window
   item_id = get_win_id 'item'
   $wins[item_id].active_item = 0
   $wins[item_id].items.clear
 
+  # unused.. remove it?
   fmt = $config['item_date_format']
+
+  # wtf is happening here?
+  raise "id.class.to_s = #{id.class.to_s}" unless id.class == Fixnum
+  
+  # iterate through feed items
   $config[$SRC][id]['items'].each_with_index { |item, i|
     # can't depend on the date being in a consistent format, or
     # being defined at all, for that matter :( :( :(
     # title = item['title'] + ' (' +
     #         Time.at(item['date'].to_i).strftime(fmt) << ')'
 
+    # build title string
     if item['date'] && item['date'].size > 0
       title = "#{item['title']} (#{item['date']})"
     else 
@@ -478,9 +533,11 @@ def select_feed(id)
     }
   }
 
+  # redraw item window
   $wins[item_id].win.clear
   $wins[item_id].draw_items
 
+  # activate item window
   set_active_win(item_id) if $config['focus'] == 'select'
 end
 
@@ -490,22 +547,35 @@ end
 def select_item(id)
   $a_item = id
 
+  # clear description window
   desc_id = get_win_id 'desc'
   $wins[desc_id].active_item = 0
   $wins[desc_id].items.clear
 
+  # mark item as read
+  $config[$SRC][$a_feed]['items'][id]['read?'] = true
+
+  # load item
   $wins[desc_id].items << {
     'title' => $config[$SRC][$a_feed]['items'][id]['desc'],
     'url'   => $config[$SRC][$a_feed]['items'][id]['url'],
     'date'  => $config[$SRC][$a_feed]['items'][id]['date'],
   }
+
+  # redraw description window
   $wins[desc_id].win.clear
   $wins[desc_id].draw_items
 
+  # activate description window
   set_active_win(desc_id) if $config['focus'] == 'select' and
                              !$config['no_desc_auto_focus']
 end
 
+def save_feed_cache
+  File.open($config['feed_cache_path'], 'w') { |f|
+    f.puts $config[$SRC].to_yaml
+  }
+end
 
 # start feed grabbing thread
 feed_thread = Thread.new {
@@ -558,10 +628,15 @@ begin
   
   $a_feed, $a_item = 0, 0
   
-  # populate feed window with debug values
+  # populate feed window
   id = get_win_id 'feed'
   $config[$SRC].each_with_index { |feed, i|
-    title = feed['title'] + ' (%d)' % feed['items'].size
+    # count unread items
+    unread_count = 0
+    feed['items'].each { |item| unread_count += 1 unless item['read?'] }
+
+    # build title
+    title = feed['title'] + " (#{unread_count}/#{feed['items'].size})"
     $wins[id].items << {
       'title' => title,
       'feed'  => i,
@@ -573,10 +648,11 @@ begin
   set_active_win(0)
   
   # main input loop
+  timeout = $config['input_select_timeout']
   done = false
-  while !done
+  until done
     # handle keyboard input
-    r = select [$stdin], nil, nil, 5.0
+    r = select [$stdin], nil, nil, timeout
     if r && r.size > 0
       case c = Ncurses::getch
       when Ncurses::KEY_RIGHT
@@ -601,6 +677,12 @@ begin
     end
   end
 ensure
-  # make sure the screen gets cleaned up on exit
+  # clean up screen on exit
   Ncurses::endwin
+
+  # stop feed grabbing thread
+  feed_thread.exit
+
+  # save feed cache
+  save_feed_cache if $config['save_feed_cache']
 end

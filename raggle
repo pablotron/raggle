@@ -1809,7 +1809,13 @@ def populate_feed_win
     feed['items'].each { |item| unread_count += 1 unless item['read?'] }
 
     # build title
-    title = feed['title'].strip << " (#{unread_count}/#{feed['items'].size})"
+    if feed['title']
+      title = feed['title'].strip
+    else
+      title = $config['default_feed_title'] || 'Untitled Feed' 
+    end
+    title << " (#{unread_count}/#{feed['items'].size})"
+
     win.items << {
       'title'       => title,
       'feed'        => i,
@@ -2816,7 +2822,7 @@ $config = {
   'feed_refresh_warn'     => 60,
 
   # default feed name and refresh rate
-  'default_feed_title'    => 'Unnamed Feed',
+  'default_feed_title'    => 'Untitled Feed',
   'default_feed_refresh'  => 120,
 
   # open new screen window for browser?

@@ -1152,3 +1152,5 @@
     at http://www.raggle.org/files/swedish_char_corruption/)
   * TODO: added feature requests from Omnic on IRC
 
+* Fri Aug 22 01:19:47 2003, pabs <pabs@pablotron.org>
+  * raggle: don't crash on untitled feeds

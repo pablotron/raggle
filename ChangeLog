@@ -1864,3 +1864,6 @@
 
 * Sat Jul 10 21:34:51 2004, pabs <pabs@pablotron.org>
   * raggle: move Path module to Raggle module
+
+* Sat Jul 10 21:39:53 2004, pabs <pabs@pablotron.org>
+  * raggle: move find_proxy and find_win32_proxy to Raggle::Proxy module

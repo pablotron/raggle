@@ -143,112 +143,9 @@ def in_screen?
   ENV['WINDOW'] != nil
 end
 
-module Raggle
-  module Path
-    #
-    # find an application in your $PATH
-    #
-    def Path::find_app(app)
-      re = (RUBY_PLATFORM =~ /win32/i) ? ';' : ':'
-      ENV['PATH'].split(re).find { |path| test ?x, "#{path}/#{app}" }
-    end
-    
-    #
-    # Find home directory (different env vars on unix and win32)
-    #
-    def Path::find_home
-      ENV['HOME'] || ENV['USERPROFILE'] || ENV['HOMEPATH']
-    end
-    
-    #
-    # Find web root (in win32 it's located in the program dir by default) 
-    # 
-    def Path::find_web_ui_root
-      if RUBY_PLATFORM =~ /win32/i
-        ENV['PROGRAMFILES'] + '/Raggle/web_ui'
-      else
-        '${config_dir}/web_ui'
-      end
-    end
-    
-    #
-    # Find browser
-    #
-    def Path::find_browser
-      ret = ENV['RAGGLE_BROWSER']
-      ret ||= ENV['BROWSER']
-      ret ||= %w{links elinks w3m lynx explorer.exe}.find { |app| find_app(app) }
-
-      # die if we couldn't find a browser
-      die "Couldn't find suitable browser.",
-          "Please set $RAGGLE_BROWSER, $BROWSER, or install one of the following",
-          "console browsers: ELinks, Links, Lynx. or W3M." unless ret
-
-      # return browser
-      ret
-    end
-  end
-end
-
-#
-# find a proxy in windows by checking the registry
-#
-def find_win32_proxy
-  ret = nil
-
-  Win32::Registry::open(
-    Win32::Registry::HKEY_CURRENT_USER,
-    'Software\Microsoft\Windows\CurrentVersion\Internet Settings'
-  ) do |reg|
-    # check and see if proxy is enabled
-    if reg.read('ProxyEnable')[1] != 0
-      # get server, port, and no_proxy (overrides)
-      server = reg.read('ProxyServer')[1]
-      np = reg.read('ProxyOverride')[1]
-
-      server =~ /^([^:]+):(.+)$/
-      ret = {
-        'host'      => $1,
-        'port'      => $2,
-      }
-
-      ret['no_proxy'] = np.gsub(/;/, ',') if np && np.length > 0
-    end
-  end
-  
-  # dump proxy debug
-  # ret && ret.each { |key, val| puts "DEBUG: #{key} => #{val}" }
-  
-  ret
-end
-
-#
-# get the proxy host and port from $config['proxy'], or
-# ENV['http_proxy'] / ENV['no_proxy'] if $config['proxy'] isn't set
-#
-def find_proxy(host)
-  ret = nil
-
-  # if we're in windows, check the registry as well
-  ret = find_win32_proxy if RUBY_PLATFORM =~ /win32/
-
-  # get proxy settings from $config, and if they're not there, then
-  # check ENV
-  if $config['proxy'] && $config['proxy']['host']
-    ret = $config['proxy']
-  elsif ENV['http_proxy'] && ENV['http_proxy'] =~ /http:\/\/([^:]+):(\d+)/
-    ret = { 'host' => $1, 'port' => $2 }
-    no_proxy = ENV['no_proxy']
-    ret['no_proxy'] = (no_proxy ? no_proxy.split(/\s*,\s*/) : [])
-  end
-
-  # return nil if host is in no_proxy list
-  ret = nil if ret && ret['no_proxy'] && 
-               ret['no_proxy'].find { |i| /#{i}/ =~ host }
-
-  ret
-end
-
+##########################
+# String utility methods #
+##########################
 class String
   def lines
     self.split(/\n/).size
@@ -334,6 +231,114 @@ class String
     }
     text << curr_line << "\n"
     text
+  end
+end
+
+module Raggle
+  module Path
+    #
+    # find an application in your $PATH
+    #
+    def Path::find_app(app)
+      re = (RUBY_PLATFORM =~ /win32/i) ? ';' : ':'
+      ENV['PATH'].split(re).find { |path| test ?x, "#{path}/#{app}" }
+    end
+    
+    #
+    # Find home directory (different env vars on unix and win32)
+    #
+    def Path::find_home
+      ENV['HOME'] || ENV['USERPROFILE'] || ENV['HOMEPATH']
+    end
+    
+    #
+    # Find web root (in win32 it's located in the program dir by default) 
+    # 
+    def Path::find_web_ui_root
+      if RUBY_PLATFORM =~ /win32/i
+        ENV['PROGRAMFILES'] + '/Raggle/web_ui'
+      else
+        '${config_dir}/web_ui'
+      end
+    end
+    
+    #
+    # Find browser
+    #
+    def Path::find_browser
+      ret = ENV['RAGGLE_BROWSER']
+      ret ||= ENV['BROWSER']
+      ret ||= %w{links elinks w3m lynx explorer.exe}.find { |app| find_app(app) }
+
+      # die if we couldn't find a browser
+      die "Couldn't find suitable browser.",
+          "Please set $RAGGLE_BROWSER, $BROWSER, or install one of the following",
+          "console browsers: ELinks, Links, Lynx. or W3M." unless ret
+
+      # return browser
+      ret
+    end
+  end
+
+  module Proxy
+    #
+    # find a proxy in windows by checking the registry
+    #
+    def find_win32_proxy
+      ret = nil
+
+      Win32::Registry::open(
+        Win32::Registry::HKEY_CURRENT_USER,
+        'Software\Microsoft\Windows\CurrentVersion\Internet Settings'
+      ) do |reg|
+        # check and see if proxy is enabled
+        if reg.read('ProxyEnable')[1] != 0
+          # get server, port, and no_proxy (overrides)
+          server = reg.read('ProxyServer')[1]
+          np = reg.read('ProxyOverride')[1]
+
+          server =~ /^([^:]+):(.+)$/
+          ret = {
+            'host'      => $1,
+            'port'      => $2,
+          }
+
+          ret['no_proxy'] = np.gsub(/;/, ',') if np && np.length > 0
+        end
+      end
+      
+      # dump proxy debug
+      # ret && ret.each { |key, val| puts "DEBUG: #{key} => #{val}" }
+      
+      ret
+    end
+
+    #
+    # get the proxy host and port from $config['proxy'], or
+    # ENV['http_proxy'] / ENV['no_proxy'] if $config['proxy'] isn't set
+    #
+    def find_proxy(host)
+      ret = nil
+
+      # if we're in windows, check the registry as well
+      ret = find_win32_proxy if RUBY_PLATFORM =~ /win32/
+
+      # get proxy settings from $config, and if they're not there, then
+      # check ENV
+      if $config['proxy'] && $config['proxy']['host']
+        ret = $config['proxy']
+      elsif ENV['http_proxy'] && ENV['http_proxy'] =~ /http:\/\/([^:]+):(\d+)/
+        ret = { 'host' => $1, 'port' => $2 }
+        no_proxy = ENV['no_proxy']
+        ret['no_proxy'] = (no_proxy ? no_proxy.split(/\s*,\s*/) : [])
+      end
+
+      # return nil if host is in no_proxy list
+      ret = nil if ret && ret['no_proxy'] && 
+                   ret['no_proxy'].find { |i| /#{i}/ =~ host }
+
+      ret
+    end
   end
 end
 

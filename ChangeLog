@@ -1410,3 +1410,6 @@
 * Sat Sep 13 13:34:10 2003, pabs <pabs@pablotron.org>
   * raggle: remove the open and read timeouts; they appear to be
     causing problems (not sure why yet)
+
+* Sat Sep 13 13:35:12 2003, pabs <pabs@pablotron.org>
+  * raggle: don't force version 1.8 (silly me)

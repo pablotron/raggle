@@ -1765,3 +1765,8 @@
 
 * Fri Feb 20 04:31:13 2004, pabs <pabs@pablotron.org>
   * doc/pauls_feeds.opml.gz: updated
+
+* Fri Feb 20 04:35:50 2004, pabs <pabs@pablotron.org>
+  * raggle: incremented copyright year
+  * README: incremented last updated date
+  * COPYING: incremented copyright year

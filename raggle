@@ -12,7 +12,7 @@
 # version of this software.                                           #
 #                                                                     #
 #                                                                     #
-# Copyright (C) 2003 Paul Duncan, and various contributors.           #
+# Copyright (C) 2003, 2004 Paul Duncan, and various contributors.     #
 #                                                                     #
 # Permission is hereby granted, free of charge, to any person         #
 # obtaining a copy of this software and associated documentation      #
@@ -40,9 +40,9 @@
 # Raggle version
 $VERSION = '0.3.0-test'
 
-# As early as possible, ^C and ^\ are common, and dumping a trace is ugly
-# On the other hand, dumping trace is very useful when running tests, therefore
-# disable these unless this file is executed.
+# As early as possible, ^C and ^\ are common, and dumping a trace is
+# ugly On the other hand, dumping trace is very useful when running
+# tests, therefore disable these unless this file is executed.
 if __FILE__ == $0
   trap('INT') {
     if $config['run_http_server']

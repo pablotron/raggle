@@ -1597,3 +1597,8 @@
   * raggle: make raggle work (hopefully) on single-user win32 machines
   * extras/web_ui/index.html: make frames sligntly larger
   * extras/web_ui/titlebar.html: add export button (doesn't work yet)
+
+* Wed Sep 24 15:51:06 2003, pabs <pabs@pablotron.org>
+  * extras/web_ui/inc/feed_list.html: parent => window (make IE
+    javascript errors go away)
+  * extras/web_ui/inc/item_list.html: ditto

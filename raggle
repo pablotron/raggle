@@ -55,6 +55,9 @@ $config = {
   # feed sleep interval (in seconds)
   'feed_sleep_interval'   => 60,
 
+  # strip html from item contents?
+  'strip_html'            => true,
+
   # color palette (referenced by window attributes)
   'color_palette'         => [
     [  1, Ncurses::COLOR_WHITE,    Ncurses::COLOR_BLACK   ],
@@ -218,6 +221,14 @@ ragglebug@pablotron.org.
       'updated'   => 1055113783,
       'items'     => [ ],
     },
+    { 'title'     => 'Open Sounds',
+      'url'       => 'http://www.opensounds.net/backend.php',
+      'site'      => 'http://www.opensounds.net/',
+      'desc'      => 'John Maguire.',
+      'refresh'   => 60,
+      'updated'   => 1055113783,
+      'items'     => [ ],
+    },
   ],
 
   # debugging options (don't touch)
@@ -332,7 +343,7 @@ writer).
 
 module Feed
   # Feed::Item struct definition
-  Item = Struct.new :title, :link, :desc
+  Item = Struct.new :title, :link, :desc, :date
 
   #
   # Return the contents of a URL
@@ -413,9 +424,16 @@ module Feed
       # build list of feed items
       @items = []
       doc.root.elements.each('//item') { |e| 
-        @items << Feed::Item.new(e.elements['title'].text,
-                                 e.elements['link'].text,
-                                 e.elements['description'].text)
+        # get item attributes (the ones that are set, anyway... stupid
+        # RSS)
+        h = {}
+        [ 'title', 'link', 'description', 'date' ].each { |val|
+          h[val] = (t_e = e.elements[val]) ? t_e.text : ''
+        }
+
+        # insert new item
+        @items << Feed::Item.new(h['title'], h['link'],
+                                 h['description'], h['date'])
       }
     end
   end
@@ -555,12 +573,25 @@ class Window
         @win.color_set @colors['url'], nil
         draw(item['url'], 7, y, false)
 
-        y += 1
-        d_str = Time.at(item['date'].to_i).strftime($config['desc_date_format'])
-        draw("Date: ", 1, y, false)
-        @win.color_set @colors['date'], nil
-        draw(d_str, 7, y, false)
-        draw(item['title'], 1, y += 2, false)
+        # don't draw the date if it isn't set (silly RSS)
+        if item['date'] && item['date'] != ''
+          y += 1
+          draw("Date: ", 1, y, false)
+
+          # handle date string shenanigans
+          if ((i_val = item['date'].to_i) > 0)
+            d_str = Time.at(i_val).strftime($config['desc_date_format'])
+          else
+            d_str = item['date']
+          end
+
+          # draw date string
+          @win.color_set @colors['date'], nil
+          draw(d_str, 7, y, false)
+        end
+        str = item['title']
+        str = item['title'].gsub(/<[^>]+?>/, '') if $config['strip_html']
+        draw(str, 1, y += 2, false)
       }
     else
       @items.each { |i| draw(i['title'], 1, y += 1, y - 1 == @active_item) }
@@ -764,16 +795,15 @@ feed_thread = Thread.new {
         chan.items.each { |item|
           feed['items'] << {
             'title' => item.title,
-            'date'  => 'TODO',
+            'date'  => item.date,
             'url'   => item.link,
             'desc'  => item.desc,
             'read?' => false,
           }
         }
 
-        # redraw feed window
-        id = get_win_id 'feed'
-        $wins[id].draw_items
+        # redraw feed / item windows
+        $update_windows = true
       }
 
       # finish log entries
@@ -871,6 +901,12 @@ begin
       else  
         $wins[$a_win].handle_key c
       end
+    end
+
+    # refresh window contents if there's been a feed update
+    if $update_wins
+      $update_wins = false
+      wins.each { |win| win.draw_items }
     end
   end
 ensure

@@ -77,3 +77,12 @@
 
 * Mon Jun 09 03:28:20 2003, pabs <pabs@pablotron.org>
   * raggle: actually parses feeds now :D
+
+* Mon Jun 09 10:46:29 2003, pabs <pabs@pablotron.org>
+  * raggle: added 'strip_html' option
+  * raggle: added OpenSounds to default feed list
+  * raggle: all feed item elements are now optional (since
+    different feeds seem to have different things)
+  * raggle: Don't print date if it's not specified
+  * raggle: fixed window redraw from update thread (maybe?)
+

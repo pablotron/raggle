@@ -1582,3 +1582,6 @@
 
 * Tue Sep 23 23:43:52 2003, pabs <pabs@pablotron.org>
   * raggle: added debugging for win32 registry proxy stuff
+
+* Tue Sep 23 23:46:13 2003, pabs <pabs@pablotron.org>
+  * raggle: fix win32 proxy stuff

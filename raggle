@@ -202,7 +202,7 @@ def find_win32_proxy
       server = reg.read('ProxyServer')[1]
       np = reg.read('ProxyOverride')[1]
 
-      server =~ /^([^:])+:(.+)$/
+      server =~ /^([^:]+):(.+)$/
       ret = {
         'host'      => $1,
         'port'      => $2,

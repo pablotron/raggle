@@ -10,4 +10,5 @@ Bugs
 [ ] It's possible that sometimes the inline documentation ("Raggle"
     feed) items aren't created from the default list (We can't even
     decide if this is really happenening or not.
- 
+[ ] I can *still* convince some feeds to flow description out of the
+    window.  Unfortunately, the '*still*' also applies to not knowing why

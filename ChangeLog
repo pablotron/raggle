@@ -924,3 +924,8 @@
               now) from the POD source in raggle.pod
 
 
+* Thu Jul 10 03:10:54 2003, pabs <pabs@pablotron.org>
+  * raggle: die() didn't save the results of escape_format(); added a
+    String#escape_format! and used that (reported by Ville Aine, as 
+    usual).
+  * raggle: 

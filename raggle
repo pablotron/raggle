@@ -70,7 +70,7 @@ end
 def die(*args)
   errstr = "#$0: FATAL: #{args.join("\n")}"
   errstr << ": #$!" if $!
-  errstr.escape_format if errstr =~ /%/
+  errstr.escape_format! if errstr =~ /%/
   at_exit { $stderr.puts errstr }
   exit -1
 end
@@ -125,6 +125,10 @@ class String
 
   def escape_format
     gsub(/%/, '%%')
+  end
+
+  def escape_format!
+    gsub!(/%/, '%%')
   end
 
   # this bit of love is from the pickaxe
@@ -2643,4 +2647,3 @@ if $config['diag']
 else
   main
 end
-

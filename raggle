@@ -18,7 +18,7 @@ $config = {
 
   # feed cache handling
   'load_feed_cache'       => true,
-  'save_feed_cache'       => true,
+  'save_feed_cache'       => false,
 
   # ui options
   'focus'                 => 'select', # ['none', 'select', 'auto']
@@ -164,7 +164,36 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           'url'   => 'http://www.pablotron.org/software/raggle/',
           'date'  => 1055074823,
           'read?' => false,
-          'desc'  => 'more fun with testing', },
+          'desc'  => 'Keyboard .
+======== .
+- Tab, <-, -> : Window navigation .
+- Up, Down : Item navigation   .
+- Enter, Space : Select active item .
+- Q, ESC, F12 : Exit Raggle .
+.
+Adding Feeds .
+============ .
+TODO (right now you have to edit the feed cache manually) .
+.
+', },
+        { 'title' => 'Configuring Raggle',
+          'url'   => 'http://www.pablotron.org/software/raggle/',
+          'date'  => 1055074823,
+          'read?' => false,
+          'desc'  => 'Configuring Raggle .
+================== .
+TODO
+', },
+        { 'title' => 'Reporting Bugs',
+          'url'   => 'http://www.pablotron.org/software/raggle/',
+          'date'  => 1055074823,
+          'read?' => false,
+          'desc'  => 'Reporting Bugs .
+============== .
+Please make sure you\'re using the latest version of Raggle before
+reporting bugs.  That said, you can submit bug reports to
+ragglebug@pablotron.org.
+', },
       ],
     },
     { 'title'     => 'Alternet',
@@ -522,7 +551,9 @@ def select_feed(id)
 
     # build title string
     if item['date'] && item['date'].size > 0
-      title = "#{item['title']} (#{item['date']})"
+      d_str = item['date']
+      d_str = Time.at(item['date'].to_i).strftime(fmt) if item['date'].to_i > 0
+      title = "#{item['title']} (#{d_str})"
     else 
       title = item['title'].dup
     end

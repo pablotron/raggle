@@ -127,3 +127,9 @@
   * raggle: cleaner default theme
   * raggle: scrolling works! hoora!
   * raggle: change default colors
+
+* Sun Jun 15 14:53:47 2003, pabs <pabs@pablotron.org>
+  * raggle: added screen support (via 'use_screen' and 'screen_cmd'
+    options)
+  * raggle: updated inline documentation
+  * raggle: screen window (optionally) displays feed item title

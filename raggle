@@ -12,6 +12,7 @@ require 'ncurses'
 require 'yaml'
 require 'rexml/document'
 require 'net/http'
+
 begin 
   require 'net/https'
   $HAVE_SSL = true
@@ -45,6 +46,7 @@ def find_browser
   ret = ENV['RAGGLE_BROWSER']
   ret = ENV['BROWSER']
   ret = 'links' if !ret && test(?e, find_app('links'))
+  ret = 'w3m' if !ret && test(?e, find_app('w3m'))
   ret = 'lynx' if !ret && test(?e, find_app('lynx'))
 
   # die if we couldn't find a browser
@@ -52,6 +54,13 @@ def find_browser
 
   # return browser
   ret
+end
+
+# 
+# Are we running in a screen session?
+#
+def in_screen?
+  ENV['WINDOW'] != nil
 end
 
 ##################
@@ -106,6 +115,12 @@ $config = {
   # strip html from item contents?
   'strip_html'            => true,
 
+  # open new screen window for browser?
+  'use_screen'            => true,
+
+  # screen command
+  'screen_cmd'            => 'screen -t "%s"',
+  
   # browser options
   'browser'               => find_browser,
   'browser_cmd'           => '${browser} %s',
@@ -165,7 +180,7 @@ $config = {
         'box'       => 4,
         'a_title'   => 21,
         # 'a_title'   => 36,
-        'a_box'     => 1,
+        'a_box'     => 3,
         'unread'    => 6,
         'h_unread'  => 36,
       },
@@ -183,7 +198,7 @@ $config = {
         'h_text'    => 16,
         'box'       => 4,
         'a_title'   => 21,
-        'a_box'     => 1,
+        'a_box'     => 3,
         'unread'    => 6,
         'h_unread'  => 36,
       },
@@ -201,7 +216,7 @@ $config = {
         'h_text'    => 16,
         'box'       => 4,
         'a_title'   => 21,
-        'a_box'     => 1,
+        'a_box'     => 3,
         'url'       => 6,
         'date'      => 6,
       },
@@ -257,13 +272,51 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           'date'  => 1055074823,
           'read?' => false,
           'desc'  => 'Keyboard .
-======== .
-- Tab, <-, -> : Window navigation .
-- Up, Down : Item navigation   .
+========                            .
+- Tab, <-, -> : Window navigation   .
+- Up, Down : Item navigation        .
+- Home, End : Start, end of list.   .
 - Enter, Space : Select active item .
-- Q, ESC, F12 : Exit Raggle .
+- Q, F12 : Exit Raggle              .
 .
-Adding Feeds .
+', },
+        { 'title' => 'Keyboard',
+          'url'   => 'http://www.pablotron.org/software/raggle/',
+          'date'  => 1055074823,
+          'read?' => false,
+          'desc'  => 'Keyboard .
+========                            .
+- Tab, <-, -> : Window navigation   .
+- Up, Down : Item navigation        .
+- Home, End : Start, end of list.   .
+- Enter, Space : Select active item .
+- Q, F12 : Exit Raggle              .
+.
+', },
+        { 'title' => 'Reading Feeds',
+          'url'   => 'http://www.pablotron.org/software/raggle/',
+          'date'  => 1055074823,
+          'read?' => false,
+          'desc'  => 'Reading Feeds .
+============= .
+To read a given feed, hilite it in the Feed window and press Enter or
+Space.  The list of items available from that feed will be displayed in
+the Item window.  Unread feed items are marked slightly differently than
+read feed items (the color is adjustable on a per-theme basis).  To view
+the full story linked from a feed item, navigate to the Description
+window (using Tab or the Left and Right arrow keys) and press Space or
+Enter.  If Raggle is running in a screen session, it will invoke your
+browser of choice in a separate screen window (this behavior is
+configurable; see the \'use_screen\' option in the "Configuring Raggle"
+section for additional information).  There are several different window
+navigation modes available, see the \'focus\' "Configuring Raggle"
+section for additional information.
+', },
+        { 'title' => 'Adding Feeds',
+          'url'   => 'http://www.pablotron.org/software/raggle/',
+          'date'  => 1055074823,
+          'read?' => false,
+          'desc'  => 'Adding Feeds .
 ============ .
 TODO (right now you have to edit the feed cache manually) .
 .
@@ -522,7 +575,7 @@ ragglebug@pablotron.org.
     },
   ],
 
-  # debugging options (don't touch)
+  # debugging / internal options (don't touch)
   'use_raw_mode'  => true,
   'use_noecho'    => true,
 
@@ -905,13 +958,38 @@ class Window
       elsif @items[@active_item].has_key? 'item'
         select_item @items[@active_item]['item']
       elsif @items[@active_item].has_key? 'url'
-        Ncurses::def_prog_mode
-        Ncurses::endwin
+        # are we opening new screen windows?
+        use_screen = $config['use_screen'] && in_screen?
+
+        # drop out of curses mode
+        unless use_screen
+          Ncurses::def_prog_mode
+          Ncurses::endwin
+        end
+
+        # get browser command
         cmd = $config['browser_cmd'] % @items[@active_item]['url']
-        puts cmd
+
+        # prepend screen command if we're using it
+        if use_screen
+          screen_cmd = if $config['screen_cmd'] =~ /%s/
+            $config['screen_cmd'] % @items[@active_item]['real_title']
+          else
+            $config['screen_cmd']
+          end
+
+          # build new command
+          cmd = screen_cmd << ' ' << cmd
+        end
+        
+        # execute command
         system cmd
-        Ncurses::reset_prog_mode
-        Ncurses::refresh
+
+        # reset screen
+        unless use_screen
+          Ncurses::reset_prog_mode
+          Ncurses::refresh
+        end
       end
     end
   end
@@ -952,7 +1030,7 @@ class Window
       w, h = wh
       ic = 0
       @items.each { |i| 
-        t = i['title']
+        t = i['title'] || ''
         text = t + ((t.length < w) ? (' ' * (w - t.length)) : '')
         if i.has_key?('read?') && i['read?'] == false
           color = (ic == @active_item) ? 'h_unread' : 'unread'
@@ -994,7 +1072,9 @@ end
 def set_active_win(a_win)
   $wins[$a_win].active = false
   $wins[$a_win].refresh
+
   $a_win = a_win
+
   $wins[$a_win].active = true
   $wins[$a_win].refresh
 end
@@ -1111,10 +1191,11 @@ def select_item(id)
 
   # load item
   $wins[desc_id].items << {
-    'title' => $config[$SRC][$a_feed]['items'][id]['desc'],
-    'url'   => $config[$SRC][$a_feed]['items'][id]['url'],
-    'date'  => $config[$SRC][$a_feed]['items'][id]['date'],
-    'read?' => $config[$SRC][$a_feed]['items'][id]['read?'],
+    'title'       => $config[$SRC][$a_feed]['items'][id]['desc'],
+    'real_title'  => $config[$SRC][$a_feed]['items'][id]['title'],
+    'url'         => $config[$SRC][$a_feed]['items'][id]['url'],
+    'date'        => $config[$SRC][$a_feed]['items'][id]['date'],
+    'read?'       => $config[$SRC][$a_feed]['items'][id]['read?'],
   }
 
   # redraw feed window

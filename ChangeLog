@@ -316,6 +316,10 @@
   * raggle: Add default feeds.
 
 * Sat Jun 21 00:07:32 EDT 2003, richlowe <richlowe@richlowe.net>
-  * raggle: Add commands to move items in the item list (u = up, d = down).
+  * raggle: Add commands to move items in the item list (u = up, d =
+           down).
+* Sat Jun 21 00:18:41 EDT 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Add methods to move items in a window rather than doing it in
+            the key handler
 
 

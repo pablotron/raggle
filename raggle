@@ -2782,7 +2782,7 @@ ENDUSAGE
           error = true if (feedopt == 'url' or feedopt == 'site') and
                           not uri?(str)
           error = true if feedopt == 'save_items?' and
-                          not (str == 'true' or str == 'false')
+                          not (str =~ /true/i or str =~ /false/i)
           error = true if feedopt == 'refresh' and
                           str.to_i < $config['feed_refresh_warn']
           if error  # bail if user entered nonsense via basic checks
@@ -2792,7 +2792,7 @@ ENDUSAGE
 
           case feedopt  # create options hash to pass to engine
           when 'save_items?'
-            if str == 'true': newopts = {feedopt => true}
+            if str =~ /true/i: newopts = {feedopt => true}
             else newopts = {feedopt => false}; end
           when 'priority', 'refresh'
             newopts = {feedopt => str.to_i}

@@ -812,6 +812,14 @@
 			 the feedlist.  (dumps raggle command lines to add
 			 the feeds found in the feed cache)
 
+* Tue Jul  1 05:50:20 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Add support for moving to the previous unread item (bound to
+            'p').
+  * raggle.1: Document above in KEYS
+  * raggle.1: Fix documentation for 'n' in KEYS (typo).
+	
+
+
 
 
 

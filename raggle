@@ -1390,6 +1390,19 @@ def select_next_unread
   }
 end
 
+def select_prev_unread
+  item_id = get_win_id 'item'
+
+  ($a_item - 1).downto(0) { |i|
+    if $wins[item_id].items[i]['read?'] == false
+      select_item i
+      $wins[item_id].activate i
+      $wins[item_id].draw_items
+      return
+    end
+  }
+end
+
 #
 # load feed cache
 #
@@ -2243,6 +2256,7 @@ $config = {
 
     ?!                  => proc { |win, key| drop_to_shell },
 
+    ?p                  => proc { |win, key| select_prev_unread },
     ?n                  => proc { |win, key| select_next_unread },
   },
 

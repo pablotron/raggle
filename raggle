@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+#!/usr/bin/env ruby1.8
 # -*- Mode: Ruby -*-
 
 #######################################################################
@@ -1315,14 +1315,6 @@ class Window
     @win.color_set col, nil
   end
 
-  def clearrange(start, fini)
-    w = dimensions[0]
-    set_color('text')
-    start.upto(fini) do |line|
-      Ncurses::mvwprintw @win, line, 1, ' ' * (w - 2)
-    end
-  end
-  
   #
   # refresh window title and border (but not the contents)
   # 
@@ -1343,6 +1335,15 @@ class Window
     Ncurses::wrefresh @win
   end
 
+  def clearrange(start, fini)
+    w = dimensions[0]
+    set_color('text')
+    start.upto(fini) do |line|
+      Ncurses::mvwprintw @win, line, 1, ' ' * (w - 2)
+    end
+    refresh(true)
+  end
+  
   #
   # clear window contents
   #
@@ -1471,6 +1472,7 @@ class ListWindow < Window
       ic += 1
     }
     clearrange(items.size + 1, h - 2)
+    refresh(true)
   end
   
   #
@@ -1645,6 +1647,7 @@ class TextWindow < Window
       # @win.color_set @colors['date'], nil
       draw(d_str, 7, y, 'date', true, false)
     end
+
     if item['title']
       y += 2
       str = item['title'] || ''

@@ -1458,3 +1458,6 @@
     relying on it)
   * raggle: strip leading and trailing whitespace from item titles
 
+* Mon Sep 15 13:44:34 2003, pabs <pabs@pablotron.org>
+  * raggle: force refresh in clearrange() to clear item window
+    artifacts

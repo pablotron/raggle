@@ -1130,3 +1130,8 @@
   * raggle: clean up Ville's evil tabbing ;).
   * raggle: fix thread_priority_* unset in config bug reported by
     Richard Zidlicky <rz@linux-m68k.org
+
+* Wed Aug 20 16:50:22 2003, pabs <pabs@pablotron.org>
+  * raggle: explicitly invoke the GC at user-defined interval
+  * raggle: slightly more concise fix to unset thread priorities in
+    config

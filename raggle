@@ -2609,10 +2609,19 @@ def main
       }
     }
   }
-  Thread::main.priority = $config['thread_priority_main'] ?
-                          $config['thread_priority_main'] : 5
-  $feed_thread.priority = $config['thread_priority_feed'] ?
-                          $config['thread_priority_feed'] : 0
+
+  # explicit GC thread
+  gc_thread = Thread.new { 
+    loop {
+      GC::start
+      sleep $config['gc_sleep_interval'] || 600
+    }
+  }
+
+  # set thread priorities
+  Thread::main.priority = $config['thread_priority_main'] || 5
+  $feed_thread.priority = $config['thread_priority_feed'] || 0
+  gc_thread.priority    = $config['thread_priority_gc']   || 1
 
   begin
     # main input loop
@@ -2700,6 +2709,7 @@ $config = {
   # thread priorities (best to leave these alone)
   'thread_priority_main'  => 5,
   'thread_priority_feed'  => 0,
+  'thread_priority_gc'    => 1,
 
   # don't check every 60 seconds, wait for the update
   # key to be pressed (for modem users, slow computers, etc)
@@ -2783,6 +2793,9 @@ $config = {
 
   # feed sleep interval (in seconds)
   'feed_sleep_interval'   => 60,
+
+  # gc thread sleep interval (in seconds)
+  'gc_sleep_interval'     => 600,
 
   # grab log mode (a == append, w == write)
   'grab_log_mode'         => 'w',

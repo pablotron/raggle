@@ -326,7 +326,14 @@
   * raggle: Add item deletion support
 
 * Sat Jun 21 01:49:09 EDT 2003, richlowe <richlowe@richlowe.net>
- * raggle: Fix typo in return binding.
+  * raggle: Fix typo in return binding.
+
+* Sat Jun 21 01:53:29 EDT 2003, richlowe <richlowe@richlowe.net>
+  * raggle: remove feed indirection through $SRC, there's no reason
+	    to use debug feeds anymore.
+
+
+	
 
 
 

@@ -12,3 +12,5 @@ Raggle TODO
 [ ] scrolling in Description window
 [ ] fix blocking for feed grabbing (grab feeds in parallel?)
 [ ] Convert manpage (raggle.1) to -ms
+[ ] Add window resizing (needs the theme/window shit to be overhawled,
+    at a guess)

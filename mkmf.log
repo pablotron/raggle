@@ -1,0 +1,1 @@
+gcc -o conftest -I/usr/lib/ruby/1.6/i386-linux -g -O2 -fPIC   -rdynamic  conftest.c -lgcrypt -lc  -ldl -lcrypt -lm

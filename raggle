@@ -570,7 +570,7 @@ class Window
   def draw_text(text, x, y, reflow, offset)
     w,h = dimensions
     i = 0
-    
+
     text = reflow_string text if reflow
     text.each_line do |line|
       i += 1
@@ -2425,7 +2425,6 @@ message.
   ],
 }
 
-
 begin
   ##
   # Start
@@ -2434,9 +2433,9 @@ begin
 rescue => err
   if $config['diag']
     puts "#{err.message} (#{err.class})"
-    err.backtrace.each do |frame|
-      puts frame
-    end
+    #err.backtrace.collect! { |name| name = "[#{name}]" }
+    #puts err.backtrace.reverse.join(" -> ")
+    err.backtrace.each { |frame| puts frame }
   else
     die "Eeeek" # die tacks on $! for us, so we don't have to.
   end

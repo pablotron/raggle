@@ -949,3 +949,9 @@
 * Thu Jul 10 08:42:41 2003, pabs <pabs@pablotron.org>
   * raggle: apply patch from Ville Aine to fix bug reported by radsaq
     (kmradlof@colby.edu).
+
+* Fri Aug 15 16:54:26 2003, pabs <pabs@pablotron.org>
+  * last commit message was wrong (that's what i get for binding
+    it to a key)
+  * raggle: merge Ville Aine's second HTML renderer
+  * raggle: preliminary proxy support (doesn't work yet)

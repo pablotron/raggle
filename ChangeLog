@@ -2439,3 +2439,10 @@ _Cvs
 * Wed Mar 16 19:13:31 2005, pabs <pabs@pablotron.org>
   * raggle: increment version to 0.4.0 (from 0.4.0-test)
   * releasing 0.4.0
+
+* Sat Mar 19 11:57:21 2005, pabs <pabs@pablotron.org>
+  * raggle: fixed find feeds window (don't dup find_desc str)
+  * raggle: added GetText::bindtextdomain()
+  * raggle: fixed category sorting inc at window
+  * raggle: fixed window title translations (were getting mangled by
+    themes)

@@ -123,6 +123,10 @@ def _(str)
   $HAVE_LIB['gettext'] ? GetText::_(str) : str
 end
 
+if $HAVE_LIB['gettext']
+  GetText::bindtextdomain('raggle', nil)
+end
+
 unless $HAVE_LIB['webrick'] || $HAVE_LIB['ncurses']
   $stderr.puts _(<<-ENDERR
 ERROR: No interfaces available.
@@ -1230,7 +1234,7 @@ module Raggle
             }
           end
         }
-        cats.values.sort { |a, b| a.title <=> b.title }
+        cats.values.sort { |a, b| a.title.downcase <=> b.title.downcase }
       end
 
       #
@@ -2344,7 +2348,7 @@ ENDUSAGE
           @offset = 0
           @items = []
 
-          @title = opts['title']
+          @title = _(opts['title'])
           
           @key = opts['key']
           @colors = opts['colors'].dup
@@ -5599,7 +5603,7 @@ $config = {
       'url'       => "http://raggle.org/rss/help/",
       'site'      => 'http://raggle.org/',
       'refresh'   => 240,
-      'updated'   => -1,
+      'updated'   => 0,
       'desc'      => '',
       'category'  => 'Raggle',
       'items'     => [ ],

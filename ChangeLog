@@ -136,3 +136,8 @@
 
 * Mon Jun 16 13:07:41 2003, pabs <pabs@pablotron.org>
   * raggle: don't save window sizes to theme 
+
+* Tue Jun 17 04:11:49 2003, pabs <pabs@pablotron.org>
+  * raggle: separated feed list from feed cache (to avoid losing the 
+    former if the latter gets corrupted)
+  * raggle: switched to PStore for feed cache (MUCH MUCH faster loading now)

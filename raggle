@@ -8,6 +8,7 @@ $SRC = 'feeds'
 # $SRC = 'debug_feeds'
 
 # load required modules
+require 'pstore'
 require 'ncurses'
 require 'yaml'
 require 'rexml/document'
@@ -69,9 +70,14 @@ end
 $config = {
   'config_dir'            => ENV['HOME'] << '/.raggle',
   'config_path'           => '${config_dir}/config.rb',
-  'feed_cache_path'       => '${config_dir}/feed_cache.yaml',
+  'feed_list_path'        => '${config_dir}/feeds.yaml',
+  'feed_cache_path'       => '${config_dir}/feed_cache.store',
   'theme_path'            => '${config_dir}/theme.yaml',
   'grab_log_path'         => '${config_dir}/grab.log',
+
+  # feed list handling
+  'load_feed_list'        => true,
+  'save_feed_list'        => true,
 
   # feed cache handling
   'load_feed_cache'       => true,
@@ -94,8 +100,10 @@ $config = {
   'msg_exit'              => "| Press Q to exit ",
   'msg_close'             => '[X] ',
   'msg_load_config'       => 'Raggle: Loading config...',
-  'msg_load_feeds'        => 'Raggle: Loading feed cache...',
-  'msg_save_feeds'        => 'Raggle: Saving feed cache...',
+  'msg_load_list'         => 'Raggle: Loading feed list...',
+  'msg_save_list'         => 'Raggle: Saving feed list...',
+  'msg_load_cache'        => 'Raggle: Loading feed cache...',
+  'msg_save_cache'        => 'Raggle: Saving feed cache...',
   'msg_load_theme'        => 'Raggle: Loading theme...',
   'msg_save_theme'        => 'Raggle: Saving theme...',
   'msg_thanks'            => 'Thanks for using Raggle!',
@@ -1211,12 +1219,44 @@ def select_item(id)
 end
 
 #
+# load feed cache
+#
+def load_feed_cache
+  store = PStore::new $config['feed_cache_path']
+  store.transaction { |s|
+    $config[$SRC].each { |feed| feed['items'] = s[feed['url']] }
+  }
+end
+
+#
 # save feed cache 
 #
 def save_feed_cache
+  store = PStore::new $config['feed_cache_path']
+  store.transaction { |s|
+    $config[$SRC].each { |feed| s[feed['url']] = feed['items'] }
+  }
+end
+
+#
+# old save feed cache 
+#
+def old_save_feed_cache
   File::open($config['feed_cache_path'], 'w') { |f|
     $stdout.puts $config['msg_save_feeds']
     $stdout.flush
+    f.puts $config[$SRC].to_yaml
+  }
+end
+
+#
+# save feed list 
+#
+def save_feed_list
+  File::open($config['feed_list_path'], 'w') { |f|
+    $stdout.puts $config['msg_save_list']
+    $stdout.flush
+    $config[$SRC].each { |feed| feed['items'].clear }
     f.puts $config[$SRC].to_yaml
   }
 end
@@ -1250,11 +1290,15 @@ puts $config['msg_load_config']
 load $config['config_path'], false if test ?e, $config['config_path']
 expand_config
 
-# load feed cache
-puts $config['msg_load_feeds']
-if $config['load_feed_cache'] && test(?e, $config['feed_cache_path'])
-  $config[$SRC] = YAML::load(File::open($config['feed_cache_path']))
+# load feed list
+puts $config['msg_load_list']
+if $config['load_feed_list'] && test(?e, $config['feed_list_path'])
+  $config[$SRC] = YAML::load(File::open($config['feed_list_path']))
 end
+
+# load feed cache
+load_feed_cache if $config['load_feed_cache'] &&
+                   test(?e, $config['feed_cache_path'])
 
 puts $config['msg_load_theme']
 if $config['load_theme'] && test(?e, $config['theme_path'])
@@ -1414,6 +1458,9 @@ ensure
 
   # save feed cache
   save_feed_cache if $config['save_feed_cache']
+
+  # save feed list
+  save_feed_list if $config['save_feed_list']
 
   # save theme
   save_theme if $config['save_theme']

@@ -1,9 +1,10 @@
 load "raggle" # require './raggle' doesn't work :(
 require 'test/unit'
 
+
 class TestEachElement < Test::Unit::TestCase
   def check_stream(source, tokens)
-    HTML::Parser::each_token(source) do |type, data, attributes|
+    Raggle::HTML::Parser::each_token(source) do |type, data, attributes|
       assert !tokens.empty?, "too many tokens found. type: #{type} data: \"#{data}\""
       token = tokens.shift
       assert_equal token[0], type, "type"
@@ -89,7 +90,7 @@ class TestEachElement < Test::Unit::TestCase
     check_stream "<foo bar=\"baz'>", [[:START_TAG, 'foo', {'bar' => 'baz'}]] # XXX
   end
 
-  def test_attribites_value_doesnt_need_to_be_quoted
+  def test_attributes_value_doesnt_need_to_be_quoted
     check_stream '<foo bar=baz>', [[:START_TAG, 'foo', {'bar' => 'baz'}]]
   end
 
@@ -103,16 +104,16 @@ class TestEachElement < Test::Unit::TestCase
     check_stream "<kala\nbar\n=\nbaz\n>", [[:START_TAG, 'kala', {'bar' => 'baz'}]]
   end
 
-  def test_incomplete_tags_are_not_skipped
+  def test_incomplete_tags_are_not_skipped_if_tag_has_attributes
     # incomplete tags are skipped
     block_was_run = false
-    HTML::Parser::each_token "<fooba" do |type, data|
+    Raggle::HTML::Parser::each_token "<fooba" do |type, data|
       block_was_run = true
     end
     assert block_was_run, "incomplete tags should be skipped"
     
     block_was_run = false
-    HTML::Parser::each_token "<foobar baz='quux'" do |type, data|
+    Raggle::HTML::Parser::each_token "<foobar baz='quux'" do |type, data|
       block_was_run = true
     end
     assert block_was_run, "incomplete tags aren't skipped if the tag has attributes"
@@ -182,7 +183,7 @@ end
 
 class TestRenderer < Test::Unit::TestCase
   def render(text, width=72)
-    HTML::render_html(text, width)
+    Raggle::HTML::render_html(text, width)
   end
   
   def test_untagged_text_is_rendered_like_text_inside_p
@@ -263,6 +264,12 @@ class TestRenderer < Test::Unit::TestCase
     assert_equal "foo bar[1] baz\n\nLinks:\n1. http://example.com\n", render("<p>foo <a href=\"http://example.com\">bar</a> baz</p>")
   end
 
+  def test_link_references_are_reused
+    assert_equal "foo bar[1] baz[2] quux[1]\n\nLinks:\n1. http://example.com\n2. http://other.example.com\n",
+      render('<p>foo <a href="http://example.com">bar</a> <a href="http://other.example.com">baz</a> ' +
+             '<a href="http://example.com">quux</a>')
+  end
+  
   def test_link_references_are_aligned_automagically
     text = ''
     10.times { |i| text << "<a href='http://example.com/#{i}'>Link #{i}" }
@@ -304,7 +311,7 @@ end
 
 class TestTagSet < Test::Unit::TestCase
   def test_define_tag
-    tags = HTML::TagSet.new do |tag_set|
+    tags = Raggle::HTML::TagSet.new do |tag_set|
       tag_set.define_tag 'foo' do |tag|
       end
     end
@@ -313,7 +320,7 @@ class TestTagSet < Test::Unit::TestCase
   end
 
   def test_define_multiple_identical_tags
-    tags = HTML::TagSet.new do |tag_set|
+    tags = Raggle::HTML::TagSet.new do |tag_set|
       tag_set.define_tag 'foo', 'bar' do |tag|
       end
     end
@@ -324,7 +331,7 @@ class TestTagSet < Test::Unit::TestCase
   end
 
   def test_define_context
-    tags = HTML::TagSet.new do |tag_set|
+    tags = Raggle::HTML::TagSet.new do |tag_set|
       tag_set.define_tag 'foo' do |tag|
 	tag.context = :in_foo
       end
@@ -338,7 +345,7 @@ class TestTagSet < Test::Unit::TestCase
   end
 
   def test_defining_actions
-    tags = HTML::TagSet.new do |tag_set|
+    tags = Raggle::HTML::TagSet.new do |tag_set|
       tag_set.define_tag 'actions' do |tag|
 	tag.start_actions = :a, :b
 	tag.end_actions = :c, :d
@@ -355,7 +362,7 @@ class TestTagSet < Test::Unit::TestCase
   end
 
   def test_defined?
-    tags = HTML::TagSet.new do |tag_set|
+    tags = Raggle::HTML::TagSet.new do |tag_set|
       tag_set.define_tag 'foo' do |tag|
       end
     end

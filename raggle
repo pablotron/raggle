@@ -696,17 +696,24 @@ module Raggle
 
       #
       # Save href of the current tag (if it exists)
+      # unless duplicate link exists.
       #
       def action_save_href
-        @links << @current_attributes['href']
+        href = @current_attributes['href']
+        if href_index = @links.index(href)
+          @last_link_index = href_index + 1
+        else
+          @links << href
+          @last_link_index = @links.size
+        end
       end
 
       #
       # Insert reference to the latest link into the rendered text.
       #
       def action_insert_link_ref
-        if @lines[-1]
-          @lines[-1] << '[%d]' % @links.size
+        if @lines[-1] && @last_link_index
+          @lines[-1] << '[%d]' % @last_link_index
         end
       end
     end

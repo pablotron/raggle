@@ -2039,3 +2039,11 @@
 
 * Tue Sep 21 02:44:40 2004, pabs <pabs@pablotron.org>
   * TODO: add note about delicious integration
+
+* Fri Oct 15 01:06:57 2004, heap <vaine@cs.helsinki.fi>
+  * raggle: When a blog entry contains multiple links to
+    the same site, create reference only for the first
+    link and reuse that reference in the rest of the
+    duplicate links.
+  * extras/test_html_renderer.rb: Fix broken tests and
+    add test for the new reference reusing.

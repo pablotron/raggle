@@ -2988,6 +2988,7 @@ ENDUSAGE
         item_win.draw_items
       
         # fix host-relative URLs
+        # TODO: fix this stuff with URI#merge
         item_content = feed['items'][id]['desc']
         if $config['repair_relative_urls']
           # get host portion of original URL

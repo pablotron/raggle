@@ -4270,7 +4270,7 @@ $config = {
     # yes Richard, there is a reason the following line looks so
     # ugly. -- Paul
     'Accept-Charset'      =>'ISO-8859-1,UTF-8;q=0.7,*;q=0.7',
-    'User-Agent'          => "Raggle/#$VERSION (#{PLATFORM}; Ruby/#{VERSION})",
+    'User-Agent'          => "Raggle/#$VERSION (#{RUBY_PLATFORM}; Ruby/#{RUBY_VERSION})",
   },
 
   # Number of list items per "page" (wrt page up/down)

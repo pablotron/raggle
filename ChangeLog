@@ -2023,3 +2023,9 @@
 
 * Mon Aug 23 15:02:00 2004, pabs <pabs@pablotron.org>
 	* raggle: fix null deref in populate_feed_win
+
+* Tue Aug 24 14:56:44 2004, pabs <pabs@pablotron.org>
+	* raggle: PLATFORM => RUBY_PLATFORM, VERSION => RUBY_VERSION (reported
+		by Robert McGovern <robertm@spellmanhv.co.uk>.  Apparently that
+		causes Cygwin to have a fit.
+

@@ -847,7 +847,12 @@ class FeedList
   #
   def sort
     @feeds.sort! { |a, b|
-      a['title'].downcase <=> b['title'].downcase
+      re = /^\s*(a|the)\s+/i
+      
+      a_c, b_c = a['title'].gsub(re, '').downcase, 
+                 b['title'].gsub(re, '').downcase
+
+      a_c <=> b_c
     }
   end
 

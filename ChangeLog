@@ -1652,3 +1652,5 @@
     this _should_ fix the bad feed killing feed grabbing thread bug
     (/me crosses his fingers)
 
+* Thu Sep 25 22:07:40 2003, pabs <pabs@pablotron.org>
+  * TODO: add idea about grab thread pool

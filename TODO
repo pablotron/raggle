@@ -73,3 +73,4 @@ Raggle TODO
     a big obvious message say what is happening and why -- richlowe 2003-09-25)
 [*] Thread#abort_on_exception for feed grabbing thread! (suggested by
     Harry Ohlsen <harryo@qiqsolutions.com>).
+[ ] thread pool for grabbing an arbitrary number of threads in parallel

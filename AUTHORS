@@ -58,7 +58,7 @@ Ralf Horstmann <ralf.horstmann@webwasher.com
 
 Thomas Kirchner <redshift@halffull.org>
 * get_win_id() fix 
-* corrected feed deletion and status bar updating
+* corrected feed deletion and status bar updating, added confirmation
 * feed finding fixes, adding feeds from results
 * feed sorting fixes
 * periodic and manual feeds/config saving

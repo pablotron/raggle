@@ -1884,13 +1884,19 @@ ENDUSAGE
           item_win = NcursesInterface::get_win_id('item')
           desc_win = NcursesInterface::get_win_id('desc')
           if $a_win == feed_win and $config['feeds'].size > 0
-            win = $wins[feed_win]
-            # delete feed from feedlist and window
-            $config['feeds'].delete(win.active_item)
-            win.delete_item
-            if $config['feeds'].size == 0  # empty list, clear stagnant info
-              $wins[item_win].items.clear; $wins[item_win].draw_items
-              $wins[desc_win].items.clear; $wins[desc_win].draw_items
+            resp = NcursesInterface::get_input('confirm_delete') if $config['confirm_delete']
+            if $config['confirm_delete'] and resp =~ /^y/i
+              win = $wins[feed_win]
+              # delete feed from feedlist and window
+              $config['feeds'].delete(win.active_item)
+              win.delete_item
+              if $config['feeds'].size == 0  # empty list, clear stagnant info
+                $wins[item_win].items.clear; $wins[item_win].draw_items
+                $wins[desc_win].items.clear; $wins[desc_win].draw_items
+                return
+              end
+            else  # they changed their mind
+              NcursesInterface::set_status('')
               return
             end
           elsif $a_win == item_win and  # if we're on a visible item...
@@ -4738,6 +4744,9 @@ $config = {
   # to use the per-feed --save-items command-line option.
   'save_feed_items'       => false,
 
+  # confirm feed deletion?
+  'confirm_delete'        => true,
+
   # theme handling
   'load_theme'            => true,
   'save_theme'            => true,
@@ -4873,6 +4882,7 @@ $config = {
   'msg_links'             => 'Links:',
   'msg_add_feed'          => 'Enter URL:',
   'msg_feed_added'        => 'Feed added',
+  'msg_confirm_delete'    => 'Delete current feed? (y/n)',
   'msg_find_entry'        => 'Find:',
   'msg_cat_title'         => 'Display Category',
   'msg_find_feed'         => 'Find Feeds:',

@@ -2298,3 +2298,7 @@
   * raggle: remove delete_item from TextWindow - holdover from ListWindow
   * raggle: rename move_item_{up,down} to move_feed_{up,down}, unless we
     add item movement
+
+* Wed Jan 05 10:48:00 2005, redshift <redshift@halffull.org>
+  * raggle: added feed delete confirmation
+  * TODO: removed feed delete confirmation

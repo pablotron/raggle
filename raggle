@@ -863,9 +863,15 @@ module Raggle
         contents = if file_name =~ /:\/\//
           Raggle::Engine::get_url(file_name)[0]
         else
-          file = (file_name == '-') ? $stdin : File::open(file_name)
-          raise "Couldn't open input file \"#{file_name}\"." unless file
-          file.read
+          begin
+            ret = ''
+            file = (file_name == '-') ? $stdin : File::open(file_name)
+            raise "Couldn't open input file \"#{file_name}\"." unless file
+            ret = file.read
+          ensure
+            file.close
+            ret
+          end
         end
 
         if contents && contents.size > 0
@@ -894,10 +900,10 @@ module Raggle
         else
           raise "Empty input file \"#{file_name}\"."
         end
-      rescue REXML::ParseException
-        die "Parsing #{file_name} failed: #{$!.message}"
-      rescue
-        die $!.message
+      rescue REXML::ParseException => parse_err
+        die "Parsing #{file_name} failed: #{parse_err.message}"
+      rescue => err
+        die err.message
       end
     end
 
@@ -3929,7 +3935,8 @@ ENDUSAGE
           $config['feeds'].add(feed['title'], feed['url'], feed['refresh'],
                                feed['lock_title?'], feed['save_items?'],
                                feed['site'], feed['desc'], feed['items'],
-                               nil, feed['category'])
+                               feed['image'], feed['category'], false,
+                               feed['priority'])
         }
       end
 
@@ -5145,7 +5152,7 @@ $config = {
       'desc'      => '',
       'category'  => 'Raggle',
       'items'     => [ ],
-      'priority'  => 5,
+      'priority'  => 2,
     },
     { 'title'     => 'Alternet',
       'url'       => 'http://www.alternet.org/rss/rss.xml',
@@ -5245,6 +5252,7 @@ $config = {
       'updated'   => 0,
       'category'  => 'Tech,Raggle',
       'items'     => [ ],
+      'priority'  => 1,
     },
     { 'title'     => 'Richlowe.net',
       'url'       => 'http://richlowe.net/diary/index.rss',

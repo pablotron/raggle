@@ -2260,3 +2260,5 @@
 * Thu Dec 30 12:31:00 2004, redshift <redshift@halffull.org>
   * raggle: fixed url checking in feed editing, removed title/category
     check as any string should be fine
+  * raggle: default feeds weren't getting their priorities; fixed
+  * raggle: miscellaneous cleanup

@@ -2311,7 +2311,6 @@ def select_item(id)
   # load item
   desc_win.items << {
     'content'     => item_content,
-    # 'real_title'  => feed['items'][id]['title'],
     'title'       => feed['items'][id]['title'],
     'url'         => item_url,
     'date'        => feed['items'][id]['date'],
@@ -2322,7 +2321,7 @@ def select_item(id)
   populate_feed_win
 
   # redraw description window
-  # desc_win.clearrange(0, desc_win.dimensions[1])
+  desc_win.offset = 0
   desc_win.draw_items
 
   # activate description window

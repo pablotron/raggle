@@ -1482,3 +1482,7 @@
 
 * Mon Sep 15 17:01:41 2003, pabs <pabs@pablotron.org>
   * raggle: dont' force 1.8 (gotta stop doing that ;))
+
+* Mon Sep 15 17:08:55 2003, pabs <pabs@pablotron.org>
+  * raggle: reset desc window offset when selecting new item
+  * raggle: remove some older commented cruft

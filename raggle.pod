@@ -5,39 +5,38 @@ raggle - text mode RSS aggregator
 =head1 SYNOPSIS
 
 B<raggle>
-[B<-ahlv>] 
-[B<--add>] 
+[B<-aAhlvV>] 
+[B<--add> [I<url>]] 
+[B<--ascii>]
+[B<--diag>]
 [B<--force>] 
 [B<--help>] 
-[B<--usage>] 
 [B<--list>]
-[B<--verbose>]
 [B<--lock-title>]
-[B<--save-items>]
-[B<--server>]
 [B<--purge>] 
+[B<--save-items>]
+[B<--server> [I<port>]]
 [B<--sort>]
-[B<--sort-feeds>]
-[B<--diag>]
-[B<--usage>]
-[B<--unsave-items>]
 [B<--unlock-title>]
+[B<--unsave-items>]
+[B<--usage>]
 [B<--verbose>]
 [B<--version>]
 [B<-c> I<file>]
 [B<--config> I<file>]
-[B<--config-file> I<file>]
 [B<-d> I<feed>]
 [B<--delete> I<feed>]
-[B<--delete-feed> I<feed>]
 [B<-e> I<feed>]
 [B<--edit> I<feed>]
-[B<--edit-feed> I<feed>]
 [B<--export-opml> I<file>]
+[B<-f> I<string>]
+[B<--find-feeds> I<string>]
 [B<--import-opml> I<file>]
 [B<-i> I<feed>]
 [B<--invalidate> I<feed>]
-[B<--invalidate-feed> I<feed>]
+[B<--max> I<num>]
+[B<-p> I<priority>]
+[B<--priority> I<priority>]
 [B<-r> I<refresh_time>]
 [B<--refresh> I<refresh_time>]
 [B<-t> I<title>]
@@ -47,42 +46,35 @@ B<raggle>
 
 =head1 DESCRIPTION
 
-B<raggle> is a curses based RSS aggregator.
+B<raggle> is a curses-based RSS aggregator.
 
 The following options are available:
 
 =over 5
 
-=item B<-h> B<--help> B<--usage>
+=item B<-a> [I<url>]  B<--add> [I<url>]
 
-Show usage information.
+Add a new feed.  You can optionally specify I<url>, otherwise
+it requires B<--url>.
 
-=item B<-l> B<--list>
+=item B<-A>  B<--ascii>
 
-List feeds
+Use ASCII graphics for windows.
 
-=item B<-v> B<--version>
-
-Show B<raggle> version
-
-=item B<-c> I<file> B<--config> I<file> B<--config-file> I<file>
+=item B<-c> I<file>  B<--config> I<file>
 
 Use I<file> as an alternate configuration file.
 
-=item B<-a> B<--add>
+=item B<-d> I<feed>  B<--delete> I<feed>
 
-Add a new feed.  Requires B<--url>.
+Delete I<feed> from the feed list.
 
 =item B<--diag>
 
 Print out full stack traces, and other diagnostic information
 intended for bug hunting.
 
-=item B<-d> I<feed> B<--delete> I<feed> B<--delete-feed> I<feed>
-
-Delete I<feed> from the feed list.
-
-=item B<-e> I<feed> B<--edit> I<feed> B<--edit-feed> I<feed>
+=item B<-e> I<feed>  B<--edit> I<feed>
 
 Edit I<feed>'s information.
 
@@ -90,96 +82,128 @@ Edit I<feed>'s information.
 
 Export all feeds to I<file> in OPML format.
 
+=item B<-f> I<string>  B<--find> I<string>
+
+Find a feed containing I<string> (uses Syndic8).
+
 =item B<--force>
 
-Force and edit/addition to succeed even if it wants to do things that
-are generally unwise
+Force an edit/addition to succeed even if it wants to do things
+that are generally unwise.
+
+=item B<-h>  B<--help>  B<--usage>
+
+Show usage information.
 
 =item B<--import-opml> I<file>
 
-Import feeds from an OPML format I<file>
+Import feeds from an OPML format I<file>.
 
-=item B<-i> I<feed> B<--invalidate> I<feed> B<--invalidate-feed> I<feed>
+=item B<-i> I<feed>  B<--invalidate> I<feed>
 
-Invalidate I<feed> (force it to be refreshed). If -1 is given as I<feed>
-then all feeds are updated.
+Invalidate I<feed> (force it to be refreshed). If -1 is given as
+I<feed> then all feeds are updated.
+
+=item B<-l>  B<--list>
+
+List current feeds.  Use -v or --verbose to display extra info.
 
 =item B<--lock-title>
 
-Lock the title of a feed (blocks updating of a feeds title from data
-in the feed itself), used with B<--add> on B<--edit>.
+Lock the title of a feed (blocks updating of a feed's title from
+data in the feed itself), used with B<--add> or B<--edit>.
+
+=item B<--max> I<num>
+
+Set the maximum number of items in a feed to I<num>.  Automatically sets
+--save-items.
+
+=item B<-p> I<priority>  B<--priority> I<priority>
+
+Set the feed priority to I<priority>.  0 is the default, higher values will
+sort a feed closer to the top.
 
 =item B<--purge>
 
-Purge deleted feeds from the feed cache
+Purge deleted feeds from the feed cache.
 
-=item B<-r> I<refresh_time> B<--refresh> I<refresh_time>
+=item B<-r> I<refresh_time>  B<--refresh> I<refresh_time>
 
-Set a feeds refresh time to I<refresh_time>, used with B<--add> on
-B<--edit>
+Set a feed's refresh time to I<refresh_time>; used with B<--add>
+or B<--edit>.
 
 =item B<--save-items>
 
-Save old items from a feed, used with B<--add> or B<--edit>
+Save all old items from a feed rather than replacing them with newly fetched ones; used with B<--add> or B<--edit>.
 
-=item B<--server>
+=item B<--server> [I<port>]
 
-Run Raggle in HTTP server mode.
+Run Raggle in HTTP server mode, optionally specifying a I<port>.
 
-=item B<--sort> B<--sort-feeds>
+=item B<--sort>
 
-Sort feed list alphabetically by title.
+Sort feed list by priority then by title, case-insensitive.
 
-=item B<-t> I<title> B<--title> I<title>
+=item B<-t> I<title>  B<--title> I<title>
 
-Set a feed's title to I<title>, used with B<--add> or B<--edit>
+Set a feed's title to I<title>, used with B<--add> or B<--edit>.
 
 =item B<--unlock-title>
 
-Reverse the actions of B<--unlock-title>, cause it to be updated from
-the title stored in the RSS feed, used with B<--add> or B<--edit>
+Reverse the actions of B<--lock-title>, causing it to be updated
+from the title stored in the RSS feed; used with B<--add> or
+B<--edit>.
 
 =item B<--unsave-items>
 
-Reverse the actions of B<--save-items>, cause old items to be removed
-from the feed cache, used with B<--add> or B<--edit>
+Reverse the actions of B<--save-items>, cause old items to be
+removed from the feed cache; used with B<--add> or B<--edit>.
 
-=item B<-u> I<url> B<--url> I<url>
+=item B<-u> I<url>  B<--url> I<url>
 
-Set the URL to retrieve a feed from to I<url>, used with B<--add> or
-B<--edit>
+Set the URL from which to retrieve a feed to I<url>, used with
+B<--add> or B<--edit>.
+
+=item B<-v>  B<--verbose>
+
+Turns on verbose output, displaying extra info on the command
+line.
+
+=item B<-V>  B<--version>
+
+Show B<raggle> version.
 
 =back
 
-=head1 KEYS
+=head1 KEYS: MOTION
 
 =over 5
-
-=item I<Right Arrow>
-
-Move to the next window.
-
-=item I<Left Arrow>
-
-Move to the previous window.
 
 =item I<F12>, I<q>
 
 Quit B<raggle>
 
-=item I<Up Arrow>
+=item I<Right Arrow>, I<Tab>, I<l>
+
+Move to the next window.
+
+=item I<Left Arrow>, I<h>
+
+Move to the previous window.
+
+=item I<Up Arrow>, I<k>
 
 Scroll up.
 
-=item I<Down Arrow>
+=item I<Down Arrow>, I<j>
 
 Scroll down.
 
-=item I<End>
+=item I<End>, I<$>, I<G>
 
 Scroll to bottom.
 
-=item I<Home>
+=item I<Home>, I<0>, I<g>
 
 Scroll to top.
 
@@ -191,9 +215,15 @@ Scroll up one page.
 
 Scroll down one page.
 
+=head1 KEYS: INTERACTION
+
 =item I<Return>, I<Space>
 
-Select Item.
+Select item.
+
+=item I<o>
+
+Open Link.
 
 =item I<u>
 
@@ -203,25 +233,29 @@ Move item up.
 
 Move item down.
 
+=item I<a>
+
+Add a feed from within B<raggle>.
+
+=item I<I>
+
+Invalidate the current feed, causing a refresh.
+
 =item I<Delete>
 
-Delete item.
+Delete feed or item.
 
-=item I<s>
+=item I<y>
 
-Sort list.
+Undelete all items in the current feed.
 
-=item I<o>
+=item I</>
 
-Open Link.
+Find an entry.
 
-=item I<m>
+=item I<f>
 
-Mark all items as read.
-
-=item I<!>
-
-Run a shell in the foreground (exit from it to get back to B<raggle>)
+Search for a feed via Syndic8.
 
 =item I<p>
 
@@ -231,6 +265,60 @@ Select previous unread item
 
 Select next unread item
 
+=item I<m>
+
+Mark all items as read.
+
+=item I<M>
+
+Mark all items as unread.
+
+=item I<N>
+
+Mark current item as unread.
+
+=item I<s>
+
+Sort list.
+
+=item I<r>
+
+Lower the current feed's sorting priority.
+
+=item I<R>
+
+Raise the current feed's sorting priority.
+
+=item I<c>
+
+Select a feed category to view.
+
+=item I<C>
+
+Close the current window.
+
+=head1 KEYS: SYSTEM
+
+=item I<!>
+
+Run a shell in the foreground (exit from it to get back to B<raggle>)
+
+=item I<?>
+
+Show current key bindings.
+
+=item I<\>
+
+View item source.
+
+=item I<U>
+
+Start a manual update of feeds.
+
+=item I<S>
+
+Start a manual save of feeds and configuration.
+
 =item I<C-l>
 
 Redraw the screen.
@@ -238,53 +326,48 @@ Redraw the screen.
 =head1 EXAMPLES
 
 Add a feed called "Bar" updating every 2 hours.
-    $ raggle --add -t "Bar" -u "http://foo.com/bar.rss" -r 120
+    $ raggle --add -t Bar --url http://foo.com/bar.rss --refresh 120
+
+Add a feed called "Baz" that will sort to the top.
+    $ raggle -a -t "Baz" -u http://foo.com/baz.rss --priority 10
 
 Change the refresh time of the "Bar" feed to update every hour.
     $ raggle --edit 1 --refresh 60
 
-Tell B<raggle> not to update feed #1's title from the RSS
-    $ raggle --edit 1 --lock-title
+Don't update feed #1's title from the RSS.
+    $ raggle -e 1 --lock-title
 
-Tell B<raggle> to keep old items associated with feed #16
-    $ raggle --edit 16 --save-items
+Keep old items associated with feed #16.
+    $ raggle -e 16 --save-items
 
-Tell B<raggle> to update feed #1's title from the RSS info.
-    $ raggle --edit 1 --unlock--title
+Update feed #1's title from the RSS info.
+    $ raggle -e 1 --unlock-title
 
-Change the URL of the 3rd feed.
-    $ raggle --edit 3 --url http://www.slashdot.org/slashdot.rss
+Change the URL of feed #3.
+    $ raggle -e 3 -u http://www.slashdot.org/slashdot.rss
 
 Export all feeds to foo.opml
     $ raggle --export-opml foo.opml
 
-Import all feeds from foo.opml, so that their refresh time is set to
+Import all feeds from foo.opml, and set their refresh time to
 90 minutes.
-   $ raggle --import-opml foo.opml --refresh 90
+    $ raggle --import-opml foo.opml -r 90
 
 =head1 BUGS
 
-=over 4
+=item B<*>
+
+The feed grabbing thread will block (and no other feeds will
+update) if the HTTP connection for a feed blocks.
 
 =item B<*>
 
-The feed grabbing thread will block (and no other feeds will update)
-if the HTTP connection for a feed blocks.
+It's possible that feeds.yaml will be mistakenly written as an
+Array rather than a FeedList for no apparent reason.
 
 =item B<*>
 
-It's possible that feeds.yaml will be mistakenly written as an Array
-rather than a FeedList for no apparent reason.
-
-=item B<*>
-
-This man page is hopelessly incomplete.
-
-=item B<*>
-
-And probably many, many more, please report any you find to <I<raggle-dev@raggle.org>>
-
-=back
+And probably many, many more; please report any you find to <I<raggle-dev@raggle.org>>
 
 =head1 HISTORY
 
@@ -293,6 +376,9 @@ B<raggle> 0.1 was released on 23 Jun, 2003
 
 =item
 B<raggle> 0.2 was released on 17 Aug, 2003 
+
+=item
+B<raggle> 0.3 was released on 20 Feb, 2004
 
 =head1 AUTHORS
 
@@ -303,4 +389,7 @@ Paul Duncan <I<pabs@pablotron.org>>,
 Richard Lowe <I<richlowe@richlowe.net>>,
 
 =item
-Ville Aine <I<vaine@cs.helsinki.fi>>
+Ville Aine <I<vaine@cs.helsinki.fi>>,
+
+=item
+Thomas Kirchner <I<redshift@halffull.org>>

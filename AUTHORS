@@ -67,5 +67,6 @@ Thomas Kirchner <redshift@halffull.org>
 * help window
 * feed priorities
 * item deletion and undeletion
+* rewrote man page for clarity/new features
 * many continuity fixes for window switching
 * lots of miscellaneous cleanup

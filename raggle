@@ -1420,13 +1420,15 @@ Usage:
   #$0 [options]
 
 Options:
-  -a, --add, --add-feed         Add a new feed (requires '--url').
-  --ascii                       Use ASCII characters instead of ANSI for
+  -a, --add                     Add a new feed (requires '--url').
+  -A, --ascii                   Use ASCII characters instead of ANSI for
                                 window borders.
   -c, --config                  Specify an alternate config file.
-  -d, --delete, --delete-feed   Delete an existing feed.
-  -e, --edit, --edit-feed       Edit an existing feed.
+  -d, --delete                  Delete an existing feed.
+  --diag                        Run raggle in diagnostics/debug mode.
+  -e, --edit                    Edit an existing feed.
   --export-opml                 Export feeds to OPML.  
+  -f, --find                    Find feeds containing a string, via Syndic8
   --force                       Force behavior Raggle won't normally allow.
                                 Use this option with caution.
   -h, --help, --usage           Display this usage screen.
@@ -1436,7 +1438,7 @@ Options:
                                 show URLs as well).
   --lock-title                  Lock Title attribute of feed (for '--add'
                                 and '--edit').
-  --max-items                   Set the maximum number of items for a feed
+  --max                         Set the maximum number of items for a feed
                                 (for '--add' and '--edit').
   -p, --priority                Feed sorting priority: 0 by default, higher
                                 values will sort feeds to the top (for
@@ -1447,7 +1449,7 @@ Options:
   --save-items                  Save old items of feed (for '--add' and
                                 '--edit').
   --server                      Run Raggle in HTTP server mode.
-  --sort, --sort-feeds          Sort feeds by priority then title
+  --sort                        Sort feeds by priority then title
                                 (case-insensitive).
   -t, --title                   Title attribute of feed (for '--add' and
                                 '--edit').
@@ -1457,12 +1459,15 @@ Options:
                                 and '--edit').
   -u, --url                     URL attribute of feed (for '--add' and
                                 '--edit').
-  --verbose                     Turn on verbose output.
-  -v, --version                 Display version information.
+  -v, --verbose                 Turn on verbose output.
+  -V, --version                 Display version information.
 
 Examples:
   # add a new feed (hello world!)
   #$0 -a -u http://www.example.com/rss.xml
+
+  # add a new feed that will sort to the top
+  #$0 -a -u http://www.example.com/rss.xml -p 10
 
   # add a new feed called 'test feed', refresh every 30 minutes
   #$0 -a -t 'test feed' -u http://www.example.com/feed.rss -r 30
@@ -1492,6 +1497,7 @@ About the Authors:
   http://www.richlowe.net/ (RSS: http://www.richlowe.net/diary/index.rss)
 
   Ville Aine <vaine@cs.helsinki.fi>
+  Thomas Kirchner <redshift@halffull.org>
 ENDUSAGE
 
       exit(0)
@@ -1504,34 +1510,34 @@ ENDUSAGE
       ret = { 'mode' => 'view' }
     
       gopts = GetoptLong.new(
-        ['--add', '-a',        '--add-feed',        GetoptLong::OPTIONAL_ARGUMENT],
-        ['--edit', '-e',       '--edit-feed',       GetoptLong::REQUIRED_ARGUMENT],
-        ['--delete', '-d',     '--delete-feed',     GetoptLong::REQUIRED_ARGUMENT],
-        ['--invalidate', '-i', '--invalidate-feed', GetoptLong::REQUIRED_ARGUMENT],
-        ['--config', '-c',     '--config-file',     GetoptLong::REQUIRED_ARGUMENT],
+        ['--add', '-a',                             GetoptLong::OPTIONAL_ARGUMENT],
+        ['--ascii', '-A',                           GetoptLong::NO_ARGUMENT],
+        ['--config', '-c',                          GetoptLong::REQUIRED_ARGUMENT],
+        ['--delete', '-d',                          GetoptLong::REQUIRED_ARGUMENT],
+        ['--diag',                                  GetoptLong::NO_ARGUMENT],
+        ['--drb-server', '--drb',                   GetoptLong::NO_ARGUMENT],
+        ['--edit', '-e',                            GetoptLong::REQUIRED_ARGUMENT],
+        ['--export-opml',                           GetoptLong::REQUIRED_ARGUMENT],
+        ['--find', '-f',                            GetoptLong::REQUIRED_ARGUMENT],
         ['--force',                                 GetoptLong::NO_ARGUMENT], 
+        ['--help', '-h', '--usage',                 GetoptLong::NO_ARGUMENT],
+        ['--import-opml',                           GetoptLong::REQUIRED_ARGUMENT],
+        ['--invalidate', '-i',                      GetoptLong::REQUIRED_ARGUMENT],
         ['--list', '-l',                            GetoptLong::NO_ARGUMENT],
-        ['--title', '-t',                           GetoptLong::REQUIRED_ARGUMENT],
-        ['--url', '-u',                             GetoptLong::REQUIRED_ARGUMENT],
-        ['--refresh', '-r',                         GetoptLong::REQUIRED_ARGUMENT],
-        ['--version', '-v',                         GetoptLong::NO_ARGUMENT],
+        ['--lock-title',                            GetoptLong::NO_ARGUMENT],
+        ['--max',                                   GetoptLong::REQUIRED_ARGUMENT],
         ['--priority', '-p',                        GetoptLong::REQUIRED_ARGUMENT],
         ['--purge',                                 GetoptLong::NO_ARGUMENT],
-        ['--sort', '--sort-feeds',                  GetoptLong::NO_ARGUMENT],
-        ['--lock-title',                            GetoptLong::NO_ARGUMENT],
-        ['--unlock-title',                          GetoptLong::NO_ARGUMENT],
+        ['--refresh', '-r',                         GetoptLong::REQUIRED_ARGUMENT],
         ['--save-items',                            GetoptLong::NO_ARGUMENT],
-        ['--unsave-items',                          GetoptLong::NO_ARGUMENT],
-        ['--verbose',                               GetoptLong::NO_ARGUMENT],
-        ['--import-opml',                           GetoptLong::REQUIRED_ARGUMENT],
-        ['--export-opml',                           GetoptLong::REQUIRED_ARGUMENT],
-        ['--diag',                                  GetoptLong::NO_ARGUMENT],
         ['--server',                                GetoptLong::OPTIONAL_ARGUMENT],
-        ['--drb-server', '--drb',                   GetoptLong::NO_ARGUMENT],
-        ['--help', '-h', '--usage',                 GetoptLong::NO_ARGUMENT],
-        ['--ascii', '-A',                           GetoptLong::NO_ARGUMENT],
-        ['--max-items', '--max',                    GetoptLong::REQUIRED_ARGUMENT],
-        ['--find-feeds', '-f',                      GetoptLong::REQUIRED_ARGUMENT]
+        ['--sort',                                  GetoptLong::NO_ARGUMENT],
+        ['--title', '-t',                           GetoptLong::REQUIRED_ARGUMENT],
+        ['--unlock-title',                          GetoptLong::NO_ARGUMENT],
+        ['--unsave-items',                          GetoptLong::NO_ARGUMENT],
+        ['--url', '-u',                             GetoptLong::REQUIRED_ARGUMENT],
+        ['--verbose', '-v',                         GetoptLong::NO_ARGUMENT],
+        ['--version', '-V',                         GetoptLong::NO_ARGUMENT]
       )
     
       begin
@@ -1560,12 +1566,12 @@ ENDUSAGE
               exit(0)
             when '--priority':      ret['priority'] = arg.to_i
             when '--purge':         ret['mode'] = 'purge'
-            when '--sort', '--sort-feeds'
+            when '--sort'
               ret['mode'] = 'sort'
             when '--lock-title':    ret['lock_title?'] = true
             when '--unlock-title':  ret['lock_title?'] = false
             when '--save-items':    ret['save_items?'] = true
-            when '--max-items'
+            when '--max'
               ret['max_items'] = arg.to_i
               ret['save_items?'] = true if ret['max_items'] > 0
             when '--unsave-items':  ret['save_items?'] = false
@@ -1592,10 +1598,10 @@ ENDUSAGE
               else
                 die "Missing DRb, can't run DRb Server."
               end
-            when '--find-feeds'
+            when '--find'
               ret['mode'] = 'find_feeds'
               ret['find_str'] = arg
-            when '-h', '--help', '--usage'
+            when '--help'
               CLI::print_usage
           end
         end

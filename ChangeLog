@@ -2207,3 +2207,11 @@
 * Thu Dec 23 09:55:00 2004, redshift <redshift@halffull.org>
   * raggle: fixed bug where deletion wouldn't clear window bottom
   * AUTHORS: added some recent contributions
+
+* Thu Dec 23 12:12:00 2004, redshift <redshift@halffull.org>
+  * raggle.pod: reorganized and updated for corrections/new features
+  * raggle.1: recreated from pod
+  * raggle: eliminated some extraneous CLI options and added useful ones,
+    reorganized the related code
+  * raggle: updated usage messages for new features
+  * raggle, AUTHORS, raggle.1, raggle.pod: added myself to authors list

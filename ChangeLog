@@ -1397,3 +1397,8 @@
     for now, the code is basically copied and pasted)
   * raggle: added http open and read timeouts (set to 10 and 30 seconds
     respectively)
+
+* Sat Sep 13 12:50:46 2003, pabs <pabs@pablotron.org>
+  * raggle: finished Window#set_color, color entries for all
+    window elements can include attributes now (fixes bug reported by
+    Phil Gregory <phil@mithrandir.aperiodic.net>)

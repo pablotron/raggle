@@ -1205,40 +1205,6 @@ module Feed
       end
     end
 
-# disabled until it's working right -- paul 
-#     #
-#     # set ncurses color
-#     #
-#     def set_color(color_name = 'text')
-#       col = @colors[color_name]
-#       col_ary = []
-#       if col.is_a? Array
-#         col_ary = col
-#         col = col_ary[0]
-#         col_ary.each_index { |i|
-#           @win.attron $config['attr_palette'][col_ary[i]] if i > 0
-#         }
-#       end
-# 
-#       @win.color_set col, nil
-#     end
-# 
-#       draw_text(text, x, y, reflow_text, offset)
-# 
-#       # get default color, attributes
-#       col = @colors['text']
-#       col_ary = []
-#       if col.is_a? Array
-#         col_ary = col.dup
-#         col = col_ary[0]
-#       end
-# 
-#       # set back to default color
-#       @win.color_set col, nil
-#       @win.attrset Ncurses::A_NORMAL
-#     end
-# 
-
     def find_element(elem, name)
       if $config['item_element_xpaths'][name]
         $config['item_element_xpaths'][name].each { |xpath|
@@ -1285,9 +1251,30 @@ class Window
     refresh
   end
 
+  #
+  # set ncurses color
+  #
+  def set_color(color_name = 'text')
+    col = @colors[color_name]
+    col_ary = []
+    if col.is_a? Array
+      col_ary = col
+      col = col_ary[0]
+      col_ary.each_index { |i|
+        @win.attron $config['attr_palette'][col_ary[i]] if i > 0
+      }
+    end
+
+    # disable attributes for normal text (this is a hack for now)
+    @win.attrset Ncurses::A_NORMAL if color_name == 'text'
+
+    # set color
+    @win.color_set col, nil
+  end
+
   def clearrange(start, fini)
     w = dimensions[0]
-    @win.color_set @colors['text'], nil
+    set_color('text')
     start.upto(fini) do |line|
       Ncurses::mvwprintw @win, line, 1, ' ' * (w - 2)
     end
@@ -1297,7 +1284,7 @@ class Window
   # refresh window title and border (but not the contents)
   # 
   def refresh(refresh_contents = false)
-    @win.color_set @colors[@active ? 'a_box' : 'box'], nil
+    set_color(@active ? 'a_box' : 'box')
 
     if $config['use_ascii_only?']
       @win.box ?|, ?-
@@ -1306,9 +1293,9 @@ class Window
       @win.box 0, 0
     end
 
-    @win.color_set @colors[@active ? 'a_title' : 'title'], nil
+    set_color(@active ? 'a_title' : 'title')
     Ncurses::mvwprintw @win, 0, 1, " #{@title.escape_format} "
-    @win.color_set @colors['text'], nil
+    set_color('text')
 
     Ncurses::wrefresh @win
   end
@@ -1317,7 +1304,7 @@ class Window
   # clear window contents
   #
   def clear
-    @win.color_set @colors['text'], nil
+    set_color('text')
     h = dimensions[1]
     clearrange(1, h - 2)
   end
@@ -1346,33 +1333,9 @@ class Window
            reflow_text = true, offset = 0)
     w, h = dimensions
 
-    # handle color
-    col = @colors[color]
-    col_ary = []
-    if col.is_a? Array
-      col_ary = col
-      col = col_ary[0]
-      col_ary.each_index { |i|
-        @win.attron $config['attr_palette'][col_ary[i]] if i > 0
-      }
-    end
-
-    # draw text in window
-    @win.color_set col, nil if color != 'text'
-
+    set_color(color)
     draw_text(text, x, y, reflow_text, offset)
-
-    # get default color, attributes
-    col = @colors['text']
-    col_ary = []
-    if col.is_a? Array
-      col_ary = col.dup
-      col = col_ary[0]
-    end
-
-    # set back to default color
-    @win.color_set col, nil
-    @win.attrset Ncurses::A_NORMAL
+    set_color('text')
 
     refresh if refresh_win
     y 

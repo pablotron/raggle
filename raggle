@@ -1153,10 +1153,18 @@ class Window
   # 
   def refresh(refresh_contents = false)
     @win.color_set @colors[@active ? 'a_box' : 'box'], nil
-    Ncurses::box @win, 0, 0
+
+    if $config['use_ascii_only?']
+      @win.box ?|, ?-
+      @win.border ?|, ?|, ?-, ?-, ?+, ?+, ?+, ?+
+    else
+      @win.box 0, 0
+    end
+
     @win.color_set @colors[@active ? 'a_title' : 'title'], nil
     Ncurses::mvwprintw @win, 0, 1, " #{@title.escape_format} "
     @win.color_set @colors['text'], nil
+
     Ncurses::wrefresh @win
   end
 
@@ -2204,6 +2212,8 @@ Usage:
 
 Options:
   -a, --add, --add-feed         Add a new feed (requires '--url').
+  --ascii                       Use ASCII characters instead of ANSI for
+                                window borders.
   -c, --config                  Specify an alternate config file.
   -d, --delete, --delete-feed   Delete an existing feed.
   -e, --edit, --edit-feed       Edit an existing feed.
@@ -2301,7 +2311,8 @@ def handle_command_line(opts)
     ['--export-opml',                           GetoptLong::REQUIRED_ARGUMENT],
     ['--diag',                                  GetoptLong::NO_ARGUMENT],
     ['--server',                                GetoptLong::OPTIONAL_ARGUMENT],
-    ['--help', '-h', '--usage',                 GetoptLong::NO_ARGUMENT]
+    ['--help', '-h', '--usage',                 GetoptLong::NO_ARGUMENT],
+    ['--ascii',                                 GetoptLong::NO_ARGUMENT]
   )
 
   begin
@@ -2355,6 +2366,8 @@ def handle_command_line(opts)
           ret['opml_file'] = arg
         when '--diag'
           $config['diag'] = true
+        when '--ascii'
+          ret['ascii'] = true
         when '--server'
           if $HAVE_WEBRICK
             $config['run_http_server'] = true
@@ -2714,6 +2727,8 @@ def main
     exit 0
   end
   
+  # enable ascii mode if requested
+  $config['use_ascii_only?'] = true if opts['ascii']
 
   # load theme
   puts $config['msg_load_theme']
@@ -2956,6 +2971,9 @@ $config = {
   'focus'                 => 'select', # ['none', 'select', 'select_first', 'auto']
   'no_desc_auto_focus'    => true,
   'scroll_wrapping'       => true,
+
+  # use ASCII for window borders instead of ANSI?
+  'use_ascii_only?'       => false,
 
   # thread priorities (best to leave these alone)
   'thread_priority_main'  => 5,

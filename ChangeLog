@@ -1191,3 +1191,7 @@
   * extras/web_ui/inc/desc.css: removed extra junk
   * extras/web_ui/inc/feed_list.css: ditto
   * extras/web_ui/inc/titlebar.css: ditto
+
+* Sun Aug 31 13:51:09 2003, pabs <pabs@pablotron.org>
+  * raggle: added --ascii and $config['use_ascii_only?'] -- use
+    ASCII borders instesad of ANSI ones.

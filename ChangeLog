@@ -1345,3 +1345,7 @@
 
 * Fri Sep 05 17:58:06 2003, pabs <pabs@pablotron.org>
   * extras/web_ui/inc/item.html: ITEM_ID => INDEX
+
+* Mon Sep 08 12:12:06 2003, pabs <pabs@pablotron.org>
+  * raggle: nicer comments in get_http_url()
+  * raggle: only call http.finish if it's been started

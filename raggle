@@ -1031,8 +1031,14 @@ module Feed
 
         # get the result
         resp, content = http.get(('/' << path), headers)
-        raise "HTTP Error: #{resp.code} #{resp.message}" \
-          if resp.code.to_i != 200
+
+        if resp.code.to_i != 200
+          # if we got anythign other than success, raise an exception
+          # (this might be a little overzealous, anyone?
+          raise "HTTP Error: #{resp.code} #{resp.message}" \
+        end
+
+        # build return array
         ret = [content, resp['last-modified']]
       end
     rescue 
@@ -1064,7 +1070,7 @@ module Feed
       # Note: if we don't specify this, then the connection is pooled
       # for the HTTP/1.1 spec (do we prefer that kind of behavior?
       # maybe I should make in an option)
-      http.finish 
+      http.finish if http.active?
     end
 
 

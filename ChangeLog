@@ -2432,3 +2432,6 @@ _Cvs
 * Wed Mar 16 19:03:45 2005, pabs <pabs@pablotron.org>
   * README: add info about gettext-ruby
   * po/en_US.po: fix minor typo
+
+* Wed Mar 16 19:05:34 2005, pabs <pabs@pablotron.org>
+  * TODO: mark i18n off, mother chuckers!

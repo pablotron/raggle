@@ -82,8 +82,9 @@ Raggle TODO
 [*] Thread#abort_on_exception for feed grabbing thread! (suggested by
     Harry Ohlsen <harryo@qiqsolutions.com>).
 [*] thread pool for grabbing an arbitrary number of threads in parallel
-[ ] internationalization support (information in this mailing list post:
+[-] internationalization support (information in this mailing list post:
     http://raggle.org/pipermail/raggle-dev/2003-September/000153.html)
+    (preliminary, needs more work)
 [ ] fix memory hogging (either via weakref caching of feed
     contents or only having the active feed in memory: note this
     method is easier, but relies on sane disk caching for any speed)

@@ -598,3 +598,7 @@
 	                          GetoptLong does it for us.
   * raggle (handle_Command_line): Only rescue GetoptLong::InvalidOption,
                                   so we can still see other errors
+
+* Tue Jun 24 08:36:58 2003, richlowe <richlowe@richlowe.net>
+  * README: Mention that we work with both YAML-Ruby, and syck
+            (YAML-Ruby's successor)

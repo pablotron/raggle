@@ -797,7 +797,7 @@ class ListWindow < Window
       draw(text, 1, y += 1, color, true, false) if ic >= @offset
       ic += 1
     }
-    refresh(true)
+    clearrange(items.size + 1, h - 2)
   end
   
   #
@@ -1286,7 +1286,6 @@ def select_feed(id)
   }
 
   # redraw item window
-  item_win.win.clear
   item_win.draw_items
 
   $config['feeds'].describe($a_feed)
@@ -1302,7 +1301,7 @@ def populate_feed_win
   win = $wins[get_win_id 'feed']
 
   win.items.clear
-
+  
   $config['feeds'].each_with_index { |feed, i|
     # count unread items
     unread_count = 0

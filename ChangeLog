@@ -840,6 +840,16 @@
 * Tue Jul  1 07:06:52 2003, richlowe <richlowe@richlowe.net>
   * raggle: Only clear the part of the window that's necessary in
             Key::delete (real fix follows).
+
+* Tue Jul  1 07:14:15 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Make ListWindow#draw_items do it's own clearing, as
+            TextWindow#draw_items does, and remove the calls to .clear
+	    that this invalidates.  Unfortunately, the TextWindow#clear
+	    calls can't be removed, since the Description, and article
+	    bodies would require blanking possible arbitrary lines in the
+	    switch, and it seems overkill to code up a func to blank
+	    unchanged lines, to avoid a redraw in that case.
+
 	
 
 

@@ -413,5 +413,8 @@
   * raggle.1: Spellcheck
   * raggle: Spellcheck comments and strings.
 
+* Sun Jun 22 03:11:55 2003, richlowe <richlowe@richlowe.net>
+  * raggel: Default feeds refresh at 2 hours, rather than half an hour.
+
 	  
 

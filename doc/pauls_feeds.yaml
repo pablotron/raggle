@@ -2,9 +2,9 @@
 feeds: 
   - items: []
     title: " Raggle"
-    url: http://www.pablotron.org/software/raggle/help.rss
+    url: http://www.raggle.org/files/help-0.2.0.xml
     refresh: -1
-    site: http://www.pablotron.org/software/raggle/
+    site: http://www.raggle.org/
     updated: 1055113783
   - items: []
     title: ActiveState
@@ -310,10 +310,17 @@ feeds:
     updated: 1056265623
   - items: []
     title: Pablotron
-    url: www.pablotron.org/?theme=rss&max=20
+    url: www.pablotron.org/rss/
     refresh: 120
     desc: "Paul Duncan's brain dump."
     site: http://www.pablotron.org/
+    updated: 1056265624
+  - items: []
+    title: Paul Duncan.org
+    url: http://www.paulduncan.org/rss/
+    refresh: 120
+    desc: "Paul Duncan's personal page."
+    site: http://www.paulduncan.org/
     updated: 1056265624
   - items: []
     title: PHP Journal
@@ -346,10 +353,10 @@ feeds:
   - items: []
     error: "Couldn't get URL \"kylie.pablotron.org/~richlowe/index.cgi/index.rss\": execution expired."
     title: Richlowe.NET
-    url: kylie.pablotron.org/~richlowe/index.cgi/index.rss
+    url: http://www.richlowe.net/index.cgi/index.rss
     refresh: 120
     desc: ''
-    site: http://kylie.pablotron.org/~richlowe/index.cgi
+    site: http://www.richlowe.net/
     updated: 1056235263
   - items: []
     title: RootPrompt

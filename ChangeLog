@@ -606,3 +606,11 @@
 * Tue Jun 24 08:44:56 2003, richlowe <richlowe@richlowe.net>
   * raggle: Parenthesize args to get_win_id in Key::open_link, as per
             warning from ruby1.8
+
+* Tue Jun 24 10:38:45 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Add option 'force_text_wrap' that will forcibly wrap long
+            unwrappable lines, and use it in TextWindow#reflow_string
+  * raggle: Fix bug in Window#reflow_string that caused window size to
+            have 4 taken from it. (the fix is wrong, expect the right one in a
+            minute or two.
+

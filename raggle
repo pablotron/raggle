@@ -155,7 +155,7 @@ class String
     gsub(/<[^>]+?>/, '')
   end
 
-  def reflow(width = 72, line_delim_regex = /^(<br[^\/]*>|\.)$/)
+  def reflow(width = 72, force = false, line_delim_regex = /^(<br[^\/]*>|\.)$/)
     text = ''
     curr_line = ''
     strip.split(/\s+/).each { |word|
@@ -163,8 +163,14 @@ class String
         text << curr_line << "\n" 
         curr_line = ''
       elsif curr_line.length + word.length > width - 2
-        text << curr_line << "\n"
-        curr_line = "#{word}"
+        if curr_line.length > width - 2 and force
+          fline = curr_line[0, width - 4] << "\\ \n"
+          text << fline
+          curr_line = curr_line[width - 4, curr_line.length]
+        else
+          text << curr_line << "\n"
+          curr_line = "#{word}"
+        end
       else
         curr_line << " #{word}"
       end
@@ -656,7 +662,7 @@ class Window
 
   def reflow_string(str)
     w = dimensions[0]
-    str.dup.reflow(w - 2)
+    str.dup.reflow(w)
   end
   
   def method_missing(id)
@@ -826,6 +832,11 @@ class ListWindow < Window
 end
 
 class TextWindow < Window
+  def reflow_string(str)
+    w = dimensions[0]
+    str.dup.reflow(w, $config['force_text_wrap'])
+  end
+       
   def draw_items
     y = 0
     clear
@@ -1932,6 +1943,9 @@ $config = {
 
   # decode html escape sequences?
   'unescape_html'         => true,
+
+  # Force wrapping of generally unwrappable lines?
+  'force_text_wrap'       => false,
 
   # replace unicode chars with what?
   'unicode_munge_str'     => '!u!',

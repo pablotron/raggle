@@ -832,4 +832,10 @@
             here, but hopefully an improvement for large values of
 	    FeedCache.size). 
 
+* Tue Jul  1 06:55:27 2003, richlowe <richlowe@richlowe.net>
+  * raggle.1: Mention ^L
+  * raggle: unbind r, ^L is good enough.
+  * raggle: Properly redraw when the feedcache has loaded.
+
+
 

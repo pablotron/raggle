@@ -1415,6 +1415,8 @@ def load_feed_cache
     }
   }
   populate_feed_win
+  select_feed 0
+  set_active_win get_win_id 'feed'
   set_status "Loading feed cache... done"
 end
 
@@ -1963,6 +1965,7 @@ def main
     $config['theme'] = YAML::load(File::open($config['theme_path']))
   end
 
+  # Draw windows and such.
   setup_win
   
   # load feed cache
@@ -2056,10 +2059,6 @@ def main
   }
 
   begin
-
-    
-    # trap('WINCH') { resize_term }
-    
     # main input loop
     timeout = $config['input_select_timeout']
     $done = false
@@ -2254,7 +2253,6 @@ $config = {
     # ?D                  => proc { |win, key| Key::delete },
 
 
-    ?r                  => proc { |win, key| resize_term },
     # Literal control L is horrid -- richlowe 2003-06-26
     ?                 => proc { |win, key| resize_term },
     Ncurses::KEY_RESIZE => proc { |win, key| resize_term },

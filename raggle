@@ -2395,6 +2395,8 @@ def main
       }
     }
   }
+  Thread::main.priority = $config['thread_priority_main']
+  feed_thread.priority = $config['thread_priority_feed']
 
   begin
     # main input loop
@@ -2478,6 +2480,10 @@ $config = {
   'focus'                 => 'select', # ['none', 'select', 'auto']
   'no_desc_auto_focus'    => true,
   'scroll_wrapping'       => true,
+
+  # thread priorities (best to leave these alone)
+  'thread_priority_main'  => 5,
+  'thread_priority_feed'  => 0,
 
   # proxy settings
   'proxy' => {

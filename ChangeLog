@@ -1351,4 +1351,7 @@
   * raggle: only call http.finish if it's been started
 
 * Mon Sep 08 15:17:59 2003, pabs <pabs@pablotron.org>
-  * raggle: update BUGS
+  * BUGS: add a few new things that have beenr eported
+
+* Mon Sep 08 15:23:26 2003, pabs <pabs@pablotron.org>
+  * BUGS: attribute report to reporter :D

@@ -64,4 +64,5 @@ Bugs
     web interface
 [ ] when the active feed is updated it doesn't refresh the item window
 [ ] inconsistent theme color specification (some items take multiple
-    attributes, some don't)
+    attributes, some don't). reported by Phil Gregory
+    <phil@mithrandir.aperiodic.net>

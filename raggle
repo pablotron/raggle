@@ -734,6 +734,44 @@ module Raggle
     end
   end
 
+  # borrowed from syndic8-ruby; 
+  # (see http://www.pablotron.org/software/syndic8-ruby/)
+  class Syndic8
+    attr_accessor :keys, :max_results
+    VERSION = '0.1.0'
+
+    def initialize
+      @keys = %w{sitename siteurl dataurl description}
+      @max_results = -1
+      @rpc = XMLRPC::Client.new('www.syndic8.com', '/xmlrpc.php', 80)
+    end
+
+    def call(meth, *args)
+      @rpc.call("syndic8.#{meth}", *args)
+    end
+    private :call
+
+    #
+    # find feeds matching a given search string
+    #
+    def find(str)
+      begin
+        feeds = call('FindFeeds', str, 'sitename', @max_results)
+        (feeds && feeds.size > 0) ? call('GetFeedInfo', feeds, @keys) : []
+      rescue XMLRPC::FaultException => e
+        raise "Syndic8 Error #{e.faultCode}: #{e.faultString}"
+      end
+    end
+
+    #
+    # get a list of fields returned by Syndic8
+    #
+    def fields
+      call 'GetFeedFields'
+    end
+  end
+
+
   class FeedList
     attr_accessor :feeds
     def initialize
@@ -892,7 +930,7 @@ module Raggle
 
     def describe(id)
       # clear desc window
-      win = $wins[get_win_id('desc')]
+      win = $wins[Raggle::Interfaces::NcursesInterface::get_win_id('desc')]
       win.clear
       
       win.items.clear # This should only ever have one entry
@@ -909,7 +947,6 @@ module Raggle
       win.draw_items
     end
       
-    
     def refresh_interval_check(interval)
       if interval > 0 && interval < $config['feed_refresh_warn']
           err = <<ENDWARNING
@@ -1160,7 +1197,6 @@ ENDWARNING
       ret
     end
 
-
     class Channel
       attr_accessor :title, :link, :desc, :lang, :image, :items, :last_modified
 
@@ -1239,6 +1275,303 @@ ENDWARNING
         text.write(REXML::Output.new(tmp, encoding)) if text
         tmp.unescape_html
       end
+    end
+  end
+
+  module CLI
+    def CLI::print_usage
+      puts <<ENDUSAGE
+Raggle - A Console RSS feed aggregator, written in Ruby.
+Version #$VERSION, by Paul Duncan <pabs@pablotron.org>, 
+                      Richard Lowe <richlowe@richlowe.net>, and
+                      Ville Aine <vaine@cs.helsinki.fi>
+
+Usage:
+  #$0 [options]
+
+Options:
+  -a, --add, --add-feed         Add a new feed (requires '--url').
+  --ascii                       Use ASCII characters instead of ANSI for
+                                window borders.
+  -c, --config                  Specify an alternate config file.
+  -d, --delete, --delete-feed   Delete an existing feed.
+  -e, --edit, --edit-feed       Edit an existing feed.
+  --export-opml                 Export feeds to OPML.  
+  --force                       Force behavior Raggle won't normally allow.
+                                Use this option with caution.
+  -h, --help, --usage           Display this usage screen.
+  --import-opml                 Import feeds from an OPML file.
+  -i, --invalidate              Invalidate a feed (force an update).
+  -l, --list                    List existing feeds (use '--verbose' to 
+                                show URLs as well).
+  --lock-title                  Lock Title attribute of feed (for '--add'
+                                and '--edit').
+  --max-items                   Set the maximum number of items for a feed
+                                (for '--add' and '--edit').
+  --purge                       Purge deleted feeds from feed cache.
+  -r, --refresh                 Refresh attribute of feed (for '--add' and
+                                '--edit').
+  --save-items                  Save old items of feed (for '--add' and
+                                '--edit').
+  --server                      Run Raggle in HTTP server mode.
+  --sort, --sort-feeds          Sort feeds by title (case-insensitive).
+  -t, --title                   Title attribute of feed (for '--add' and
+                                '--edit').
+  --unlock-title                Unlock Title attribute of feed (for '--add'
+                                and '--edit').
+  --unsave-items                Don't save old items of feed (for '--add'
+                                and '--edit').
+  -u, --url                     URL attribute of feed (for '--add' and
+                                '--edit').
+  --verbose                     Turn on verbose output.
+  -v, --version                 Display version information.
+
+Examples:
+  # add a new feed (hello world!)
+  #$0 -a -u http://www.example.com/rss.xml
+
+  # add a new feed called 'test feed', refresh every 30 minutes
+  #$0 -a -t 'test feed' -u http://www.example.com/feed.rss -r 30
+
+  # list feeds and their ids
+  #$0 --list
+
+  # delete an existing feed
+  #$0 --delete 12
+
+  # set the title and refresh of an existing feed
+  #$0 --edit 10 --title 'hi there!' -r 20
+
+  # set and lock the title of feed 12
+  #$0 -e 12 -t 'short title' --lock-title
+
+  # run as HTTP server on port 2345
+  #$0 --server 2345
+  
+About the Authors:
+  Paul Duncan <pabs@pablotron.org>
+  http://www.pablotron.org/  (RSS: http://www.pablotron.org/rss/)
+  http://www.paulduncan.org/ (RSS: http://www.paulduncan.org/rss/)
+
+  Richard Lowe <richlowe@richlowe.net>
+  http://www.richlowe.net/
+  http://www.richlowe.net/ (RSS: http://www.richlowe.net/diary/index.rss)
+
+  Ville Aine <vaine@cs.helsinki.fi>
+ENDUSAGE
+
+      exit(0)
+    end
+
+    #
+    # parse command-line options
+    # 
+    def CLI::parse_cli_options(opts)
+      ret = { 'mode' => 'view' }
+    
+      gopts = GetoptLong.new(
+        ['--add', '-a',        '--add-feed',        GetoptLong::OPTIONAL_ARGUMENT],
+        ['--edit', '-e',       '--edit-feed',       GetoptLong::REQUIRED_ARGUMENT],
+        ['--delete', '-d',     '--delete-feed',     GetoptLong::REQUIRED_ARGUMENT],
+        ['--invalidate', '-i', '--invalidate-feed', GetoptLong::REQUIRED_ARGUMENT],
+        ['--config', '-c',     '--config-file',     GetoptLong::REQUIRED_ARGUMENT],
+        ['--force',                                 GetoptLong::NO_ARGUMENT],		 
+        ['--list', '-l',                            GetoptLong::NO_ARGUMENT],
+        ['--title', '-t',                           GetoptLong::REQUIRED_ARGUMENT],
+        ['--url', '-u',                             GetoptLong::REQUIRED_ARGUMENT],
+        ['--refresh', '-r',                         GetoptLong::REQUIRED_ARGUMENT],
+        ['--version', '-v',                         GetoptLong::NO_ARGUMENT],
+        ['--purge',                                 GetoptLong::NO_ARGUMENT],
+        ['--sort', '--sort-feeds',                  GetoptLong::NO_ARGUMENT],
+        ['--lock-title',                            GetoptLong::NO_ARGUMENT],
+        ['--unlock-title',                          GetoptLong::NO_ARGUMENT],
+        ['--save-items',                            GetoptLong::NO_ARGUMENT],
+        ['--unsave-items',                          GetoptLong::NO_ARGUMENT],
+        ['--verbose',                               GetoptLong::NO_ARGUMENT],
+        ['--import-opml',                           GetoptLong::REQUIRED_ARGUMENT],
+        ['--export-opml',                           GetoptLong::REQUIRED_ARGUMENT],
+        ['--diag',                                  GetoptLong::NO_ARGUMENT],
+        ['--server',                                GetoptLong::OPTIONAL_ARGUMENT],
+        ['--drb-server', '--drb',                   GetoptLong::NO_ARGUMENT],
+        ['--help', '-h', '--usage',                 GetoptLong::NO_ARGUMENT],
+        ['--ascii', '-A',                           GetoptLong::NO_ARGUMENT],
+        ['--max-items', '--max',                    GetoptLong::REQUIRED_ARGUMENT],
+        ['--find-feeds', '-f',                      GetoptLong::REQUIRED_ARGUMENT]
+      )
+    
+      begin
+        gopts.each do |opt, arg|
+          case opt
+            when '--add'
+              ret['mode'] = 'add'
+              ret['url'] = arg if arg && arg.size > 0
+            when '--edit'
+              ret['mode'] = 'edit'
+              ret['id'] = arg.to_i
+            when'--delete'
+              ret['mode'] = 'delete'
+              ret['id'] = arg.to_i
+            when '--invalidate'
+              ret['mode'] = 'invalidate'
+              ret['id'] = arg.to_i
+            when '--config'
+              $config['config_path'] = arg
+            when '--force'
+              ret['force'] = true
+            when '--list'
+              ret['mode'] = 'list'
+            when '--title'
+              ret['title'] = arg
+            when '--url'
+              ret['url'] = arg
+            when '--refresh'
+              ret['refresh'] = arg.to_i
+            when '--version'
+              puts "Raggle v#$VERSION"
+              exit 0
+            when '--purge'
+              ret['mode'] = 'purge'
+            when '--sort', '--sort-feeds'
+              ret['mode'] = 'sort'
+            when '--lock-title'
+              ret['lock_title?'] = true
+            when '--unlock-title'
+              ret['lock_title?'] = false
+            when '--save-items'
+              ret['save_items?'] = true
+            when '--max-items'
+              ret['max_items'] = arg.to_i
+              ret['save_items?'] = true if ret['max_items'] > 0
+            when '--unsave-items'
+              ret['save_items?'] = false
+            when '--verbose'
+              $config['verbose'] = true
+            when '--import-opml'
+              ret['mode'] = 'import_opml'
+              ret['opml_file'] = arg
+            when '--export-opml'
+              ret['mode'] = 'export_opml'
+              ret['opml_file'] = arg
+            when '--diag'
+              $config['diag'] = true
+            when '--ascii'
+              ret['ascii'] = true
+            when '--server'
+              if $HAVE_LIB['webrick']
+                $config['run_http_server'] = true
+                $config['http_server']['port'] = arg.to_i \
+                  if $config['http_server'] && arg && arg.to_i > 0
+              else
+                die 'Missing WEBrick, can\'t run HTTP Server.'
+              end
+            when '--drb-server'
+              if $HAVE_LIB['drb']
+                $config['run_drb_server'] = true
+              else
+                die "Missing DRb, can't run DRb Server."
+              end
+            when '--find-feeds'
+              ret['mode'] = 'find_feeds'
+              ret['find_str'] = arg
+            when '-h', '--help', '--usage'
+              CLI::print_usage
+          end
+        end
+      rescue GetoptLong::InvalidOption 
+        exit -1
+      end
+    
+           
+      # check options
+      if ret['mode'] == 'add'
+        ['url'].each { |val| # removed 'title' and 'refresh' for now
+          unless ret[val]
+            die "Missing '--#{val}'."
+            exit -1
+          end
+        }
+      elsif ret['mode'] == 'edit'
+        unless ret['title'] || ret['url'] || ret['refresh'] ||
+               ret.has_key?('lock_title?') || ret.has_key?('save_items?')
+          die "Please specify a feed change to make."
+        end
+      end
+    
+      # return options
+      ret
+    end
+
+    #
+    # print a list of feeds to stdout
+    #
+    def CLI::list_feeds
+      i = -1
+      if $config['verbose']
+        puts 'ID, Title, URL, Refresh'
+        $config['feeds'].each { |feed|
+          title = feed['title'].escape_format
+          url = feed['url'].escape_format
+          puts "%2d, #{title}, #{url}, #{feed['refresh']}" % (i += 1)
+        }
+      else 
+        puts 'ID, Title'
+        $config['feeds'].each { |feed|
+          title = feed['title'].escape_format
+          puts "%2d, #{title}" % (i += 1)
+        }
+      end
+    end
+
+    def CLI::find_feeds(str)
+      results = find_feeds(str)
+      results.each_with_index do |feed, i|
+        puts "% 2d. %s - %s" % [i + 1, feed['sitename'], feed['dataurl']]
+      end
+    end
+
+    def CLI::handle_mode(opts)
+      case opts['mode']
+      when 'list'
+        CLI::list_feeds
+        exit 0
+      when 'add'
+        Engine::add_feed opts
+        Engine::save_feed_list
+        exit 0
+      when 'delete'
+        Engine::delete_feed opts['id']
+        Engine::save_feed_list
+        exit 0
+      when 'invalidate'
+        Engine::invalidate_feed opts['id']
+        Engine::save_feed_list
+        exit 0
+      when 'edit'
+        Engine::edit_feed opts['id'], opts
+        Engine::save_feed_list
+        exit 0
+      when 'sort'
+        Engine::sort_feeds
+        Engine::save_feed_list
+        exit 0
+      when 'purge'
+        Engine::purge_feed_cache
+        exit 0
+      when 'import_opml'
+        OPML::import opts['opml_file'], opts['refresh'], opts['lock_title?'], opts['save_items'],
+          opts['force']
+        save_feed_list
+        exit 0
+      when 'export_opml'
+        OPML::export opts['opml_file']
+        exit 0
+      when 'find_feeds'
+        CLI::find_feeds(opts['find_str'])
+        exit 0
+      end
+      
+      # enable ascii mode if requested
+      $config['use_ascii_only?'] = true if opts['ascii']
     end
   end
 
@@ -1967,379 +2300,6 @@ ENDWARNING
           # XXX
         end
       end
-    end
-  end
-
-  # borrowed from syndic8-ruby; 
-  # (see http://www.pablotron.org/software/syndic8-ruby/)
-  class Syndic8
-    attr_accessor :keys, :max_results
-    VERSION = '0.1.0'
-
-    def initialize
-      @keys = %w{sitename siteurl dataurl description}
-      @max_results = -1
-      @rpc = XMLRPC::Client.new('www.syndic8.com', '/xmlrpc.php', 80)
-    end
-
-    def call(meth, *args)
-      @rpc.call("syndic8.#{meth}", *args)
-    end
-    private :call
-
-    #
-    # find feeds matching a given search string
-    #
-    def find(str)
-      begin
-        feeds = call('FindFeeds', str, 'sitename', @max_results)
-        (feeds && feeds.size > 0) ? call('GetFeedInfo', feeds, @keys) : []
-      rescue XMLRPC::FaultException => e
-        raise "Syndic8 Error #{e.faultCode}: #{e.faultString}"
-      end
-    end
-
-    #
-    # get a list of fields returned by Syndic8
-    #
-    def fields
-      call 'GetFeedFields'
-    end
-  end
-
-  module Interfaces
-    class HTTPServerInterface
-      attr_accessor :server, :opts, :templates
-
-      def initialize(opts)
-        @opts = opts
-        s = WEBrick::HTTPServer::new(
-          :BindAddress  => @opts['bind_address'],
-          :Port         => @opts['port'],
-          :DocumentRoot => $config['web_ui_root_path'],
-          :Logger       => WEBrick::Log::new($config['web_ui_log_path'])
-        )
-
-        # load templates
-        puts "Loading templates from \"#{$config['web_ui_root_path']}/inc\"."
-        @templates = Hash::new
-        %w{feed feed_list item item_list desc feed_image quit}.each { |tmpl|
-          path = $config['web_ui_root_path'] + "/inc/#{tmpl}.html"
-          @templates[tmpl] = File::open(path).readlines.join if test(?e, path)
-        }
-
-        s.mount_proc('/') { |req, res| res['Location'] = '/index.html' }
-
-        # set up mount points
-        s.mount('/', WEBrick::HTTPServlet::FileHandler,
-                $config['web_ui_root_path'], true)
-
-        # set up quit mount point
-        s.mount_proc('/raggle/quit') { |req, res|
-          quit_thread = Thread::new {
-            $http_server.shutdown
-            sleep opts['shutdown_sleep'];
-            $feed_thread.kill if $feed_thread && $feed_thread.alive?
-            $http_thread.kill if $http_thread && $http_thread.alive?
-          }
-
-          res['Content-Type'] = 'text/html'
-
-          # handle quit template
-          ret = @templates['quit'].dup
-          { 'VERSION'   => $VERSION,
-          }.each { |key, val|
-            ret.gsub!(/__#{key}__/, val) if ret =~ /__#{key}__/
-          }
-
-          res.body = ret
-        }
-
-        # set up feed list mount point
-        s.mount_proc('/raggle/feed') { |req, res|
-          body = @templates['feed_list'].dup
-          ret = ''
-
-          mode = 'default'
-          mode = $1 if req.query_string =~ /mode=([^&]+)/
-
-          cat = 'all'
-          cat = $1 if req.query_string =~/category=([^&]+)/
-
-          case mode
-            when 'sort'
-              Engine::sort_feeds
-            when 'invalidate_all'
-              Engine::invalidate_feed(-1)
-              $feed_thread.run
-            when 'add'
-              url = $1 if req.query_string =~ /url=(.*)$/
-              Engine::add_feed({ 'url' => url })
-              $feed_thread.run if $config['update_after_add']
-            when 'delete'
-              if req.query_string =~ /id=(\d+)/
-                id = $1.to_i
-                Engine::delete_feed(id)
-              end
-            when 'invalidate'
-              if req.query_string =~ /id=(\d+)/
-                id = $1.to_i
-                Engine::invalidate_feed(id)
-                $feed_thread.run 
-              end
-            when 'save_feed_list'
-              Engine::save_feed_list
-          end
-            
-          # build feed list title
-          list_title = 'Feeds ' << ((cat && cat !~ /\ball\b/i) ? "(#{cat})" : '')
-
-          # build each feed title
-          $config['feeds'].category(cat).each_with_index { |feed, i|
-            str = @templates['feed'].dup
-            title = feed['title'] || $config['default_feed_title']
-            
-            # count unread items
-            unread_count = 0
-            feed['items'].each { |item| unread_count += 1 unless item['read?'] }
-
-            # convert updated to minutes
-            updated = (Time.now.to_i - feed['updated'] / 60).to_i
-
-            # handle feed list item template
-            { 'TITLE'         => title || 'Untitled Feed',
-              'URL'           => feed['url'],
-              'ITEM_COUNT'    => feed['items'].size.to_s,
-              'UNREAD_COUNT'  => unread_count.to_s,
-              'INDEX'         => i.to_s,
-              'READ'          => ((unread_count == 0) ? 'read' : 'unread'),
-              'EVEN'          => ((i % 2 == 0) ? 'even' : 'odd'),
-              'UPDATED'       => updated,
-              'CATEGORY'      => cat,
-            }.each { |key, val|
-              str.gsub!(/__#{key}__/, val) if str =~ /__#{key}__/
-            }
-            ret << str
-          }
-
-          # handle feed list template
-          { 'FEEDS'           => ret,
-            'REFRESH'         => opts['page_refresh'].to_s, 
-            'VERSION'         => $VERSION,
-            'CATEGORY'        => cat,
-            'FEED_LIST_TITLE' => list_title,
-            'CATEGORY_SELECT' => build_category_select(cat),
-          }.each { |key, val|
-            body.gsub!(/__#{key}__/, val) if body =~ /__#{key}__/
-          }
-          
-          res['Content-Type'] = 'text/html'
-          res.body = body
-        }
-
-        # set up feed item list mount point
-        s.mount_proc('/raggle/item') { |req, res|
-          body = @templates['item_list'].dup
-          ret = ''
-
-          feed_id = 0
-          feed_id = $1.to_i if req.query_string =~ /feed_id=(\d+)/
-
-          cat = 'all'
-          cat = $1 if req.query_string =~/category=([^&]+)/
-
-          feed = $config['feeds'].category(cat)[feed_id]
-
-          # get feed image
-          feed_image = build_feed_image(feed)
-
-          # convert updated to minutes
-          updated = ((Time.now.to_i - feed['updated']) / 60).to_i
-
-          # build each feed item title
-          feed['items'].each_with_index { |item, i|
-            str = @templates['item'].dup
-            title = item['title']
-            
-            # handle item template
-            { 'TITLE'         => title,
-              'URL'           => item['url'],
-              'DATE'          => item['date'].to_s,
-              'EVEN'          => ((i % 2 == 0) ? 'even' : 'odd'),
-              'READ'          => item['read?'] ? 'read' : 'unread',
-              'FEED_ID'       => feed_id.to_s,
-              'INDEX'         => i.to_s,
-              'CATEGORY'      => cat,
-            }.each { |key, val|
-              str.gsub!(/__#{key}__/, val) if str =~ /__#{key}__/
-            }
-            ret << str
-          }
-
-          # handle item list template
-          { 'ITEMS'           => ret,
-            'FEED_ID'         => feed_id.to_s,
-            'FEED_TITLE'      => feed['title'] || 'Untitled Feed',
-            'FEED_SITE'       => feed['site'] || '',
-            'FEED_URL'        => feed['url'],
-            'FEED_DESC'       => feed['desc'] || '',
-            'FEED_UPDATED'    => updated.to_s,
-            'FEED_IMAGE'      => feed_image,
-            'REFRESH'         => opts['page_refresh'].to_s,
-            'VERSION'         => $VERSION,
-            'CATEGORY'        => cat,
-          }.each { |key, val|
-            body.gsub!(/__#{key}__/, val) if body =~ /__#{key}__/
-          }
-          
-          res['Content-Type'] = 'text/html'
-          res.body = body
-        }
-
-        # set up desc window moutn point
-        s.mount_proc('/raggle/desc') { |req, res|
-          body = @templates['desc'].dup
-          ret = ''
-
-          feed_id = 0
-          item_id = 0
-          cat = 'all'
-          feed_id = $1.to_i if req.query_string =~ /feed_id=([-\d]+)/
-          item_id = $1.to_i if req.query_string =~ /item_id=([-\d]+)/
-          cat = $1 if req.query_string =~/category=([^&]+)/
-
-          # get feed image
-          feed = $config['feeds'].category(cat)[feed_id]
-          feed_image = build_feed_image(feed)
-
-          if item_id == -1
-            title = feed['title']
-            body = "description of feed #{title}"
-          else 
-            item = feed['items'][item_id] || opts['empty_item']
-            title = item['title'] || 'Untitled Item'
-            item['read?'] = true
-            
-            { 'TITLE'         => title,
-              'DATE'          => item['date'].to_s,
-              'READ'          => item['read?'] ? 'read' : 'unread',
-              'URL'           => item['url'], 
-              'FEED_IMAGE'    => feed_image,
-              'DESC'          => item['desc'],
-              'REFRESH'       => opts['refresh'], 
-              'CATEGORY'      => cat,
-            }.each { |key, val|
-              body.gsub!(/__#{key}__/, val) if body =~ /__#{key}__/
-            }
-          end
-
-          res['Content-Type'] = 'text/html'
-          res.body = body
-        }
-
-        @server = s
-      end
-
-      def start
-        @server.start
-      end
-
-      def shutdown
-        @server.shutdown
-      end
-
-      def build_feed_image(feed)
-        # get feed image
-        feed_image = ''
-        if feed['image']
-          feed_image = @templates['feed_image'].dup
-          { 'SITE'        => feed['site'],
-            'IMAGE_TITLE' => '',
-            'IMAGE_URL'   => feed['image'],
-          }.each { |key, val|
-            feed_image.gsub!(/__#{key}__/, val) if feed_image =~ /__#{key}__/
-          }
-        end
-
-        # return feed image
-        feed_image
-      end
-
-      def build_category_select(cat)
-        cat = 'all' unless cat
-        
-        ret = "<select name='category' onChange='form.submit()'>\n" <<
-              "  <option value='all' " <<
-              ((cat =~ /\ball\b/i) ? ' selected="1"' : '') <<
-              ">All</option>\n"
-
-        $config['feeds'].categories.each { |cat| 
-          ret << "  <option value='#{cat.title}'" <<
-                 ((cat =~ /\b#{cat.title}\b/i) ? ' selected="1"' : '') <<
-                 ">#{cat.title}</option>\n"
-        }
-        ret << "</select>\n"
-
-        ret
-      end
-    end
-
-    module DRbServerInterface
-      class DRbInterface
-        def config(key)
-          $config[key]
-        end
-
-        def set_config(key, val)
-          $config[key] = val
-        end
-
-        def config_keys
-          $config.keys
-        end
-
-        def feeds
-          $config['feeds'].feeds
-        end
-
-        def feeds_size
-          $config['feeds'].feeds.size
-        end
-
-        def add_feed(oots)
-          main::add_feed(opts)
-        end
-
-        def [](id)
-          $config['feeds'][id]
-        end
-
-        def version
-          $VERSION
-        end
-
-        def quit
-          exit 0
-        end
-      end
-
-      class DRbServer
-        attr_accessor :opts, :interface
-        def initialize(opts)
-          @opts = opts
-          @interface = DRbInterface.new
-        end
-
-        def start
-          DRb::start_service(@opts['bind_url'], @interface)
-          DRb::thread.join
-        end
-      end
-    end
-  end
-    
-  module Interfaces
-    module NcursesInterface
 
       #
       # set status bar message (or log message, if running as daemon)
@@ -2395,25 +2355,7 @@ ENDWARNING
         $wins.each_index { |i| return i if $wins[i].key == str }
         -1
       end
-    end
-  end
 
-  module Engine
-    # 
-    # expand path macros in $config
-    #
-    def Engine::expand_config
-      $config.each { |key, val| 
-        next unless val.class == String && val =~ /\$\{(.+?)\}/
-        orig_val = val.dup
-        val.gsub!(/\$\{(.+?)\}/, $config[$1])
-        # puts "\"#{orig_val}\" expands to \"#{val}\""
-      }
-    end
-  end
-
-  module Interfaces
-    module NcursesInterface
       #
       # set active feed by id
       #
@@ -2673,73 +2615,7 @@ ENDWARNING
       def select_prev_unread
         select_unread_item NcursesInterface::DIRECTION_BACKWARD
       end
-    end
-  end
 
-  module Engine
-    #
-    # load feed cache
-    #
-    def Engine::load_feed_cache
-      NcursesInterface::set_status "Loading feed cache..."
-      store = PStore::new $config['feed_cache_path']
-      store.transaction { |s|
-        $config['feeds'].each { |feed|
-          feed['items'] = s.root?(feed['url']) ? s[feed['url']] : []
-        }
-      }
-    
-      unless $config['run_http_server'] || $config['run_drb_server']
-        NcursesInterface::populate_feed_win
-        NcursesInterface::select_feed 0
-        NcursesInterface::set_active_win(NcursesInterface::get_win_id('feed'))
-      end
-    
-      NcursesInterface::set_status "Loading feed cache... done"
-    end
-    
-    #
-    # save feed cache 
-    #
-    def Engine::save_feed_cache
-      store = PStore::new $config['feed_cache_path']
-      store.transaction { |s|
-        $config['feeds'].each { |feed| s[feed['url']] = feed['items'] }
-      }
-    end
-    
-    #
-    # save feed list 
-    #
-    def Engine::save_feed_list
-      path = $config['feed_list_path']
-      new_path = path + '~'
-    
-      # rename old feed list
-      begin 
-        File::rename path, new_path if test ?e, path
-      rescue
-      end
-      
-      # save feed list
-      File::open(path, 'w') { |f|
-        $stdout.puts $config['msg_save_list'] if $config['raggle_mode'] == 'view'
-        $stdout.flush
-    
-        # save feed items before clearing htem (for web interface)
-        tmp = []
-        $config['feeds'].each { |feed| tmp << feed['items']; feed['items'] = [] }
-    
-        f.puts $config['feeds'].to_yaml
-    
-        # restore feed items (again, for web interface)
-        tmp.each_with_index { |t, i| $config['feeds'][i]['items'] = t }
-      }
-    end
-  end
-
-  module Interfaces
-    module NcursesInterface
       #
       # save theme
       #
@@ -2757,273 +2633,7 @@ ENDWARNING
       def NcursesInterface::handle_mouse(ev) 
         puts 'mouse'
       end
-    end
-  end
 
-  module CLI
-    def CLI::print_usage
-      puts <<ENDUSAGE
-Raggle - A Console RSS feed aggregator, written in Ruby.
-Version #$VERSION, by Paul Duncan <pabs@pablotron.org>, 
-                      Richard Lowe <richlowe@richlowe.net>, and
-                      Ville Aine <vaine@cs.helsinki.fi>
-
-Usage:
-  #$0 [options]
-
-Options:
-  -a, --add, --add-feed         Add a new feed (requires '--url').
-  --ascii                       Use ASCII characters instead of ANSI for
-                                window borders.
-  -c, --config                  Specify an alternate config file.
-  -d, --delete, --delete-feed   Delete an existing feed.
-  -e, --edit, --edit-feed       Edit an existing feed.
-  --export-opml                 Export feeds to OPML.  
-  --force                       Force behavior Raggle won't normally allow.
-                                Use this option with caution.
-  -h, --help, --usage           Display this usage screen.
-  --import-opml                 Import feeds from an OPML file.
-  -i, --invalidate              Invalidate a feed (force an update).
-  -l, --list                    List existing feeds (use '--verbose' to 
-                                show URLs as well).
-  --lock-title                  Lock Title attribute of feed (for '--add'
-                                and '--edit').
-  --max-items                   Set the maximum number of items for a feed
-                                (for '--add' and '--edit').
-  --purge                       Purge deleted feeds from feed cache.
-  -r, --refresh                 Refresh attribute of feed (for '--add' and
-                                '--edit').
-  --save-items                  Save old items of feed (for '--add' and
-                                '--edit').
-  --server                      Run Raggle in HTTP server mode.
-  --sort, --sort-feeds          Sort feeds by title (case-insensitive).
-  -t, --title                   Title attribute of feed (for '--add' and
-                                '--edit').
-  --unlock-title                Unlock Title attribute of feed (for '--add'
-                                and '--edit').
-  --unsave-items                Don't save old items of feed (for '--add'
-                                and '--edit').
-  -u, --url                     URL attribute of feed (for '--add' and
-                                '--edit').
-  --verbose                     Turn on verbose output.
-  -v, --version                 Display version information.
-
-Examples:
-  # add a new feed (hello world!)
-  #$0 -a -u http://www.example.com/rss.xml
-
-  # add a new feed called 'test feed', refresh every 30 minutes
-  #$0 -a -t 'test feed' -u http://www.example.com/feed.rss -r 30
-
-  # list feeds and their ids
-  #$0 --list
-
-  # delete an existing feed
-  #$0 --delete 12
-
-  # set the title and refresh of an existing feed
-  #$0 --edit 10 --title 'hi there!' -r 20
-
-  # set and lock the title of feed 12
-  #$0 -e 12 -t 'short title' --lock-title
-
-  # run as HTTP server on port 2345
-  #$0 --server 2345
-  
-About the Authors:
-  Paul Duncan <pabs@pablotron.org>
-  http://www.pablotron.org/  (RSS: http://www.pablotron.org/rss/)
-  http://www.paulduncan.org/ (RSS: http://www.paulduncan.org/rss/)
-
-  Richard Lowe <richlowe@richlowe.net>
-  http://www.richlowe.net/
-  http://www.richlowe.net/ (RSS: http://www.richlowe.net/diary/index.rss)
-
-  Ville Aine <vaine@cs.helsinki.fi>
-ENDUSAGE
-
-      exit(0)
-    end
-
-    #
-    # handle command-line options
-    # 
-    def CLI::handle_command_line(opts)
-      ret = { 'mode' => 'view' }
-    
-      gopts = GetoptLong.new(
-        ['--add', '-a',        '--add-feed',        GetoptLong::OPTIONAL_ARGUMENT],
-        ['--edit', '-e',       '--edit-feed',       GetoptLong::REQUIRED_ARGUMENT],
-        ['--delete', '-d',     '--delete-feed',     GetoptLong::REQUIRED_ARGUMENT],
-        ['--invalidate', '-i', '--invalidate-feed', GetoptLong::REQUIRED_ARGUMENT],
-        ['--config', '-c',     '--config-file',     GetoptLong::REQUIRED_ARGUMENT],
-        ['--force',                                 GetoptLong::NO_ARGUMENT],		 
-        ['--list', '-l',                            GetoptLong::NO_ARGUMENT],
-        ['--title', '-t',                           GetoptLong::REQUIRED_ARGUMENT],
-        ['--url', '-u',                             GetoptLong::REQUIRED_ARGUMENT],
-        ['--refresh', '-r',                         GetoptLong::REQUIRED_ARGUMENT],
-        ['--version', '-v',                         GetoptLong::NO_ARGUMENT],
-        ['--purge',                                 GetoptLong::NO_ARGUMENT],
-        ['--sort', '--sort-feeds',                  GetoptLong::NO_ARGUMENT],
-        ['--lock-title',                            GetoptLong::NO_ARGUMENT],
-        ['--unlock-title',                          GetoptLong::NO_ARGUMENT],
-        ['--save-items',                            GetoptLong::NO_ARGUMENT],
-        ['--unsave-items',                          GetoptLong::NO_ARGUMENT],
-        ['--verbose',                               GetoptLong::NO_ARGUMENT],
-        ['--import-opml',                           GetoptLong::REQUIRED_ARGUMENT],
-        ['--export-opml',                           GetoptLong::REQUIRED_ARGUMENT],
-        ['--diag',                                  GetoptLong::NO_ARGUMENT],
-        ['--server',                                GetoptLong::OPTIONAL_ARGUMENT],
-        ['--drb-server', '--drb',                   GetoptLong::NO_ARGUMENT],
-        ['--help', '-h', '--usage',                 GetoptLong::NO_ARGUMENT],
-        ['--ascii', '-A',                           GetoptLong::NO_ARGUMENT],
-        ['--max-items', '--max',                    GetoptLong::REQUIRED_ARGUMENT],
-        ['--find-feeds', '-f',                      GetoptLong::REQUIRED_ARGUMENT]
-      )
-    
-      begin
-        gopts.each do |opt, arg|
-          case opt
-            when '--add'
-              ret['mode'] = 'add'
-              ret['url'] = arg if arg && arg.size > 0
-            when '--edit'
-              ret['mode'] = 'edit'
-              ret['id'] = arg.to_i
-            when'--delete'
-              ret['mode'] = 'delete'
-              ret['id'] = arg.to_i
-            when '--invalidate'
-              ret['mode'] = 'invalidate'
-              ret['id'] = arg.to_i
-            when '--config'
-              $config['config_path'] = arg
-            when '--force'
-              ret['force'] = true
-            when '--list'
-              ret['mode'] = 'list'
-            when '--title'
-              ret['title'] = arg
-            when '--url'
-              ret['url'] = arg
-            when '--refresh'
-              ret['refresh'] = arg.to_i
-            when '--version'
-              puts "Raggle v#$VERSION"
-              exit 0
-            when '--purge'
-              ret['mode'] = 'purge'
-            when '--sort', '--sort-feeds'
-              ret['mode'] = 'sort'
-            when '--lock-title'
-              ret['lock_title?'] = true
-            when '--unlock-title'
-              ret['lock_title?'] = false
-            when '--save-items'
-              ret['save_items?'] = true
-            when '--max-items'
-              ret['max_items'] = arg.to_i
-              ret['save_items?'] = true if ret['max_items'] > 0
-            when '--unsave-items'
-              ret['save_items?'] = false
-            when '--verbose'
-              $config['verbose'] = true
-            when '--import-opml'
-              ret['mode'] = 'import_opml'
-              ret['opml_file'] = arg
-            when '--export-opml'
-              ret['mode'] = 'export_opml'
-              ret['opml_file'] = arg
-            when '--diag'
-              $config['diag'] = true
-            when '--ascii'
-              ret['ascii'] = true
-            when '--server'
-              if $HAVE_LIB['webrick']
-                $config['run_http_server'] = true
-                $config['http_server']['port'] = arg.to_i \
-                  if $config['http_server'] && arg && arg.to_i > 0
-              else
-                die 'Missing WEBrick, can\'t run HTTP Server.'
-              end
-            when '--drb-server'
-              if $HAVE_LIB['drb']
-                $config['run_drb_server'] = true
-              else
-                die "Missing DRb, can't run DRb Server."
-              end
-            when '--find-feeds'
-              ret['mode'] = 'find_feeds'
-              ret['find_str'] = arg
-            when '-h', '--help', '--usage'
-              CLI::print_usage
-          end
-        end
-      rescue GetoptLong::InvalidOption 
-        exit -1
-      end
-    
-           
-      # check options
-      if ret['mode'] == 'add'
-        ['url'].each { |val| # removed 'title' and 'refresh' for now
-          unless ret[val]
-            die "Missing '--#{val}'."
-            exit -1
-          end
-        }
-      elsif ret['mode'] == 'edit'
-        unless ret['title'] || ret['url'] || ret['refresh'] ||
-               ret.has_key?('lock_title?') || ret.has_key?('save_items?')
-          die "Please specify a feed change to make."
-        end
-      end
-    
-      # return options
-      ret
-    end
-
-    #
-    # print a list of feeds to stdout
-    #
-    def CLI::list_feeds
-      i = -1
-      if $config['verbose']
-        puts 'ID, Title, URL, Refresh'
-        $config['feeds'].each { |feed|
-          title = feed['title'].escape_format
-          url = feed['url'].escape_format
-          puts "%2d, #{title}, #{url}, #{feed['refresh']}" % (i += 1)
-        }
-      else 
-        puts 'ID, Title'
-        $config['feeds'].each { |feed|
-          title = feed['title'].escape_format
-          puts "%2d, #{title}" % (i += 1)
-        }
-      end
-    end
-  end
-
-  module Engine
-    #
-    # add a new feed
-    #
-    def Engine::add_feed(opts)
-      %w{title refresh}.each { |i| opts[i] ||= $config["default_feed_#{i}"] }
-      $config['feeds'].add(opts['title'], opts['url'], opts['refresh'],
-                           opts['lock_title?'], opts['save_items?'],
-                           '', '', [], nil, nil, opts['force'])
-    
-      # can't keep adding params to FeedList#add forever :/
-      if opts['max_items']
-        $config['feeds'][-1]['max_items'] = opts['max_items']
-      end
-    end
-  end
-
-  module Interfaces
-    module NcursesInterface
       #
       # add a new feed from ncurses
       # 
@@ -3089,20 +2699,7 @@ ENDUSAGE
       
         ret
       end
-    end
-  end
 
-  module CLI
-    def CLI::find_feeds(str)
-      results = find_feeds(str)
-      results.each_with_index do |feed, i|
-        puts "% 2d. %s - %s" % [i + 1, feed['sitename'], feed['dataurl']]
-      end
-    end
-  end
-
-  module Interfaces
-    module NcursesInterface
       #
       # search for feeds from ncurses
       # 
@@ -3232,112 +2829,7 @@ ENDUSAGE
           NcursesInterface::set_status($new_status)
         end
       end
-    end
-  end
 
-  module Engine
-    #
-    # purge extra feeds in cache
-    #
-    def Engine::purge_feed_cache
-      urls = {}
-      $config['feeds'].each { |feed| urls[feed['url']] = true }
-      PStore::new($config['feed_cache_path']) { |cache|
-        cache.roots.each { |root| 
-          unless urls[root]
-            $stderr.puts "Purging \"#{root}\"" if $config['verbose']
-            cache[root] = nil
-          end
-        }
-      }
-    end
-    
-    # 
-    # delete a feed by id
-    #
-    def Engine::delete_feed(id)
-      $config['feeds'].delete(id)
-    end
-    
-    #
-    # Invalidate a feed by id
-    #
-    def Engine::invalidate_feed(id)
-      $config['feeds'].invalidate(id)
-    end
-    
-    #
-    # Sort feeds 
-    #
-    def Engine::sort_feeds
-      $config['feeds'].sort
-    end
-
-    #
-    # edit an existing feed
-    #
-    def Engine::edit_feed(id, opts)
-      $config['feeds'].edit(id, opts)
-    end
-    
-    # 
-    # create a lock file for raggle
-    #
-    def Engine::create_cache_lock
-      path = $config['cache_lock_path']
-      
-      # open cache lock for writing
-      unless $config['cache_lock'] = File::open(path, 'w')
-        die "Couldn't open \"#{path}\"."
-      end
-    
-      # obtain cache lock
-      unless $config['cache_lock'].flock(File::LOCK_EX | File::LOCK_NB)
-        $stderr.puts "WARNING: Couldn't obtain cache lock: " << 
-                     "Another instance of Raggle is running.\n"
-        $stderr.puts "WARNING: Disabling feed caching for this instance."
-        $stderr.puts "WARNING: Press enter to continue."
-    
-        # wait for user response
-        $stdin.gets
-    
-        # disable feed caching and theme saving
-        $config['use_cache_lock'] = false
-        $config['save_feed_list'] = false
-        $config['save_feed_cache'] = false
-        $config['save_theme'] = false
-      end
-    end
-    
-    #
-    # destroy raggle lock file
-    #
-    def Engine::destroy_cache_lock
-      path = $config['cache_lock_path']
-    
-      # unlock cache lock
-      unless $config['cache_lock'].flock(File::LOCK_UN | File::LOCK_NB)
-        $stderr.puts "WARNING: Couldn't unlock \"#{path}\"."
-      end
-    
-      # close cache lock
-      $config['cache_lock'].flush
-      $config['cache_lock'].close
-      $config['cache_lock'] = nil
-    
-      # start garbage collection (flush out file descriptor)
-      GC.start
-    
-      # unlink cache lock
-      unless File::unlink(path)
-        $stderr.puts "WARNING: Couldn't unlock \"#{path}\"."
-      end
-    end
-  end
-
-
-  module Interfaces
-    module NcursesInterface
       def NcursesInterface::resize_term
         # get screen coordinates
         h = []; w = []
@@ -3456,9 +2948,527 @@ ENDUSAGE
           NcursesInterface::set_active_win(0)
       end
     end
+
+    module HTTPServerInterface
+      class HTTPServer
+        attr_accessor :server, :opts, :templates
+
+        def initialize(opts)
+          @opts = opts
+          s = WEBrick::HTTPServer::new(
+            :BindAddress  => @opts['bind_address'],
+            :Port         => @opts['port'],
+            :DocumentRoot => $config['web_ui_root_path'],
+            :Logger       => WEBrick::Log::new($config['web_ui_log_path'])
+          )
+
+          # load templates
+          puts "Loading templates from \"#{$config['web_ui_root_path']}/inc\"."
+          @templates = Hash::new
+          %w{feed feed_list item item_list desc feed_image quit}.each { |tmpl|
+            path = $config['web_ui_root_path'] + "/inc/#{tmpl}.html"
+            @templates[tmpl] = File::open(path).readlines.join if test(?e, path)
+          }
+
+          s.mount_proc('/') { |req, res| res['Location'] = '/index.html' }
+
+          # set up mount points
+          s.mount('/', WEBrick::HTTPServlet::FileHandler,
+                  $config['web_ui_root_path'], true)
+
+          # set up quit mount point
+          s.mount_proc('/raggle/quit') { |req, res|
+            quit_thread = Thread::new {
+              $http_server.shutdown
+              sleep opts['shutdown_sleep'];
+              $feed_thread.kill if $feed_thread && $feed_thread.alive?
+              $http_thread.kill if $http_thread && $http_thread.alive?
+            }
+
+            res['Content-Type'] = 'text/html'
+
+            # handle quit template
+            ret = @templates['quit'].dup
+            { 'VERSION'   => $VERSION,
+            }.each { |key, val|
+              ret.gsub!(/__#{key}__/, val) if ret =~ /__#{key}__/
+            }
+
+            res.body = ret
+          }
+
+          # set up feed list mount point
+          s.mount_proc('/raggle/feed') { |req, res|
+            body = @templates['feed_list'].dup
+            ret = ''
+
+            mode = 'default'
+            mode = $1 if req.query_string =~ /mode=([^&]+)/
+
+            cat = 'all'
+            cat = $1 if req.query_string =~/category=([^&]+)/
+
+            case mode
+              when 'sort'
+                Engine::sort_feeds
+              when 'invalidate_all'
+                Engine::invalidate_feed(-1)
+                $feed_thread.run
+              when 'add'
+                url = $1 if req.query_string =~ /url=(.*)$/
+                Engine::add_feed({ 'url' => url })
+                $feed_thread.run if $config['update_after_add']
+              when 'delete'
+                if req.query_string =~ /id=(\d+)/
+                  id = $1.to_i
+                  Engine::delete_feed(id)
+                end
+              when 'invalidate'
+                if req.query_string =~ /id=(\d+)/
+                  id = $1.to_i
+                  Engine::invalidate_feed(id)
+                  $feed_thread.run 
+                end
+              when 'save_feed_list'
+                Engine::save_feed_list
+            end
+              
+            # build feed list title
+            list_title = 'Feeds ' << ((cat && cat !~ /\ball\b/i) ? "(#{cat})" : '')
+
+            # build each feed title
+            $config['feeds'].category(cat).each_with_index { |feed, i|
+              str = @templates['feed'].dup
+              title = feed['title'] || $config['default_feed_title']
+              
+              # count unread items
+              unread_count = 0
+              feed['items'].each { |item| unread_count += 1 unless item['read?'] }
+
+              # convert updated to minutes
+              updated = (Time.now.to_i - feed['updated'] / 60).to_i
+
+              # handle feed list item template
+              { 'TITLE'         => title || 'Untitled Feed',
+                'URL'           => feed['url'],
+                'ITEM_COUNT'    => feed['items'].size.to_s,
+                'UNREAD_COUNT'  => unread_count.to_s,
+                'INDEX'         => i.to_s,
+                'READ'          => ((unread_count == 0) ? 'read' : 'unread'),
+                'EVEN'          => ((i % 2 == 0) ? 'even' : 'odd'),
+                'UPDATED'       => updated,
+                'CATEGORY'      => cat,
+              }.each { |key, val|
+                str.gsub!(/__#{key}__/, val) if str =~ /__#{key}__/
+              }
+              ret << str
+            }
+
+            # handle feed list template
+            { 'FEEDS'           => ret,
+              'REFRESH'         => opts['page_refresh'].to_s, 
+              'VERSION'         => $VERSION,
+              'CATEGORY'        => cat,
+              'FEED_LIST_TITLE' => list_title,
+              'CATEGORY_SELECT' => build_category_select(cat),
+            }.each { |key, val|
+              body.gsub!(/__#{key}__/, val) if body =~ /__#{key}__/
+            }
+            
+            res['Content-Type'] = 'text/html'
+            res.body = body
+          }
+
+          # set up feed item list mount point
+          s.mount_proc('/raggle/item') { |req, res|
+            body = @templates['item_list'].dup
+            ret = ''
+
+            feed_id = 0
+            feed_id = $1.to_i if req.query_string =~ /feed_id=(\d+)/
+
+            cat = 'all'
+            cat = $1 if req.query_string =~/category=([^&]+)/
+
+            feed = $config['feeds'].category(cat)[feed_id]
+
+            # get feed image
+            feed_image = build_feed_image(feed)
+
+            # convert updated to minutes
+            updated = ((Time.now.to_i - feed['updated']) / 60).to_i
+
+            # build each feed item title
+            feed['items'].each_with_index { |item, i|
+              str = @templates['item'].dup
+              title = item['title']
+              
+              # handle item template
+              { 'TITLE'         => title,
+                'URL'           => item['url'],
+                'DATE'          => item['date'].to_s,
+                'EVEN'          => ((i % 2 == 0) ? 'even' : 'odd'),
+                'READ'          => item['read?'] ? 'read' : 'unread',
+                'FEED_ID'       => feed_id.to_s,
+                'INDEX'         => i.to_s,
+                'CATEGORY'      => cat,
+              }.each { |key, val|
+                str.gsub!(/__#{key}__/, val) if str =~ /__#{key}__/
+              }
+              ret << str
+            }
+
+            # handle item list template
+            { 'ITEMS'           => ret,
+              'FEED_ID'         => feed_id.to_s,
+              'FEED_TITLE'      => feed['title'] || 'Untitled Feed',
+              'FEED_SITE'       => feed['site'] || '',
+              'FEED_URL'        => feed['url'],
+              'FEED_DESC'       => feed['desc'] || '',
+              'FEED_UPDATED'    => updated.to_s,
+              'FEED_IMAGE'      => feed_image,
+              'REFRESH'         => opts['page_refresh'].to_s,
+              'VERSION'         => $VERSION,
+              'CATEGORY'        => cat,
+            }.each { |key, val|
+              body.gsub!(/__#{key}__/, val) if body =~ /__#{key}__/
+            }
+            
+            res['Content-Type'] = 'text/html'
+            res.body = body
+          }
+
+          # set up desc window moutn point
+          s.mount_proc('/raggle/desc') { |req, res|
+            body = @templates['desc'].dup
+            ret = ''
+
+            feed_id = 0
+            item_id = 0
+            cat = 'all'
+            feed_id = $1.to_i if req.query_string =~ /feed_id=([-\d]+)/
+            item_id = $1.to_i if req.query_string =~ /item_id=([-\d]+)/
+            cat = $1 if req.query_string =~/category=([^&]+)/
+
+            # get feed image
+            feed = $config['feeds'].category(cat)[feed_id]
+            feed_image = build_feed_image(feed)
+
+            if item_id == -1
+              title = feed['title']
+              body = "description of feed #{title}"
+            else 
+              item = feed['items'][item_id] || opts['empty_item']
+              title = item['title'] || 'Untitled Item'
+              item['read?'] = true
+              
+              { 'TITLE'         => title,
+                'DATE'          => item['date'].to_s,
+                'READ'          => item['read?'] ? 'read' : 'unread',
+                'URL'           => item['url'], 
+                'FEED_IMAGE'    => feed_image,
+                'DESC'          => item['desc'],
+                'REFRESH'       => opts['refresh'], 
+                'CATEGORY'      => cat,
+              }.each { |key, val|
+                body.gsub!(/__#{key}__/, val) if body =~ /__#{key}__/
+              }
+            end
+
+            res['Content-Type'] = 'text/html'
+            res.body = body
+          }
+
+          @server = s
+        end
+
+        def start
+          @server.start
+        end
+
+        def shutdown
+          @server.shutdown
+        end
+
+        def build_feed_image(feed)
+          # get feed image
+          feed_image = ''
+          if feed['image']
+            feed_image = @templates['feed_image'].dup
+            { 'SITE'        => feed['site'],
+              'IMAGE_TITLE' => '',
+              'IMAGE_URL'   => feed['image'],
+            }.each { |key, val|
+              feed_image.gsub!(/__#{key}__/, val) if feed_image =~ /__#{key}__/
+            }
+          end
+
+          # return feed image
+          feed_image
+        end
+
+        def build_category_select(cat)
+          cat = 'all' unless cat
+          
+          ret = "<select name='category' onChange='form.submit()'>\n" <<
+                "  <option value='all' " <<
+                ((cat =~ /\ball\b/i) ? ' selected="1"' : '') <<
+                ">All</option>\n"
+
+          $config['feeds'].categories.each { |cat| 
+            ret << "  <option value='#{cat.title}'" <<
+                   ((cat =~ /\b#{cat.title}\b/i) ? ' selected="1"' : '') <<
+                   ">#{cat.title}</option>\n"
+          }
+          ret << "</select>\n"
+
+          ret
+        end
+      end
+    end
+
+    module DRbServerInterface
+      class DRbInterface
+        def config(key)
+          $config[key]
+        end
+
+        def set_config(key, val)
+          $config[key] = val
+        end
+
+        def config_keys
+          $config.keys
+        end
+
+        def feeds
+          $config['feeds'].feeds
+        end
+
+        def feeds_size
+          $config['feeds'].feeds.size
+        end
+
+        def add_feed(oots)
+          main::add_feed(opts)
+        end
+
+        def [](id)
+          $config['feeds'][id]
+        end
+
+        def version
+          $VERSION
+        end
+
+        def quit
+          exit 0
+        end
+      end
+
+      class DRbServer
+        attr_accessor :opts, :interface
+        def initialize(opts)
+          @opts = opts
+          @interface = DRbInterface.new
+        end
+
+        def start
+          DRb::start_service(@opts['bind_url'], @interface)
+          DRb::thread.join
+        end
+      end
+    end
+  end
+    
+  module Engine
+    # 
+    # expand path macros in $config
+    #
+    def Engine::expand_config
+      $config.each { |key, val| 
+        next unless val.class == String && val =~ /\$\{(.+?)\}/
+        orig_val = val.dup
+        val.gsub!(/\$\{(.+?)\}/, $config[$1])
+        # puts "\"#{orig_val}\" expands to \"#{val}\""
+      }
+    end
+
+    #
+    # load feed cache
+    #
+    def Engine::load_feed_cache
+      Raggle::Interfaces::NcursesInterface::set_status "Loading feed cache..."
+      store = PStore::new $config['feed_cache_path']
+      store.transaction { |s|
+        $config['feeds'].each { |feed|
+          feed['items'] = s.root?(feed['url']) ? s[feed['url']] : []
+        }
+      }
+    
+      unless $config['run_http_server'] || $config['run_drb_server']
+        Raggle::Interfaces::NcursesInterface::populate_feed_win
+        Raggle::Interfaces::NcursesInterface::select_feed 0
+        Raggle::Interfaces::NcursesInterface::set_active_win(Raggle::Interfaces::NcursesInterface::get_win_id('feed'))
+      end
+    
+      Raggle::Interfaces::NcursesInterface::set_status "Loading feed cache... done"
+    end
+    
+    #
+    # save feed cache 
+    #
+    def Engine::save_feed_cache
+      store = PStore::new $config['feed_cache_path']
+      store.transaction { |s|
+        $config['feeds'].each { |feed| s[feed['url']] = feed['items'] }
+      }
+    end
+    
+    #
+    # save feed list 
+    #
+    def Engine::save_feed_list
+      path = $config['feed_list_path']
+      new_path = path + '~'
+    
+      # rename old feed list
+      begin 
+        File::rename path, new_path if test ?e, path
+      rescue
+      end
+      
+      # save feed list
+      File::open(path, 'w') { |f|
+        $stdout.puts $config['msg_save_list'] if $config['raggle_mode'] == 'view'
+        $stdout.flush
+    
+        # save feed items before clearing htem (for web interface)
+        tmp = []
+        $config['feeds'].each { |feed| tmp << feed['items']; feed['items'] = [] }
+    
+        f.puts $config['feeds'].to_yaml
+    
+        # restore feed items (again, for web interface)
+        tmp.each_with_index { |t, i| $config['feeds'][i]['items'] = t }
+      }
+    end
   end
 
   module Engine
+    #
+    # add a new feed
+    #
+    def Engine::add_feed(opts)
+      %w{title refresh}.each { |i| opts[i] ||= $config["default_feed_#{i}"] }
+      $config['feeds'].add(opts['title'], opts['url'], opts['refresh'],
+                           opts['lock_title?'], opts['save_items?'],
+                           '', '', [], nil, nil, opts['force'])
+    
+      # can't keep adding params to FeedList#add forever :/
+      if opts['max_items']
+        $config['feeds'][-1]['max_items'] = opts['max_items']
+      end
+    end
+
+    #
+    # purge extra feeds in cache
+    #
+    def Engine::purge_feed_cache
+      urls = {}
+      $config['feeds'].each { |feed| urls[feed['url']] = true }
+      PStore::new($config['feed_cache_path']) { |cache|
+        cache.roots.each { |root| 
+          unless urls[root]
+            $stderr.puts "Purging \"#{root}\"" if $config['verbose']
+            cache[root] = nil
+          end
+        }
+      }
+    end
+    
+    # 
+    # delete a feed by id
+    #
+    def Engine::delete_feed(id)
+      $config['feeds'].delete(id)
+    end
+    
+    #
+    # Invalidate a feed by id
+    #
+    def Engine::invalidate_feed(id)
+      $config['feeds'].invalidate(id)
+    end
+    
+    #
+    # Sort feeds 
+    #
+    def Engine::sort_feeds
+      $config['feeds'].sort
+    end
+
+    #
+    # edit an existing feed
+    #
+    def Engine::edit_feed(id, opts)
+      $config['feeds'].edit(id, opts)
+    end
+    
+    # 
+    # create a lock file for raggle
+    #
+    def Engine::create_cache_lock
+      path = $config['cache_lock_path']
+      
+      # open cache lock for writing
+      unless $config['cache_lock'] = File::open(path, 'w')
+        die "Couldn't open \"#{path}\"."
+      end
+    
+      # obtain cache lock
+      unless $config['cache_lock'].flock(File::LOCK_EX | File::LOCK_NB)
+        $stderr.puts "WARNING: Couldn't obtain cache lock: " << 
+                     "Another instance of Raggle is running.\n"
+        $stderr.puts "WARNING: Disabling feed caching for this instance."
+        $stderr.puts "WARNING: Press enter to continue."
+    
+        # wait for user response
+        $stdin.gets
+    
+        # disable feed caching and theme saving
+        $config['use_cache_lock'] = false
+        $config['save_feed_list'] = false
+        $config['save_feed_cache'] = false
+        $config['save_theme'] = false
+      end
+    end
+    
+    #
+    # destroy raggle lock file
+    #
+    def Engine::destroy_cache_lock
+      path = $config['cache_lock_path']
+    
+      # unlock cache lock
+      unless $config['cache_lock'].flock(File::LOCK_UN | File::LOCK_NB)
+        $stderr.puts "WARNING: Couldn't unlock \"#{path}\"."
+      end
+    
+      # close cache lock
+      $config['cache_lock'].flush
+      $config['cache_lock'].close
+      $config['cache_lock'] = nil
+    
+      # start garbage collection (flush out file descriptor)
+      GC.start
+    
+      # unlink cache lock
+      unless File::unlink(path)
+        $stderr.puts "WARNING: Couldn't unlock \"#{path}\"."
+      end
+    end
+
     #
     # grab individual feed Ccalled by feed grabbing thread)
     #
@@ -3575,10 +3585,10 @@ end
 
 def main
   # expand the default config hash
-  Engine::expand_config
+  Raggle::Engine::expand_config
 
   # parse command-line options
-  opts = CLI::handle_command_line ARGV
+  opts = Raggle::CLI::parse_cli_options ARGV
   
   # if $HOME/.raggle doesn't exist, then create it
   Dir::mkdir $config['config_dir'] unless test ?d , $config['config_dir']
@@ -3596,7 +3606,7 @@ def main
   $config = default_config
   $config.update user_config
   
-  Engine::expand_config
+  Raggle::Engine::expand_config
   
   # load feed list
   puts $config['msg_load_list'] if opts['mode'] == 'view'
@@ -3614,52 +3624,11 @@ def main
   end
   
   # create cache lock
-  Engine::create_cache_lock if $config['use_cache_lock']
+  Raggle::Engine::create_cache_lock if $config['use_cache_lock']
   
   # handle command-line options
   $config['raggle_mode'] = opts['mode']
-  case opts['mode']
-  when 'list'
-    CLI::list_feeds
-    exit 0
-  when 'add'
-    Engine::add_feed opts
-    Engine::save_feed_list
-    exit 0
-  when 'delete'
-    Engine::delete_feed opts['id']
-    Engine::save_feed_list
-    exit 0
-  when 'invalidate'
-    Engine::invalidate_feed opts['id']
-    Engine::save_feed_list
-    exit 0
-  when 'edit'
-    Engine::edit_feed opts['id'], opts
-    Engine::save_feed_list
-    exit 0
-  when 'sort'
-    Engine::sort_feeds
-    Engine::save_feed_list
-    exit 0
-  when 'purge'
-    Engine::purge_feed_cache
-    exit 0
-  when 'import_opml'
-    OPML::import opts['opml_file'], opts['refresh'], opts['lock_title?'], opts['save_items'],
-      opts['force']
-    save_feed_list
-    exit 0
-  when 'export_opml'
-    OPML::export opts['opml_file']
-    exit 0
-  when 'find_feeds'
-    CLI::find_feeds(opts['find_str'])
-    exit 0
-  end
-  
-  # enable ascii mode if requested
-  $config['use_ascii_only?'] = true if opts['ascii']
+  Raggle::CLI::handle_mode(opts)
 
   # load theme
   puts $config['msg_load_theme']
@@ -3672,12 +3641,12 @@ def main
 
   # Draw windows and such.
   # (unless we're running as a daemon)
-  NcursesInterface::setup_win unless $config['run_http_server'] ||
-                                     $config['run_drb_server']
+  Raggle::Interfaces::NcursesInterface::setup_win unless \
+    $config['run_http_server'] || $config['run_drb_server']
   
   # load feed cache
-  Engine::load_feed_cache if $config['load_feed_cache'] &&
-                             test(?e, $config['feed_cache_path'])
+  Raggle::Engine::load_feed_cache if $config['load_feed_cache'] &&
+                                     test(?e, $config['feed_cache_path'])
   
   # set up Net::HTTP module
   Net::HTTP.version_1_1
@@ -3695,7 +3664,10 @@ def main
           begin
             threads = []
             $config['feeds'].each do |the_feed|
-              threads << Thread::new(the_feed) { |f| Engine::grab_feed(f) }
+              threads << Thread::new(the_feed) do |feed| 
+                Raggle::Engine::grab_feed(feed)
+              end
+
               until Thread::list.size < ($config['max_threads'] || 60)
                 $log.puts 'DEBUG: Waiting for threads'
                 sleep 5
@@ -3749,7 +3721,7 @@ def main
 
     # start HTTP server thread
     $http_thread = Thread.new {
-      $http_server = Raggle::Interfaces::HTTPServerInterface::new($config['http_server'])
+      $http_server = Raggle::Interfaces::HTTPServerInterface::HTTPServer::new($config['http_server'])
       $http_server.start
     }
   elsif $HAVE_LIB['drb'] && $config['run_drb_server']
@@ -3797,11 +3769,11 @@ def main
         # refresh window contents if there's been a feed update
         if $update_wins
           $update_wins = false
-          NcursesInterface::populate_feed_win
+          Raggle::Interfaces::NcursesInterface::populate_feed_win
           # wins.each { |win| win.draw_items }
         end
         
-        NcursesInterface::set_status $new_status if $new_status != $status
+        Raggle::Interfaces::NcursesInterface::set_status $new_status if $new_status != $status
       end
     end
     
@@ -3813,9 +3785,9 @@ def main
     $feed_thread.exit if $feed_thread.alive?
 
     # save feed cache, feed list, and theme
-    Engine::save_feed_cache if $config['save_feed_cache']
-    Engine::save_feed_list if $config['save_feed_list']
-    NcursesInterface::save_theme if $config['save_theme']
+    Raggle::Engine::save_feed_cache if $config['save_feed_cache']
+    Raggle::Engine::save_feed_list if $config['save_feed_list']
+    Raggle::Interfaces::NcursesInterface::save_theme if $config['save_theme']
   ensure
     unless $done # if done is set then we're exiting cleanly
       # clean up either screen or HTTP server on exit
@@ -3829,15 +3801,15 @@ def main
       
       # save feed cache, feed list, and theme (if requested)
       if $config['save_on_crash']
-        Engine::save_feed_cache if $config['save_feed_cache']
-        Engine::save_feed_list if $config['save_feed_list']
-        NcursesInterface::save_theme if $config['save_theme']
+        Raggle::Engine::save_feed_cache if $config['save_feed_cache']
+        Raggle::Engine::save_feed_list if $config['save_feed_list']
+        Raggle::Interfaces::NcursesInterface::save_theme if $config['save_theme']
       end
     end
       
     # unlock everything
-    Engine::destroy_cache_lock if $config['use_cache_lock'] &&
-                                  $config['cache_lock']
+    Raggle::Engine::destroy_cache_lock if $config['use_cache_lock'] &&
+                                          $config['cache_lock']
     
     $stdout.puts $config['msg_thanks']
   end
@@ -3847,14 +3819,14 @@ end
 # default config #
 ##################
 $config = {
-  'config_dir'            => Path::find_home + '/.raggle',
+  'config_dir'            => Raggle::Path::find_home + '/.raggle',
   'config_path'           => '${config_dir}/config.rb',
   'feed_list_path'        => '${config_dir}/feeds.yaml',
   'feed_cache_path'       => '${config_dir}/feed_cache.store',
   'theme_path'            => '${config_dir}/theme.yaml',
   'grab_log_path'         => '${config_dir}/grab.log',
   'cache_lock_path'       => '${config_dir}/lock',
-  'web_ui_root_path'      => Path::find_web_ui_root,
+  'web_ui_root_path'      => Raggle::Path::find_web_ui_root,
   'web_ui_log_path'       => '${config_dir}/webrick.log',
 
   # feed list handling
@@ -4071,7 +4043,7 @@ $config = {
   'screen_cmd'            => ['screen', '-t', '%s'],
   
   # browser options
-  'browser'               => Path::find_browser,
+  'browser'               => Raggle::Path::find_browser,
   'browser_cmd'           => ['${browser}', '%s'],
 
   # Force raggle to accept shell metacharacters in urls.
@@ -4111,55 +4083,55 @@ $config = {
 
   # key bindings
   'keys'            => ($HAVE_LIB['ncurses'] ? {
-    Ncurses::KEY_RIGHT  => proc { |win, key| Key::next_window },
-    ?\t                 => proc { |win, key| Key::next_window },
+    Ncurses::KEY_RIGHT  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::next_window },
+    ?\t                 => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::next_window },
 
-    Ncurses::KEY_LEFT   => proc { |win, key| Key::prev_window },
-    ?\\                 => proc { |win, key| Key::view_source },
+    Ncurses::KEY_LEFT   => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::prev_window },
+    ?\\                 => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::view_source },
 
-    Ncurses::KEY_F12    => proc { |win, key| Key::quit },
-    ?q                  => proc { |win, key| Key::quit },
+    Ncurses::KEY_F12    => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::quit },
+    ?q                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::quit },
 
-    Ncurses::KEY_UP     => proc { |win, key| Key::scroll_up },
-    Ncurses::KEY_DOWN   => proc { |win, key| Key::scroll_down },
-    Ncurses::KEY_HOME   => proc { |win, key| Key::scroll_top },
-    ?0                  => proc { |win, key| Key::scroll_top },
-    Ncurses::KEY_END    => proc { |win, key| Key::scroll_bottom },
-    ?$                  => proc { |win, key| Key::scroll_bottom },
-    Ncurses::KEY_PPAGE  => proc { |win, key| Key::scroll_up_page },
-    Ncurses::KEY_NPAGE  => proc { |win, key| Key::scroll_down_page },
+    Ncurses::KEY_UP     => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_up },
+    Ncurses::KEY_DOWN   => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_down },
+    Ncurses::KEY_HOME   => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_top },
+    ?0                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_top },
+    Ncurses::KEY_END    => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_bottom },
+    ?$                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_bottom },
+    Ncurses::KEY_PPAGE  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_up_page },
+    Ncurses::KEY_NPAGE  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_down_page },
 
     # vi keybindings
-    ?h                  => proc { |win, key| Key::prev_window },
-    ?j                  => proc { |win, key| Key::scroll_down },
-    ?k                  => proc { |win, key| Key::scroll_up },
-    ?l                  => proc { |win, key| Key::next_window },
+    ?h                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::prev_window },
+    ?j                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_down },
+    ?k                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::scroll_up },
+    ?l                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::next_window },
 
-    ?\n                 => proc { |win, key| Key::select_item },
-    ?\                  => proc { |win, key| Key::select_item },
+    ?\n                 => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::select_item },
+    ?\                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::select_item },
 
-    ?u                  => proc { |win, key| Key::move_item_up },
-    ?d                  => proc { |win, key| Key::move_item_down },
+    ?u                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::move_item_up },
+    ?d                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::move_item_down },
 
-    ?I                  => proc { |win, key| Key::invalidate_feed },
+    ?I                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::invalidate_feed },
 
-    ?/                  => proc { |win, key| Key::find_entry(win) },
+    ?/                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::find_entry(win) },
 
-    Ncurses::KEY_DC     => proc { |win, key| Key::delete },
+    Ncurses::KEY_DC     => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::delete },
     ##
     # XXX: Meta can be dropped after spawned browser exits
     # So A, B, C or D should *not* be bound until this is fixed
     # -- richlowe 2003-06-22 (actually --pabs 2003-06-21)
-    # ?D                  => proc { |win, key| Key::delete },
+    # ?D                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::delete },
 
 
     # Literal control L is horrid -- richlowe 2003-06-26
     ?\                => proc { |win, key| resize_term },
     Ncurses::KEY_RESIZE => proc { |win, key| resize_term },
 
-    ?s                  => proc { |win, key| Key::sort_feeds },
+    ?s                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::sort_feeds },
 
-    ?o                  => proc { |win, key| Key::open_link },
+    ?o                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::open_link },
 
     ?m                  => proc { |win, key| mark_items_as_read },
 
@@ -4168,14 +4140,14 @@ $config = {
     ?p                  => proc { |win, key| select_prev_unread },
     ?n                  => proc { |win, key| select_next_unread },
 
-    ?U                  => proc { |win, key| Key::manual_update },
-    ?a                  => proc { |win, key| Key::gui_add_feed },
+    ?U                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::manual_update },
+    ?a                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::gui_add_feed },
 
     # i know this is using 'c'.. we'll see if this fucks us (see note
     # about 'C' above)
     # -- pabs (Sat Mar 20 21:10:55 2004)
-    ?c                  => proc { |win, key| Key::gui_cat_list },
-    ?f                  => proc { |win, key| Key::gui_find_feed },
+    ?c                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::gui_cat_list },
+    ?f                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::gui_find_feed },
   } : {}),
 
   # color palette (referenced by themes)
@@ -4304,7 +4276,7 @@ $config = {
   },
 
   # live feeds
-  'feeds'    => FeedList.new,
+  'feeds'    => Raggle::FeedList.new,
 
   # debugging / internal options (don't touch)
   'use_raw_mode'  => true,

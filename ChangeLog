@@ -1873,3 +1873,36 @@
 
 * Sun Jul 11 04:45:24 2004, pabs <pabs@pablotron.org>
   * raggle: move FeedList module and Feed class into Raggle module
+
+* Sun Jul 11 04:55:26 2004, pabs <pabs@pablotron.org>
+  * raggle: added Raggle::Interfaces module, moved Ncurses interface
+    related code to Raggle::Interfaces::Ncurses (Window, ListWindow, and
+    TextWindow interfaces)
+  * raggle: moved HTTPServer to Raggle::Interfaces::HTTPServerInterface
+  * raggle: moved DrbServer and DrbInterface to
+    Raggle::Interfaces::DrbInterface
+  * raggle: moved set_status and set_active_win to 
+    Raggle::Interfaces::NcursesInterface
+  * raggle: same for get_win_id()
+  * raggle: moved expand_config to Raggle::Engine::expand_config
+  * raggle: moved select_Feed, populate_feed_win, select_item, select_cat,
+  mark_items_as_read, select_unread_item, select_next_unread_ and
+  select_prev_unread to Raggle::Interfaces::NcursesInterface
+  * raggle: "def select_cat str" => "def select_cat(str)" (make Ruby 1.8+
+    less pissy)
+  * raggle: moved load_feed_cache, save_feed_cache, and save_feed_list to
+    Raggle::Engine
+  * raggle: moved save_theme and handle_mouse to Interfaces::NcursesInterface
+  * raggle: moved print_usage, handle_command_line, and list_feeds to 
+    Raggle::CLI
+  * raggle: moved add_feed() to Raggle::Engine::add_feed
+  * raggle: moved ncurses_add_feed to Raggle::Interfaces::NcursesInterface
+  * raggle: moved cli_find_feed to Raggle::CLI module
+  * raggle: moved ncurses_find_feeds and ncurses_find_entry to 
+    Raggle::Interfaces::NcursesInterface module
+  * raggle: mvoed purge_feed_cache, delete_feed, invalidate_feed, and 
+    sort_feeds, edit_feed, create_cache_lock, and destroy_cache_lock to
+    Raggle::Engine module
+  * raggle: moved resize_term, save_sceren, restore_screen, drop_to_shell,
+    and setup_win to Raggle::Interfaces::NcursesInterface
+  * raggle: moved grab_feed to Raggle::Engine

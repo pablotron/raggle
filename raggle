@@ -1421,553 +1421,553 @@ ENDWARNING
       end
     end
   end
-end
 
+  module Interfaces
+    module NcursesInterface
+      class Window
+        attr_accessor :win, :title, :key, :colors, :active, :items, :active_item, :offset
 
-class Window
-  attr_accessor :win, :title, :key, :colors, :active, :items, :active_item,
-    :offset
+        #
+        # window constructor
+        #
+        def initialize(opts)
+          coords = opts['coords'].dup
+          coords[2] = $config['w'] - coords[0] if coords[2] == -1
+          coords[3] = $config['h'] - coords[1] if coords[3] == -1
 
-  #
-  # window constructor
-  #
-  def initialize(opts)
-    coords = opts['coords'].dup
-    coords[2] = $config['w'] - coords[0] if coords[2] == -1
-    coords[3] = $config['h'] - coords[1] if coords[3] == -1
+          @active_item = 0
+          @offset = 0
+          @items = []
 
-    @active_item = 0
-    @offset = 0
-    @items = []
+          @title = opts['title']
+          
+          @key = opts['key']
+          @colors = opts['colors'].dup
 
-    @title = opts['title']
-    
-    @key = opts['key']
-    @colors = opts['colors'].dup
-
-    @win = Ncurses::newwin coords[3], coords[2], coords[1], coords[0]
-    refresh
-  end
-
-  #
-  # set ncurses color
-  #
-  def set_color(color_name = 'text')
-    col = @colors[color_name]
-    col_ary = []
-    if col.is_a? Array
-      col_ary = col
-      col = col_ary[0]
-      col_ary.each_index { |i|
-        @win.attron $config['attr_palette'][col_ary[i]] if i > 0
-      }
-    end
-
-    # disable attributes for normal text (this is a hack for now)
-    @win.attrset Ncurses::A_NORMAL if color_name == 'text'
-
-    # set color
-    @win.color_set col, nil
-  end
-
-  #
-  # refresh window title and border (but not the contents)
-  # 
-  def refresh(refresh_contents = false)
-    set_color(@active ? 'a_box' : 'box')
-
-    if $config['use_ascii_only?']
-      @win.box ?|, ?-
-      @win.border ?|, ?|, ?-, ?-, ?+, ?+, ?+, ?+
-    else
-      @win.box 0, 0
-    end
-
-    set_color(@active ? 'a_title' : 'title')
-    Ncurses::mvwprintw @win, 0, 1, " #{@title.escape_format} "
-    set_color('text')
-
-    Ncurses::wrefresh @win
-  end
-
-  def clearrange(start, fini)
-    w = dimensions[0]
-    set_color('text')
-    start.upto(fini) do |line|
-      Ncurses::mvwprintw @win, line, 1, ' ' * (w - 2)
-    end
-    refresh(true)
-  end
-  
-  #
-  # clear window contents
-  #
-  def clear
-    set_color('text')
-    h = dimensions[1]
-    clearrange(1, h - 2)
-  end
-
-  def draw_text(text, x, y, reflow, offset)
-    if text && text.size > 0
-      w,h = dimensions
-      i = 0
-
-      text = reflow_string text if reflow
-      text.each_line do |line|
-        i += 1
-        if i >= offset && y < (h - 1)
-          Ncurses::mvwprintw @win, y, x,
-                             line.escape_format.slice(0, w - x - 1)
-          y += 1
+          @win = Ncurses::newwin coords[3], coords[2], coords[1], coords[0]
+          refresh
         end
-      end
-    end
 
-    y
-  end
-
-  #
-  # draw text in window
-  #
-  def draw(text, x = 1, y = 1, color = 'text', refresh_win = true,
-           reflow_text = true, offset = 0)
-    w, h = dimensions
-
-    set_color(color)
-    y = draw_text(text, x, y, reflow_text, offset)
-    set_color('text')
-
-    refresh if refresh_win
-    y 
-  end
-
-  # get window width and height
-  def dimensions
-    ha = []; wa = []
-    Ncurses::getmaxyx @win, ha, wa
-    [wa[0], ha[0]]
-  end
-
-  #
-  # select currently highlighted window item
-  #
-  # XXX: This really should be split between the window classes as
-  #      Appropriate -- richlowe 2003-06-23
-  def select_win_item
-    if @items && @items.size > 0 && @items[@active_item]
-      if @items[@active_item].has_key? 'feed'
-        select_feed @items[@active_item]['feed']
-      elsif @items[@active_item].has_key? 'item'
-        select_item @items[@active_item]['item']
-      elsif @items[@active_item].has_key? 'cat'
-        select_cat @items[@active_item]['cat']
-      elsif @items[@active_item].has_key? 'url'
-        # are we opening new screen windows?
-        use_screen = $config['use_screen'] && in_screen?
-
-        # drop out of curses mode
-        save_screen unless use_screen
-
-        # get browser command
-        cmd = $config['browser_cmd'].map do |cmd_part|
-        case cmd_part
-          when /%s/
-            cmd_part % @items[@active_item]['url'].escape
-          when '${browser}'
-            $config['browser']
-          else
-            cmd_part
+        #
+        # set ncurses color
+        #
+        def set_color(color_name = 'text')
+          col = @colors[color_name]
+          col_ary = []
+          if col.is_a? Array
+            col_ary = col
+            col = col_ary[0]
+            col_ary.each_index { |i|
+              @win.attron $config['attr_palette'][col_ary[i]] if i > 0
+            }
           end
+
+          # disable attributes for normal text (this is a hack for now)
+          @win.attrset Ncurses::A_NORMAL if color_name == 'text'
+
+          # set color
+          @win.color_set col, nil
         end
 
-        # prepend screen command if we're using it
-        if use_screen
-          screen_cmd = $config['screen_cmd'].map do |cmd_part|
-            if cmd_part =~ /%s/
-              cmd_part % @items[@active_item]['title']
-            else
-              cmd_part
+        #
+        # refresh window title and border (but not the contents)
+        # 
+        def refresh(refresh_contents = false)
+          set_color(@active ? 'a_box' : 'box')
+
+          if $config['use_ascii_only?']
+            @win.box ?|, ?-
+            @win.border ?|, ?|, ?-, ?-, ?+, ?+, ?+, ?+
+          else
+            @win.box 0, 0
+          end
+
+          set_color(@active ? 'a_title' : 'title')
+          Ncurses::mvwprintw @win, 0, 1, " #{@title.escape_format} "
+          set_color('text')
+
+          Ncurses::wrefresh @win
+        end
+
+        def clearrange(start, fini)
+          w = dimensions[0]
+          set_color('text')
+          start.upto(fini) do |line|
+            Ncurses::mvwprintw @win, line, 1, ' ' * (w - 2)
+          end
+          refresh(true)
+        end
+        
+        #
+        # clear window contents
+        #
+        def clear
+          set_color('text')
+          h = dimensions[1]
+          clearrange(1, h - 2)
+        end
+
+        def draw_text(text, x, y, reflow, offset)
+          if text && text.size > 0
+            w,h = dimensions
+            i = 0
+
+            text = reflow_string text if reflow
+            text.each_line do |line|
+              i += 1
+              if i >= offset && y < (h - 1)
+                Ncurses::mvwprintw @win, y, x,
+                                   line.escape_format.slice(0, w - x - 1)
+                y += 1
+              end
             end
           end
 
-          # build new command
-          cmd.unshift(*screen_cmd) 
+          y
         end
 
-        system(*cmd)
-	
-        # reset screen
-        restore_screen unless use_screen
+        #
+        # draw text in window
+        #
+        def draw(text, x = 1, y = 1, color = 'text', refresh_win = true,
+                 reflow_text = true, offset = 0)
+          w, h = dimensions
+
+          set_color(color)
+          y = draw_text(text, x, y, reflow_text, offset)
+          set_color('text')
+
+          refresh if refresh_win
+          y 
+        end
+
+        # get window width and height
+        def dimensions
+          ha = []; wa = []
+          Ncurses::getmaxyx @win, ha, wa
+          [wa[0], ha[0]]
+        end
+
+        #
+        # select currently highlighted window item
+        #
+        # XXX: This really should be split between the window classes as
+        #      Appropriate -- richlowe 2003-06-23
+        def select_win_item
+          if @items && @items.size > 0 && @items[@active_item]
+            if @items[@active_item].has_key? 'feed'
+              select_feed @items[@active_item]['feed']
+            elsif @items[@active_item].has_key? 'item'
+              select_item @items[@active_item]['item']
+            elsif @items[@active_item].has_key? 'cat'
+              select_cat @items[@active_item]['cat']
+            elsif @items[@active_item].has_key? 'url'
+              # are we opening new screen windows?
+              use_screen = $config['use_screen'] && in_screen?
+
+              # drop out of curses mode
+              save_screen unless use_screen
+
+              # get browser command
+              cmd = $config['browser_cmd'].map do |cmd_part|
+              case cmd_part
+                when /%s/
+                  cmd_part % @items[@active_item]['url'].escape
+                when '${browser}'
+                  $config['browser']
+                else
+                  cmd_part
+                end
+              end
+
+              # prepend screen command if we're using it
+              if use_screen
+                screen_cmd = $config['screen_cmd'].map do |cmd_part|
+                  if cmd_part =~ /%s/
+                    cmd_part % @items[@active_item]['title']
+                  else
+                    cmd_part
+                  end
+                end
+
+                # build new command
+                cmd.unshift(*screen_cmd) 
+              end
+
+              system(*cmd)
+        
+              # reset screen
+              restore_screen unless use_screen
+            end
+          end
+        end
+
+        def reflow_string(str)
+          w = dimensions[0]
+          str.reflow(w - 4)
+        end
+        
+        def method_missing(id)
+          raise "Please implement #{self.class}##{id.id2name}"
+        end
+      end
+        
+      class ListWindow < Window
+        #
+        # redraw window items
+        #
+        def draw_items
+          y = 0
+          w, h = dimensions
+          ic = 0
+          @items.each { |i| 
+            t = i['title'].strip_tags || ''
+            text = t + ((t.length < w) ? (' ' * (w - t.length)) : '')
+            if i.has_key?('item_count') && i['item_count'] == 0 &&
+                i['updated'] > 0
+              color = (ic == @active_item) ? 'h_empty' : 'empty'
+            elsif i.has_key?('read?') && i['read?'] == false
+              color = (ic == @active_item) ? 'h_unread' : 'unread'
+            else
+              color = (ic == @active_item) ? 'h_text' : 'text'
+            end
+            draw(text, 1, y += 1, color, true, false) if ic >= @offset
+            ic += 1
+          }
+          clearrange(items.size + 1, h - 2)
+          refresh(true)
+        end
+        
+        #
+        # Adjust the window to show the selected item
+        #
+        def adjust_to(item)
+          # scroll window (if necessary)
+          w, h = dimensions
+          if item < @offset || item >= @offset + (h - 3)
+            @offset = @active_item
+            @offset = 0 if @offset < 0
+            if item + h - 3 > @items.size - 1
+              @offset = @active_item - (h - 3)
+              @offset = 0 if @offset < 0
+            end
+          end
+          draw_items
+
+          if $config['describe_hilited_feed'] == true &&
+              @items[item].has_key?('feed')
+            $config['feeds'].describe(item)
+          end
+          
+          status = ' ' << @items[@active_item]['title']
+          status = status.split(/\s+/).join(' ')
+          set_status status
+
+          select_win_item if $config['focus'] == 'auto' && @key != 'cat'
+        end
+        private :adjust_to
+
+        #
+        # Activate an item
+        #
+        def activate(item)
+          if @items.size > 0
+            if item >= @items.size or item < 0
+              throw "Window#activate item out of range (#{item}/#{@items.size})"
+            end
+            @active_item = item
+            adjust_to item
+          end
+        end
+        
+        def scroll_up_page
+          if $config['page_step'] < 0
+            w,h = dimensions
+            step = (h - 2) + $config['page_step']
+          else
+            step = $config['page_step']
+          end
+            
+          pos = @active_item - step
+          pos < 0 ? activate(0) : activate(pos)
+        end
+
+        #
+        # Scroll one page down.
+        #
+        def scroll_down_page
+          if $config['page_step'] < 0
+            w,h = dimensions
+            step = (h - 2) + $config['page_step']
+          else
+            step = $config['page_step']
+          end
+
+          pos = @active_item + step
+          pos >= @items.size ? activate(@items.size - 1) : activate(pos)
+        end
+             
+        #
+        # Bound scrolling based on $config['scroll_wrapping']
+        #
+        def scroll_bound(point)
+          if point >= @items.size
+            $config['scroll_wrapping'] ? 0 : @items.size - 1
+          elsif point < 0
+            $config['scroll_wrapping'] ? @items.size - 1 : 0
+          else
+            point
+          end
+        end
+
+        #
+        # Scroll the window up one item
+        #
+        def scroll_up
+            activate scroll_bound(@active_item - 1)
+        end
+        
+        #
+        # Scroll window down.
+        #
+        def scroll_down
+            activate scroll_bound(@active_item + 1)
+        end
+        
+        #
+        # Scroll to the bottom.
+        #
+        def scroll_bottom
+          activate @items.size - 1
+        end
+
+        #
+        # Scroll to the top item
+        #
+        def scroll_top
+          activate 0
+        end
+
+        def move_item_down
+          if @active_item < @items.size - 1 
+            nitem = @items[@active_item + 1]
+            @items[@active_item + 1] = @items[@active_item]
+            @items[@active_item] = nitem
+            @active_item = @active_item + 1
+            draw_items
+          end
+        end
+
+        def move_item_up
+          if @active_item > 0
+            pitem = @items[@active_item - 1]
+            @items[@active_item - 1] = @items[@active_item]
+            @items[@active_item] = pitem
+            @active_item = @active_item - 1
+            draw_items
+          end
+        end
+
+        def delete_item
+          @items.delete_at(@active_item)
+          populate_feed_win
+        end
+      end
+
+      class TextWindow < Window
+        def reflow_string(str)
+          w = dimensions[0]
+          $view_source ? str.reflow(w - 4) : HTML.render_html(str, w - 4)
+        end
+             
+        def draw_items
+          item = @items[0] # There can be only one
+          y = 1
+          w, h = dimensions
+
+          # draw title (if it's set)
+          if item['title'] && item['title'] != ''
+            draw(item['title'].strip.ljust(w - 2), 1, y, 'f_title', false, false)
+            y += 1
+          end
+
+          # draw link
+          draw("Link: ", 1, y, 'text', false, false)
+          draw(item['url'].ljust(w - 2), 7, y, 'url', false, false)
+
+          # don't draw the date if it isn't set (silly RSS)
+          if item['date'] && item['date'] != '' && item['date'] != "0"
+            y += 1
+            draw("Date: ", 1, y, 'text', false, false)
+            
+            # handle date string shenanigans
+            if (item['date'] =~ /^\d+$/ && (i_val = item['date'].to_i) > 0 &&
+                i_val.is_a?(Fixnum))
+              d_str = Time.at(i_val).strftime($config['desc_date_format'])
+            else
+              d_str = item['date']
+            end
+            
+            # draw date string
+            draw(d_str.ljust(w - 2), 7, y, 'date', false, false)
+          end
+
+          # draw blank line
+          y += 1
+          draw(''.ljust(w - 2), 1, y, 'text', false, false)
+
+          # draw item content
+          if item['content']
+            y += 1
+            if !item['fmt_content']
+              str = item['content'] || ''
+              str = str.strip_tags if $config['strip_html_tags']
+
+              # strip CDATA from text (seems like this might cause some problems
+              # anyone have any thoughts?) -- pabs
+              str = str.gsub(/<!\[CDATA\[(.*?)\]\]>/m, '\1')
+
+              # cache this stuff so the desc window renders faster
+              item['fmt_content'] = str
+              item['fmt_content_reflow'] = reflow_string(str)
+              item['fmt_content_lines'] = item['fmt_content_reflow'].lines
+            end
+
+            str = item['fmt_content_reflow']
+            num_lines = item['fmt_content_lines']
+           
+            # Offset + 1, so we scroll on the *first* press
+            draw(str, 1, y, 'text', false, false, @offset + 1)
+            y += (num_lines - @offset)
+          end
+
+          # *Much* faster than a total clear each time it scrolls.
+          clearrange(y, h - 2)
+          
+          refresh(true)
+        end
+
+        def scroll_up_page
+          if $config['page_step'] < 0
+            w, h = dimensions
+            step = (h - 2) + $config['page_step']
+          else
+            step = $config['page_step']
+          end
+
+          @offset = @offset - step
+          draw_items
+        end
+
+        def scroll_down_page
+          if $config['page_step'] < 0
+            w, h = dimensions
+            step = (h - 2) + $config['page_step']
+          else
+            step = $config['page_step']
+          end
+
+          @offset = @offset + step
+          draw_items
+        end
+        
+        def scroll_up
+          @offset -= 1 if @offset > 0
+          draw_items
+        end
+
+        def scroll_down
+          # This is a *terrible* way to figure out how many lines of text we'll end
+          # up with.., XXX put me somewhere better.
+          item = @items[0]
+          s = item['fmt_content_num_lines'] ||
+              reflow_string(item['content']).lines
+          @offset += 1 if @offset < s - 1
+          draw_items
+        end
+
+        def scroll_bottom
+          # This is a *terrible* way to figure out how many lines of text we'll end
+          # up with.., XXX put me somewhere better.
+          item = @items[0]
+          h,s = dimensions[1], 0
+
+          %w{title url date}.each do |key|
+            s += 1 if item.has_key?(key)
+          end
+          s += item['fmt_content_num_lines'] ||
+               reflow_string(item['content']).lines
+          s += 1
+          @offset = s - (h - 2)
+          draw_items
+        end
+
+        def scroll_top
+          @offset = 0
+          draw_items
+        end
+
+        def move_item_down
+          if @active_item < @items.size - 1 
+            nitem = @items[@active_item + 1]
+            @items[@active_item + 1] = @items[@active_item]
+            @items[@active_item] = nitem
+            @active_item = @active_item + 1
+            draw_items
+          end
+        end
+
+        def move_item_up
+          if @active_item > 0
+            pitem = @items[@active_item - 1]
+            @items[@active_item - 1] = @items[@active_item]
+            @items[@active_item] = pitem
+            @active_item = @active_item - 1
+            draw_items
+          end
+        end
+
+        def delete_item
+          @items.delete_at(@active_item)
+          populate_feed_win
+        end
+
+        def resize_width
+          # XXX
+        end
+
+        def move_item_down
+          if @active_item < @items.size - 1 
+            nitem = @items[@active_item + 1]
+            @items[@active_item + 1] = @items[@active_item]
+            @items[@active_item] = nitem
+            @active_item = @active_item + 1
+            draw_items
+          end
+        end
+
+        def move_item_up
+          if @active_item > 0
+            pitem = @items[@active_item - 1]
+            @items[@active_item - 1] = @items[@active_item]
+            @items[@active_item] = pitem
+            @active_item = @active_item - 1
+            draw_items
+          end
+        end
+
+        def delete_item
+          @items.delete_at(@active_item)
+          populate_feed_win
+        end
+
+        def resize_width
+          # XXX
+        end
       end
     end
   end
 
-  def reflow_string(str)
-    w = dimensions[0]
-    str.reflow(w - 4)
-  end
-  
-  def method_missing(id)
-    raise "Please implement #{self.class}##{id.id2name}"
-  end
-end
-  
-class ListWindow < Window
-  #
-  # redraw window items
-  #
-  def draw_items
-    y = 0
-    w, h = dimensions
-    ic = 0
-    @items.each { |i| 
-      t = i['title'].strip_tags || ''
-      text = t + ((t.length < w) ? (' ' * (w - t.length)) : '')
-      if i.has_key?('item_count') && i['item_count'] == 0 &&
-          i['updated'] > 0
-        color = (ic == @active_item) ? 'h_empty' : 'empty'
-      elsif i.has_key?('read?') && i['read?'] == false
-        color = (ic == @active_item) ? 'h_unread' : 'unread'
-      else
-        color = (ic == @active_item) ? 'h_text' : 'text'
-      end
-      draw(text, 1, y += 1, color, true, false) if ic >= @offset
-      ic += 1
-    }
-    clearrange(items.size + 1, h - 2)
-    refresh(true)
-  end
-  
-  #
-  # Adjust the window to show the selected item
-  #
-  def adjust_to(item)
-    # scroll window (if necessary)
-    w, h = dimensions
-    if item < @offset || item >= @offset + (h - 3)
-      @offset = @active_item
-      @offset = 0 if @offset < 0
-      if item + h - 3 > @items.size - 1
-        @offset = @active_item - (h - 3)
-        @offset = 0 if @offset < 0
-      end
-    end
-    draw_items
-
-    if $config['describe_hilited_feed'] == true &&
-        @items[item].has_key?('feed')
-      $config['feeds'].describe(item)
-    end
-    
-    status = ' ' << @items[@active_item]['title']
-    status = status.split(/\s+/).join(' ')
-    set_status status
-
-    select_win_item if $config['focus'] == 'auto' && @key != 'cat'
-  end
-  private :adjust_to
-
-  #
-  # Activate an item
-  #
-  def activate(item)
-    if @items.size > 0
-      if item >= @items.size or item < 0
-        throw "Window#activate item out of range (#{item}/#{@items.size})"
-      end
-      @active_item = item
-      adjust_to item
-    end
-  end
-  
-  def scroll_up_page
-    if $config['page_step'] < 0
-      w,h = dimensions
-      step = (h - 2) + $config['page_step']
-    else
-      step = $config['page_step']
-    end
-      
-    pos = @active_item - step
-    pos < 0 ? activate(0) : activate(pos)
-  end
-
-  #
-  # Scroll one page down.
-  #
-  def scroll_down_page
-    if $config['page_step'] < 0
-      w,h = dimensions
-      step = (h - 2) + $config['page_step']
-    else
-      step = $config['page_step']
-    end
-
-    pos = @active_item + step
-    pos >= @items.size ? activate(@items.size - 1) : activate(pos)
-  end
-       
-  #
-  # Bound scrolling based on $config['scroll_wrapping']
-  #
-  def scroll_bound(point)
-    if point >= @items.size
-      $config['scroll_wrapping'] ? 0 : @items.size - 1
-    elsif point < 0
-      $config['scroll_wrapping'] ? @items.size - 1 : 0
-    else
-      point
-    end
-  end
-
-  #
-  # Scroll the window up one item
-  #
-  def scroll_up
-      activate scroll_bound(@active_item - 1)
-  end
-  
-  #
-  # Scroll window down.
-  #
-  def scroll_down
-      activate scroll_bound(@active_item + 1)
-  end
-  
-  #
-  # Scroll to the bottom.
-  #
-  def scroll_bottom
-    activate @items.size - 1
-  end
-
-  #
-  # Scroll to the top item
-  #
-  def scroll_top
-    activate 0
-  end
-
-  def move_item_down
-    if @active_item < @items.size - 1 
-      nitem = @items[@active_item + 1]
-      @items[@active_item + 1] = @items[@active_item]
-      @items[@active_item] = nitem
-      @active_item = @active_item + 1
-      draw_items
-    end
-  end
-
-  def move_item_up
-    if @active_item > 0
-      pitem = @items[@active_item - 1]
-      @items[@active_item - 1] = @items[@active_item]
-      @items[@active_item] = pitem
-      @active_item = @active_item - 1
-      draw_items
-    end
-  end
-
-  def delete_item
-    @items.delete_at(@active_item)
-    populate_feed_win
-  end
-end
-
-class TextWindow < Window
-  def reflow_string(str)
-    w = dimensions[0]
-    $view_source ? str.reflow(w - 4) : HTML.render_html(str, w - 4)
-  end
-       
-  def draw_items
-    item = @items[0] # There can be only one
-    y = 1
-    w, h = dimensions
-
-    # draw title (if it's set)
-    if item['title'] && item['title'] != ''
-      draw(item['title'].strip.ljust(w - 2), 1, y, 'f_title', false, false)
-      y += 1
-    end
-
-    # draw link
-    draw("Link: ", 1, y, 'text', false, false)
-    draw(item['url'].ljust(w - 2), 7, y, 'url', false, false)
-
-    # don't draw the date if it isn't set (silly RSS)
-    if item['date'] && item['date'] != '' && item['date'] != "0"
-      y += 1
-      draw("Date: ", 1, y, 'text', false, false)
-      
-      # handle date string shenanigans
-      if (item['date'] =~ /^\d+$/ && (i_val = item['date'].to_i) > 0 &&
-          i_val.is_a?(Fixnum))
-        d_str = Time.at(i_val).strftime($config['desc_date_format'])
-      else
-        d_str = item['date']
-      end
-      
-      # draw date string
-      draw(d_str.ljust(w - 2), 7, y, 'date', false, false)
-    end
-
-    # draw blank line
-    y += 1
-    draw(''.ljust(w - 2), 1, y, 'text', false, false)
-
-    # draw item content
-    if item['content']
-      y += 1
-      if !item['fmt_content']
-        str = item['content'] || ''
-        str = str.strip_tags if $config['strip_html_tags']
-
-        # strip CDATA from text (seems like this might cause some problems
-        # anyone have any thoughts?) -- pabs
-        str = str.gsub(/<!\[CDATA\[(.*?)\]\]>/m, '\1')
-
-        # cache this stuff so the desc window renders faster
-        item['fmt_content'] = str
-        item['fmt_content_reflow'] = reflow_string(str)
-        item['fmt_content_lines'] = item['fmt_content_reflow'].lines
-      end
-
-      str = item['fmt_content_reflow']
-      num_lines = item['fmt_content_lines']
-     
-      # Offset + 1, so we scroll on the *first* press
-      draw(str, 1, y, 'text', false, false, @offset + 1)
-      y += (num_lines - @offset)
-    end
-
-    # *Much* faster than a total clear each time it scrolls.
-    clearrange(y, h - 2)
-    
-    refresh(true)
-  end
-
-  def scroll_up_page
-    if $config['page_step'] < 0
-      w, h = dimensions
-      step = (h - 2) + $config['page_step']
-    else
-      step = $config['page_step']
-    end
-
-    @offset = @offset - step
-    draw_items
-  end
-
-  def scroll_down_page
-    if $config['page_step'] < 0
-      w, h = dimensions
-      step = (h - 2) + $config['page_step']
-    else
-      step = $config['page_step']
-    end
-
-    @offset = @offset + step
-    draw_items
-  end
-  
-  def scroll_up
-    @offset -= 1 if @offset > 0
-    draw_items
-  end
-
-  def scroll_down
-    # This is a *terrible* way to figure out how many lines of text we'll end
-    # up with.., XXX put me somewhere better.
-    item = @items[0]
-    s = item['fmt_content_num_lines'] ||
-        reflow_string(item['content']).lines
-    @offset += 1 if @offset < s - 1
-    draw_items
-  end
-
-  def scroll_bottom
-    # This is a *terrible* way to figure out how many lines of text we'll end
-    # up with.., XXX put me somewhere better.
-    item = @items[0]
-    h,s = dimensions[1], 0
-
-    %w{title url date}.each do |key|
-      s += 1 if item.has_key?(key)
-    end
-    s += item['fmt_content_num_lines'] ||
-         reflow_string(item['content']).lines
-    s += 1
-    @offset = s - (h - 2)
-    draw_items
-  end
-
-  def scroll_top
-    @offset = 0
-    draw_items
-  end
-
-  def move_item_down
-    if @active_item < @items.size - 1 
-      nitem = @items[@active_item + 1]
-      @items[@active_item + 1] = @items[@active_item]
-      @items[@active_item] = nitem
-      @active_item = @active_item + 1
-      draw_items
-    end
-  end
-
-  def move_item_up
-    if @active_item > 0
-      pitem = @items[@active_item - 1]
-      @items[@active_item - 1] = @items[@active_item]
-      @items[@active_item] = pitem
-      @active_item = @active_item - 1
-      draw_items
-    end
-  end
-
-  def delete_item
-    @items.delete_at(@active_item)
-    populate_feed_win
-  end
-
-  def resize_width
-    # XXX
-  end
-
-  def move_item_down
-    if @active_item < @items.size - 1 
-      nitem = @items[@active_item + 1]
-      @items[@active_item + 1] = @items[@active_item]
-      @items[@active_item] = nitem
-      @active_item = @active_item + 1
-      draw_items
-    end
-  end
-
-  def move_item_up
-    if @active_item > 0
-      pitem = @items[@active_item - 1]
-      @items[@active_item - 1] = @items[@active_item]
-      @items[@active_item] = pitem
-      @active_item = @active_item - 1
-      draw_items
-    end
-  end
-
-  def delete_item
-    @items.delete_at(@active_item)
-    populate_feed_win
-  end
-
-  def resize_width
-    # XXX
-  end
-end
-
-module Raggle
   # borrowed from syndic8-ruby; 
   # (see http://www.pablotron.org/software/syndic8-ruby/)
   class Syndic8
@@ -2005,1526 +2005,1565 @@ module Raggle
     end
   end
 
-  class HTTPServer
-    attr_accessor :server, :opts, :templates
+  module Interfaces
+    class HTTPServerInterface
+      attr_accessor :server, :opts, :templates
 
-    def initialize(opts)
-      @opts = opts
-      s = WEBrick::HTTPServer::new(
-        :BindAddress  => @opts['bind_address'],
-        :Port         => @opts['port'],
-        :DocumentRoot => $config['web_ui_root_path'],
-        :Logger       => WEBrick::Log::new($config['web_ui_log_path'])
-      )
+      def initialize(opts)
+        @opts = opts
+        s = WEBrick::HTTPServer::new(
+          :BindAddress  => @opts['bind_address'],
+          :Port         => @opts['port'],
+          :DocumentRoot => $config['web_ui_root_path'],
+          :Logger       => WEBrick::Log::new($config['web_ui_log_path'])
+        )
 
-      # load templates
-      puts "Loading templates from \"#{$config['web_ui_root_path']}/inc\"."
-      @templates = Hash::new
-      %w{feed feed_list item item_list desc feed_image quit}.each { |tmpl|
-        path = $config['web_ui_root_path'] + "/inc/#{tmpl}.html"
-        @templates[tmpl] = File::open(path).readlines.join if test(?e, path)
-      }
-
-      s.mount_proc('/') { |req, res| res['Location'] = '/index.html' }
-
-      # set up mount points
-      s.mount('/', WEBrick::HTTPServlet::FileHandler,
-              $config['web_ui_root_path'], true)
-
-      # set up quit mount point
-      s.mount_proc('/raggle/quit') { |req, res|
-        quit_thread = Thread::new {
-          $http_server.shutdown
-          sleep opts['shutdown_sleep'];
-          $feed_thread.kill if $feed_thread && $feed_thread.alive?
-          $http_thread.kill if $http_thread && $http_thread.alive?
+        # load templates
+        puts "Loading templates from \"#{$config['web_ui_root_path']}/inc\"."
+        @templates = Hash::new
+        %w{feed feed_list item item_list desc feed_image quit}.each { |tmpl|
+          path = $config['web_ui_root_path'] + "/inc/#{tmpl}.html"
+          @templates[tmpl] = File::open(path).readlines.join if test(?e, path)
         }
 
-        res['Content-Type'] = 'text/html'
+        s.mount_proc('/') { |req, res| res['Location'] = '/index.html' }
 
-        # handle quit template
-        ret = @templates['quit'].dup
-        { 'VERSION'   => $VERSION,
-        }.each { |key, val|
-          ret.gsub!(/__#{key}__/, val) if ret =~ /__#{key}__/
-        }
+        # set up mount points
+        s.mount('/', WEBrick::HTTPServlet::FileHandler,
+                $config['web_ui_root_path'], true)
 
-        res.body = ret
-      }
-
-      # set up feed list mount point
-      s.mount_proc('/raggle/feed') { |req, res|
-        body = @templates['feed_list'].dup
-        ret = ''
-
-        mode = 'default'
-        mode = $1 if req.query_string =~ /mode=([^&]+)/
-
-        cat = 'all'
-        cat = $1 if req.query_string =~/category=([^&]+)/
-
-        case mode
-          when 'sort'
-            sort_feeds
-          when 'invalidate_all'
-            invalidate_feed(-1)
-            $feed_thread.run
-          when 'add'
-            url = $1 if req.query_string =~ /url=(.*)$/
-            add_feed({ 'url' => url })
-            $feed_thread.run if $config['update_after_add']
-          when 'delete'
-            if req.query_string =~ /id=(\d+)/
-              id = $1.to_i
-              delete_feed(id)
-            end
-          when 'invalidate'
-            if req.query_string =~ /id=(\d+)/
-              id = $1.to_i
-              invalidate_feed(id)
-              $feed_thread.run 
-            end
-          when 'save_feed_list'
-            save_feed_list
-        end
-          
-        # build feed list title
-        list_title = 'Feeds ' << ((cat && cat !~ /\ball\b/i) ? "(#{cat})" : '')
-
-        # build each feed title
-        $config['feeds'].category(cat).each_with_index { |feed, i|
-          str = @templates['feed'].dup
-          title = feed['title'] || $config['default_feed_title']
-          
-          # count unread items
-          unread_count = 0
-          feed['items'].each { |item| unread_count += 1 unless item['read?'] }
-
-          # convert updated to minutes
-          updated = (Time.now.to_i - feed['updated'] / 60).to_i
-
-          # handle feed list item template
-          { 'TITLE'         => title || 'Untitled Feed',
-            'URL'           => feed['url'],
-            'ITEM_COUNT'    => feed['items'].size.to_s,
-            'UNREAD_COUNT'  => unread_count.to_s,
-            'INDEX'         => i.to_s,
-            'READ'          => ((unread_count == 0) ? 'read' : 'unread'),
-            'EVEN'          => ((i % 2 == 0) ? 'even' : 'odd'),
-            'UPDATED'       => updated,
-            'CATEGORY'      => cat,
-          }.each { |key, val|
-            str.gsub!(/__#{key}__/, val) if str =~ /__#{key}__/
+        # set up quit mount point
+        s.mount_proc('/raggle/quit') { |req, res|
+          quit_thread = Thread::new {
+            $http_server.shutdown
+            sleep opts['shutdown_sleep'];
+            $feed_thread.kill if $feed_thread && $feed_thread.alive?
+            $http_thread.kill if $http_thread && $http_thread.alive?
           }
-          ret << str
-        }
 
-        # handle feed list template
-        { 'FEEDS'           => ret,
-          'REFRESH'         => opts['page_refresh'].to_s, 
-          'VERSION'         => $VERSION,
-          'CATEGORY'        => cat,
-          'FEED_LIST_TITLE' => list_title,
-          'CATEGORY_SELECT' => build_category_select(cat),
-        }.each { |key, val|
-          body.gsub!(/__#{key}__/, val) if body =~ /__#{key}__/
-        }
-        
-        res['Content-Type'] = 'text/html'
-        res.body = body
-      }
+          res['Content-Type'] = 'text/html'
 
-      # set up feed item list mount point
-      s.mount_proc('/raggle/item') { |req, res|
-        body = @templates['item_list'].dup
-        ret = ''
-
-        feed_id = 0
-        feed_id = $1.to_i if req.query_string =~ /feed_id=(\d+)/
-
-        cat = 'all'
-        cat = $1 if req.query_string =~/category=([^&]+)/
-
-        feed = $config['feeds'].category(cat)[feed_id]
-
-        # get feed image
-        feed_image = build_feed_image(feed)
-
-        # convert updated to minutes
-        updated = ((Time.now.to_i - feed['updated']) / 60).to_i
-
-        # build each feed item title
-        feed['items'].each_with_index { |item, i|
-          str = @templates['item'].dup
-          title = item['title']
-          
-          # handle item template
-          { 'TITLE'         => title,
-            'URL'           => item['url'],
-            'DATE'          => item['date'].to_s,
-            'EVEN'          => ((i % 2 == 0) ? 'even' : 'odd'),
-            'READ'          => item['read?'] ? 'read' : 'unread',
-            'FEED_ID'       => feed_id.to_s,
-            'INDEX'         => i.to_s,
-            'CATEGORY'      => cat,
+          # handle quit template
+          ret = @templates['quit'].dup
+          { 'VERSION'   => $VERSION,
           }.each { |key, val|
-            str.gsub!(/__#{key}__/, val) if str =~ /__#{key}__/
+            ret.gsub!(/__#{key}__/, val) if ret =~ /__#{key}__/
           }
-          ret << str
+
+          res.body = ret
         }
 
-        # handle item list template
-        { 'ITEMS'           => ret,
-          'FEED_ID'         => feed_id.to_s,
-          'FEED_TITLE'      => feed['title'] || 'Untitled Feed',
-          'FEED_SITE'       => feed['site'] || '',
-          'FEED_URL'        => feed['url'],
-          'FEED_DESC'       => feed['desc'] || '',
-          'FEED_UPDATED'    => updated.to_s,
-          'FEED_IMAGE'      => feed_image,
-          'REFRESH'         => opts['page_refresh'].to_s,
-          'VERSION'         => $VERSION,
-          'CATEGORY'        => cat,
-        }.each { |key, val|
-          body.gsub!(/__#{key}__/, val) if body =~ /__#{key}__/
-        }
-        
-        res['Content-Type'] = 'text/html'
-        res.body = body
-      }
+        # set up feed list mount point
+        s.mount_proc('/raggle/feed') { |req, res|
+          body = @templates['feed_list'].dup
+          ret = ''
 
-      # set up desc window moutn point
-      s.mount_proc('/raggle/desc') { |req, res|
-        body = @templates['desc'].dup
-        ret = ''
+          mode = 'default'
+          mode = $1 if req.query_string =~ /mode=([^&]+)/
 
-        feed_id = 0
-        item_id = 0
-        cat = 'all'
-        feed_id = $1.to_i if req.query_string =~ /feed_id=([-\d]+)/
-        item_id = $1.to_i if req.query_string =~ /item_id=([-\d]+)/
-        cat = $1 if req.query_string =~/category=([^&]+)/
+          cat = 'all'
+          cat = $1 if req.query_string =~/category=([^&]+)/
 
-        # get feed image
-        feed = $config['feeds'].category(cat)[feed_id]
-        feed_image = build_feed_image(feed)
+          case mode
+            when 'sort'
+              sort_feeds
+            when 'invalidate_all'
+              invalidate_feed(-1)
+              $feed_thread.run
+            when 'add'
+              url = $1 if req.query_string =~ /url=(.*)$/
+              add_feed({ 'url' => url })
+              $feed_thread.run if $config['update_after_add']
+            when 'delete'
+              if req.query_string =~ /id=(\d+)/
+                id = $1.to_i
+                delete_feed(id)
+              end
+            when 'invalidate'
+              if req.query_string =~ /id=(\d+)/
+                id = $1.to_i
+                invalidate_feed(id)
+                $feed_thread.run 
+              end
+            when 'save_feed_list'
+              save_feed_list
+          end
+            
+          # build feed list title
+          list_title = 'Feeds ' << ((cat && cat !~ /\ball\b/i) ? "(#{cat})" : '')
 
-        if item_id == -1
-          title = feed['title']
-          body = "description of feed #{title}"
-        else 
-          item = feed['items'][item_id] || opts['empty_item']
-          title = item['title'] || 'Untitled Item'
-          item['read?'] = true
-          
-          { 'TITLE'         => title,
-            'DATE'          => item['date'].to_s,
-            'READ'          => item['read?'] ? 'read' : 'unread',
-            'URL'           => item['url'], 
-            'FEED_IMAGE'    => feed_image,
-            'DESC'          => item['desc'],
-            'REFRESH'       => opts['refresh'], 
-            'CATEGORY'      => cat,
+          # build each feed title
+          $config['feeds'].category(cat).each_with_index { |feed, i|
+            str = @templates['feed'].dup
+            title = feed['title'] || $config['default_feed_title']
+            
+            # count unread items
+            unread_count = 0
+            feed['items'].each { |item| unread_count += 1 unless item['read?'] }
+
+            # convert updated to minutes
+            updated = (Time.now.to_i - feed['updated'] / 60).to_i
+
+            # handle feed list item template
+            { 'TITLE'         => title || 'Untitled Feed',
+              'URL'           => feed['url'],
+              'ITEM_COUNT'    => feed['items'].size.to_s,
+              'UNREAD_COUNT'  => unread_count.to_s,
+              'INDEX'         => i.to_s,
+              'READ'          => ((unread_count == 0) ? 'read' : 'unread'),
+              'EVEN'          => ((i % 2 == 0) ? 'even' : 'odd'),
+              'UPDATED'       => updated,
+              'CATEGORY'      => cat,
+            }.each { |key, val|
+              str.gsub!(/__#{key}__/, val) if str =~ /__#{key}__/
+            }
+            ret << str
+          }
+
+          # handle feed list template
+          { 'FEEDS'           => ret,
+            'REFRESH'         => opts['page_refresh'].to_s, 
+            'VERSION'         => $VERSION,
+            'CATEGORY'        => cat,
+            'FEED_LIST_TITLE' => list_title,
+            'CATEGORY_SELECT' => build_category_select(cat),
           }.each { |key, val|
             body.gsub!(/__#{key}__/, val) if body =~ /__#{key}__/
           }
+          
+          res['Content-Type'] = 'text/html'
+          res.body = body
+        }
+
+        # set up feed item list mount point
+        s.mount_proc('/raggle/item') { |req, res|
+          body = @templates['item_list'].dup
+          ret = ''
+
+          feed_id = 0
+          feed_id = $1.to_i if req.query_string =~ /feed_id=(\d+)/
+
+          cat = 'all'
+          cat = $1 if req.query_string =~/category=([^&]+)/
+
+          feed = $config['feeds'].category(cat)[feed_id]
+
+          # get feed image
+          feed_image = build_feed_image(feed)
+
+          # convert updated to minutes
+          updated = ((Time.now.to_i - feed['updated']) / 60).to_i
+
+          # build each feed item title
+          feed['items'].each_with_index { |item, i|
+            str = @templates['item'].dup
+            title = item['title']
+            
+            # handle item template
+            { 'TITLE'         => title,
+              'URL'           => item['url'],
+              'DATE'          => item['date'].to_s,
+              'EVEN'          => ((i % 2 == 0) ? 'even' : 'odd'),
+              'READ'          => item['read?'] ? 'read' : 'unread',
+              'FEED_ID'       => feed_id.to_s,
+              'INDEX'         => i.to_s,
+              'CATEGORY'      => cat,
+            }.each { |key, val|
+              str.gsub!(/__#{key}__/, val) if str =~ /__#{key}__/
+            }
+            ret << str
+          }
+
+          # handle item list template
+          { 'ITEMS'           => ret,
+            'FEED_ID'         => feed_id.to_s,
+            'FEED_TITLE'      => feed['title'] || 'Untitled Feed',
+            'FEED_SITE'       => feed['site'] || '',
+            'FEED_URL'        => feed['url'],
+            'FEED_DESC'       => feed['desc'] || '',
+            'FEED_UPDATED'    => updated.to_s,
+            'FEED_IMAGE'      => feed_image,
+            'REFRESH'         => opts['page_refresh'].to_s,
+            'VERSION'         => $VERSION,
+            'CATEGORY'        => cat,
+          }.each { |key, val|
+            body.gsub!(/__#{key}__/, val) if body =~ /__#{key}__/
+          }
+          
+          res['Content-Type'] = 'text/html'
+          res.body = body
+        }
+
+        # set up desc window moutn point
+        s.mount_proc('/raggle/desc') { |req, res|
+          body = @templates['desc'].dup
+          ret = ''
+
+          feed_id = 0
+          item_id = 0
+          cat = 'all'
+          feed_id = $1.to_i if req.query_string =~ /feed_id=([-\d]+)/
+          item_id = $1.to_i if req.query_string =~ /item_id=([-\d]+)/
+          cat = $1 if req.query_string =~/category=([^&]+)/
+
+          # get feed image
+          feed = $config['feeds'].category(cat)[feed_id]
+          feed_image = build_feed_image(feed)
+
+          if item_id == -1
+            title = feed['title']
+            body = "description of feed #{title}"
+          else 
+            item = feed['items'][item_id] || opts['empty_item']
+            title = item['title'] || 'Untitled Item'
+            item['read?'] = true
+            
+            { 'TITLE'         => title,
+              'DATE'          => item['date'].to_s,
+              'READ'          => item['read?'] ? 'read' : 'unread',
+              'URL'           => item['url'], 
+              'FEED_IMAGE'    => feed_image,
+              'DESC'          => item['desc'],
+              'REFRESH'       => opts['refresh'], 
+              'CATEGORY'      => cat,
+            }.each { |key, val|
+              body.gsub!(/__#{key}__/, val) if body =~ /__#{key}__/
+            }
+          end
+
+          res['Content-Type'] = 'text/html'
+          res.body = body
+        }
+
+        @server = s
+      end
+
+      def start
+        @server.start
+      end
+
+      def shutdown
+        @server.shutdown
+      end
+
+      def build_feed_image(feed)
+        # get feed image
+        feed_image = ''
+        if feed['image']
+          feed_image = @templates['feed_image'].dup
+          { 'SITE'        => feed['site'],
+            'IMAGE_TITLE' => '',
+            'IMAGE_URL'   => feed['image'],
+          }.each { |key, val|
+            feed_image.gsub!(/__#{key}__/, val) if feed_image =~ /__#{key}__/
+          }
         end
 
-        res['Content-Type'] = 'text/html'
-        res.body = body
+        # return feed image
+        feed_image
+      end
+
+      def build_category_select(cat)
+        cat = 'all' unless cat
+        
+        ret = "<select name='category' onChange='form.submit()'>\n" <<
+              "  <option value='all' " <<
+              ((cat =~ /\ball\b/i) ? ' selected="1"' : '') <<
+              ">All</option>\n"
+
+        $config['feeds'].categories.each { |cat| 
+          ret << "  <option value='#{cat.title}'" <<
+                 ((cat =~ /\b#{cat.title}\b/i) ? ' selected="1"' : '') <<
+                 ">#{cat.title}</option>\n"
+        }
+        ret << "</select>\n"
+
+        ret
+      end
+    end
+
+    module DrbInterface
+      class DRbInterface
+        def config(key)
+          $config[key]
+        end
+
+        def set_config(key, val)
+          $config[key] = val
+        end
+
+        def config_keys
+          $config.keys
+        end
+
+        def feeds
+          $config['feeds'].feeds
+        end
+
+        def feeds_size
+          $config['feeds'].feeds.size
+        end
+
+        def add_feed(oots)
+          main::add_feed(opts)
+        end
+
+        def [](id)
+          $config['feeds'][id]
+        end
+
+        def version
+          $VERSION
+        end
+
+        def quit
+          exit 0
+        end
+      end
+
+      class DRbServer
+        attr_accessor :opts, :interface
+        def initialize(opts)
+          @opts = opts
+          @interface = Raggle::Interfaces::DrbInterface::DRbInterface.new
+        end
+
+        def start
+          DRb::start_service(@opts['bind_url'], @interface)
+          DRb::thread.join
+        end
+      end
+    end
+  end
+    
+  module Interfaces
+    module NcursesInterface
+
+      #
+      # set status bar message (or log message, if running as daemon)
+      #
+      def NcursesInterface::set_status(str)
+        str ||= ''
+
+        if $config['run_http_server'] || $config['run_drb_server']
+          $stderr.puts "Raggle: #{str}"
+        else
+          w, e_msg = $config['w'], $config['msg_exit']
+          $status, $new_status = str, str
+
+          # fix message length
+          if str.length > (w - e_msg.length)
+            str = str.slice(0, w - e_msg.length)
+          else
+            str += ' ' * (w - e_msg.length - str.length)
+          end
+          msg = str << e_msg
+
+          Ncurses::stdscr.color_set $config['theme']['status_bar_cols'], nil
+          Ncurses::mvprintw $config['h'], 0, msg.escape_format
+          Ncurses::refresh
+        end
+      end
+
+      # 
+      # set active window 
+      #
+      def NcursesInterface::set_active_win(a_win)
+        if $wins[$a_win]
+          $wins[$a_win].active = false
+          $wins[$a_win].refresh
+        end
+
+        $a_win = a_win
+
+        $wins[$a_win].active = true
+        $wins[$a_win].refresh
+
+        if $config['focus'] == 'auto' && 
+           ![get_win_id('desc'), get_win_id('cat')].include?($a_win) && 
+           $wins[$a_win].items && $wins[$a_win].items.size > 0
+          $wins[$a_win].select_win_item
+        end
+      end
+
+      #
+      # get window id by key
+      #
+      def get_win_id(str)
+        $wins.each_index { |i| return i if $wins[i].key == str }
+        -1
+      end
+    end
+  end
+
+  module Engine
+    # 
+    # expand path macros in $config
+    #
+    def expand_config
+      $config.each { |key, val| 
+        next unless val.class == String && val =~ /\$\{(.+?)\}/
+        orig_val = val.dup
+        val.gsub!(/\$\{(.+?)\}/, $config[$1])
+        # puts "\"#{orig_val}\" expands to \"#{val}\""
       }
-
-      @server = s
     end
+  end
 
-    def start
-      @server.start
+  module Interfaces
+    module NcursesInterface
+      #
+      # set active feed by id
+      #
+      def select_feed(id)
+        $a_feed = id
+        $a_item = 0
+      
+        # clear item window
+        item_win = $wins[get_win_id('item')]
+        item_win.offset = 0
+        item_win.active_item = 0
+        item_win.items.clear
+      
+        $wins[get_win_id('desc')].offset = 0
+        
+        # unused.. remove it?
+        fmt = $config['item_date_format']
+      
+        # wtf is happening here?
+        raise "id.class.to_s = #{id.class.to_s}" unless id.class == Fixnum
+        
+        # iterate through feed items
+        $config['feeds'].get(id)['items'].each_with_index { |item, i|
+          # can't depend on the date being in a consistent format, or
+          # being defined at all, for that matter :( :( :(
+          # title = item['title'] + ' (' +
+          #         Time.at(item['date'].to_i).strftime(fmt) << ')'
+      
+          # build title string
+          if item['date'] && item['date'].size > 0
+            d_str = item['date']
+            if item['date'] =~ /^\d+$/ && item['date'].to_i > 0
+              d_str = Time.at(d_str.to_i).strftime(fmt)
+            end
+            title = item['title'] ? "#{item['title'].strip} (#{d_str})" : d_str
+          elsif item['title'] !~ /^\s*$/ 
+            title = item['title'] ? item['title'].strip : ''
+          elsif item['desc'] !~ /^\s*$/ 
+            # fall back on cleaned up and truncated description if we're
+            # missing a title
+            w, h = item_win.dimensions
+            title = item['desc'].strip.strip_tags.unescape_html.split(/\s+/).join(' ')
+      
+            if title.length > w - 5
+              title = title.slice 0, w - 5
+              title << '...'
+            end
+          else
+            # if title is garbage and we have no description, then fall back
+            # on formatted and truncated link (silly broken RSS feeds)
+            title = '[' << item['url'].strip << ']'
+      
+            w, h = item_win.dimensions
+            title = title.strip_tags.unescape_html.split(/\s+/).join(' ')
+      
+            if title.length > w - 5
+              title = title.slice 0, w - 5
+              title << '...'
+            end
+          end
+      
+          item_win.items << {
+            'title' => title,
+            'item'  => i,
+            'read?' => item['read?']
+          }
+        }
+      
+        # redraw item window
+        item_win.draw_items
+      
+        $config['feeds'].describe($a_feed)
+        
+        # activate item window
+        set_active_win(get_win_id('item')) if $config['focus'] == 'select' ||
+                                              $config['focus'] == 'select_first'
+      end
+
+      #
+      # populate feed window
+      # 
+      def populate_feed_win 
+        win = $wins[get_win_id('feed')]
+      
+        win.items.clear
+        
+        $config['feeds'].each_with_index { |feed, i|
+          if $category && $category !~ /all/i
+            next unless feed['category'] =~ /#$category/i
+          end
+        
+          # count unread items
+          unread_count = 0
+          feed['items'].each { |item| unread_count += 1 unless item['read?'] }
+      
+          # build title
+          if feed['title']
+            title = feed['title'].strip
+          else
+            title = ($config['default_feed_title'] || 'Untitled Feed').dup
+          end
+          title << " (#{unread_count}/#{feed['items'].size})"
+      
+          win.items << {
+            'title'       => title,
+            'feed'        => i,
+            'read?'       => unread_count == 0,
+            'item_count'  => feed['items'].size,
+            'updated'     => feed['updated'],
+          }
+        }
+        win.draw_items
+      end
+      
+      #
+      # set active item by id
+      #
+      def select_item(id)
+        $a_item = id
+      
+        desc_win = $wins[get_win_id('desc')]
+        item_win = $wins[get_win_id('item')]
+      
+        # clear description window
+        desc_win.active_item = 0
+        desc_win.items.clear
+      
+        # mark item as read
+        item_win.items[$a_item]['read?'] = true
+        $config['feeds'].get($a_feed)['items'][id]['read?'] = true
+      
+        # redraw item window items (to mark selected item as read)
+        item_win.draw_items
+      
+        # get feed
+        feed = $config['feeds'].get($a_feed)
+      
+        # fix host-relative URLs
+        item_content = $config['feeds'].get($a_feed)['items'][id]['desc']
+        if $config['repair_relative_urls']
+          # get host portion of original URL
+          host_url = feed['url']
+          host_url = host_url.gsub(/^((?:\w+):\/\/)?([^\/]+)(\/.*)?$/, '\1\2')
+      
+          item_content = item_content.gsub(/href\s*=\s*["']([^'"]+?)['"]/m) {
+            m = $1.dup
+            new_url = case m
+              when (/^(\w+):\/\//)
+                m
+              else
+                [host_url, m].join('/')
+            end
+            "href='#{new_url}'"
+          }
+      
+          # fix host-relative item URL
+          item_url = feed['items'][id]['url'].dup
+          item_url = case item_url
+            when (/(\w+):\/\//)
+              item_url
+            else
+              [host_url, item_url].join('/')
+          end
+        end
+        
+        # load item
+        desc_win.items << {
+          'content'     => item_content,
+          'title'       => feed['items'][id]['title'],
+          'url'         => item_url,
+          'date'        => feed['items'][id]['date'],
+          'read?'       => feed['items'][id]['read?'],
+        }
+      
+        # redraw feed window
+        populate_feed_win
+      
+        # redraw description window
+        desc_win.offset = 0
+        desc_win.draw_items
+      
+        # activate description window
+        if (($config['focus'] == 'select' ||
+             $config['focus'] == 'select_first') &&
+            !$config['no_desc_auto_focus'])
+          set_active_win(get_win_id('desc'))
+        end
+      end
+      
+      def select_cat(str)
+        $category = str
+      
+        # rebuild feed window
+        populate_feed_win
+      
+        # select feed window and select top feed
+        w_id = get_win_id('feed')
+        set_active_win(w_id)
+        $wins[w_id].activate 0
+        
+        # delete category window
+        id = get_win_id('cat')
+        $wins.delete_at(id)
+      end
+      
+      #
+      # mark all items in feed as read
+      # 
+      def mark_items_as_read
+        win = $wins[get_win_id('item')]
+        # mark item as read
+        win.items.each { |item| item['read?'] = true }
+        $config['feeds'].get($a_feed)['items'].each { |item| item['read?'] = true }
+      
+        populate_feed_win
+        win.draw_items
+      end
+      
+      DIRECTION_BACKWARD = -1
+      DIRECTION_FORWARD = 1
+      
+      #
+      # Select next unread item in
+      # direction +direction+. Direction
+      # can be either +DIRECTION_FORWARD+
+      # or +DIRECTION_BACKWARD+
+      #
+      def select_unread_item(direction)
+        win = $wins[get_win_id('item')]
+        size = win.items.size
+      
+        return unless size > 0
+        
+        i = ($a_item + direction) % size
+        while i != $a_item
+          if win.items[i]['read?'] == false
+            select_item i
+            win.activate i
+            win.draw_items
+            return
+          end
+      
+          i = (i + direction) % size
+        end
+      end
+      
+      #
+      # select next unread item
+      #
+      def select_next_unread
+        select_unread_item DIRECTION_FORWARD
+      end
+      
+      #
+      # select previous unread item
+      #
+      def select_prev_unread
+        select_unread_item DIRECTION_BACKWARD
+      end
     end
+  end
 
-    def shutdown
-      @server.shutdown
+  module Engine
+    #
+    # load feed cache
+    #
+    def load_feed_cache
+      set_status "Loading feed cache..."
+      store = PStore::new $config['feed_cache_path']
+      store.transaction { |s|
+        $config['feeds'].each { |feed|
+          feed['items'] = s.root?(feed['url']) ? s[feed['url']] : []
+        }
+      }
+    
+      unless $config['run_http_server'] || $config['run_drb_server']
+        populate_feed_win
+        select_feed 0
+        set_active_win get_win_id('feed')
+      end
+    
+      set_status "Loading feed cache... done"
     end
+    
+    #
+    # save feed cache 
+    #
+    def save_feed_cache
+      store = PStore::new $config['feed_cache_path']
+      store.transaction { |s|
+        $config['feeds'].each { |feed| s[feed['url']] = feed['items'] }
+      }
+    end
+    
+    #
+    # save feed list 
+    #
+    def save_feed_list
+      path = $config['feed_list_path']
+      new_path = path + '~'
+    
+      # rename old feed list
+      begin 
+        File::rename path, new_path if test ?e, path
+      rescue
+      end
+      
+      # save feed list
+      File::open(path, 'w') { |f|
+        $stdout.puts $config['msg_save_list'] if $config['raggle_mode'] == 'view'
+        $stdout.flush
+    
+        # save feed items before clearing htem (for web interface)
+        tmp = []
+        $config['feeds'].each { |feed| tmp << feed['items']; feed['items'] = [] }
+    
+        f.puts $config['feeds'].to_yaml
+    
+        # restore feed items (again, for web interface)
+        tmp.each_with_index { |t, i| $config['feeds'][i]['items'] = t }
+      }
+    end
+  end
 
-    def build_feed_image(feed)
-      # get feed image
-      feed_image = ''
-      if feed['image']
-        feed_image = @templates['feed_image'].dup
-        { 'SITE'        => feed['site'],
-          'IMAGE_TITLE' => '',
-          'IMAGE_URL'   => feed['image'],
-        }.each { |key, val|
-          feed_image.gsub!(/__#{key}__/, val) if feed_image =~ /__#{key}__/
+  module Interfaces
+    module NcursesInterface
+      #
+      # save theme
+      #
+      def save_theme
+        File::open($config['theme_path'], 'w') { |f|
+          $stdout.puts $config['msg_save_theme']
+          $stdout.flush
+          f.puts $config['theme'].to_yaml
         }
       end
-
-      # return feed image
-      feed_image
+      #
+      # handle mouse events
+      #
+      def handle_mouse(ev) 
+        puts 'mouse'
+      end
     end
+  end
 
-    def build_category_select(cat)
-      cat = 'all' unless cat
+  module CLI
+    def print_usage
+      puts <<ENDUSAGE
+    Raggle - Console RSS feed aggregator.
+    Version #$VERSION, by Paul Duncan <pabs@pablotron.org> and
+                          Richard Lowe <richlowe@richlowe.net>
+
+    Usage:
+      #$0 [options]
+
+    Options:
+      -a, --add, --add-feed         Add a new feed (requires '--url').
+      --ascii                       Use ASCII characters instead of ANSI for
+                                    window borders.
+      -c, --config                  Specify an alternate config file.
+      -d, --delete, --delete-feed   Delete an existing feed.
+      -e, --edit, --edit-feed       Edit an existing feed.
+      --export-opml                 Export feeds to OPML.  
+      --force                       Force behavior Raggle won't normally allow.
+                                    Use this option with caution.
+      -h, --help, --usage           Display this usage screen.
+      --import-opml                 Import feeds from an OPML file.
+      -i, --invalidate              Invalidate a feed (force an update).
+      -l, --list                    List existing feeds (use '--verbose' to 
+                                    show URLs as well).
+      --lock-title                  Lock Title attribute of feed (for '--add'
+                                    and '--edit').
+      --max-items                   Set the maximum number of items for a feed
+                                    (for '--add' and '--edit').
+      --purge                       Purge deleted feeds from feed cache.
+      -r, --refresh                 Refresh attribute of feed (for '--add' and
+                                    '--edit').
+      --save-items                  Save old items of feed (for '--add' and
+                                    '--edit').
+      --server                      Run Raggle in HTTP server mode.
+      --sort, --sort-feeds          Sort feeds by title (case-insensitive).
+      -t, --title                   Title attribute of feed (for '--add' and
+                                    '--edit').
+      --unlock-title                Unlock Title attribute of feed (for '--add'
+                                    and '--edit').
+      --unsave-items                Don't save old items of feed (for '--add'
+                                    and '--edit').
+      -u, --url                     URL attribute of feed (for '--add' and
+                                    '--edit').
+      --verbose                     Turn on verbose output.
+      -v, --version                 Display version information.
+
+    Examples:
+      # add a new feed (hello world!)
+      #$0 -a -u http://www.example.com/rss.xml
+
+      # add a new feed called 'test feed', refresh every 30 minutes
+      #$0 -a -t 'test feed' -u http://www.example.com/feed.rss -r 30
+
+      # list feeds and their ids
+      #$0 --list
+
+      # delete an existing feed
+      #$0 --delete 12
+
+      # set the title and refresh of an existing feed
+      #$0 --edit 10 --title 'hi there!' -r 20
+
+      # set and lock the title of feed 12
+      #$0 -e 12 -t 'short title' --lock-title
+
+      # run as HTTP server on port 2345
+      #$0 --server 2345
       
-      ret = "<select name='category' onChange='form.submit()'>\n" <<
-            "  <option value='all' " <<
-            ((cat =~ /\ball\b/i) ? ' selected="1"' : '') <<
-            ">All</option>\n"
-
-      $config['feeds'].categories.each { |cat| 
-        ret << "  <option value='#{cat.title}'" <<
-               ((cat =~ /\b#{cat.title}\b/i) ? ' selected="1"' : '') <<
-               ">#{cat.title}</option>\n"
-      }
-      ret << "</select>\n"
-
-      ret
-    end
-  end
-
-  class DRbInterface
-    def config(key)
-      $config[key]
-    end
-
-    def set_config(key, val)
-      $config[key] = val
-    end
-
-    def config_keys
-      $config.keys
-    end
-
-    def feeds
-      $config['feeds'].feeds
-    end
-
-    def feeds_size
-      $config['feeds'].feeds.size
-    end
-
-    def add_feed(oots)
-      main::add_feed(opts)
-    end
-
-    def [](id)
-      $config['feeds'][id]
-    end
-
-    def version
-      $VERSION
-    end
-
-    def quit
-      exit 0
-    end
-  end
-
-  class DRbServer
-    attr_accessor :opts, :interface
-    def initialize(opts)
-      @opts = opts
-      @interface = Raggle::DRbInterface.new
-    end
-
-    def start
-      DRb::start_service(@opts['bind_url'], @interface)
-      DRb::thread.join
-    end
-  end
-end
-    
-
-#
-# set status bar message (or log message, if running as daemon)
-#
-def set_status(str)
-  str ||= ''
-
-  if $config['run_http_server'] || $config['run_drb_server']
-    $stderr.puts "Raggle: #{str}"
-  else
-    w, e_msg = $config['w'], $config['msg_exit']
-    $status, $new_status = str, str
-
-    # fix message length
-    if str.length > (w - e_msg.length)
-      str = str.slice(0, w - e_msg.length)
-    else
-      str += ' ' * (w - e_msg.length - str.length)
-    end
-    msg = str << e_msg
-
-    Ncurses::stdscr.color_set $config['theme']['status_bar_cols'], nil
-    Ncurses::mvprintw $config['h'], 0, msg.escape_format
-    Ncurses::refresh
-  end
-end
-
-# 
-# set active window 
-#
-def set_active_win(a_win)
-  if $wins[$a_win]
-    $wins[$a_win].active = false
-    $wins[$a_win].refresh
-  end
-
-  $a_win = a_win
-
-  $wins[$a_win].active = true
-  $wins[$a_win].refresh
-
-  if $config['focus'] == 'auto' && 
-     ![get_win_id('desc'), get_win_id('cat')].include?($a_win) && 
-     $wins[$a_win].items && $wins[$a_win].items.size > 0
-    $wins[$a_win].select_win_item
-  end
-end
-
-#
-# get window id by key
-#
-def get_win_id(str)
-  $wins.each_index { |i| return i if $wins[i].key == str }
-  -1
-end
-
-
-# 
-# expand path macros in $config
-#
-def expand_config
-  $config.each { |key, val| 
-    next unless val.class == String && val =~ /\$\{(.+?)\}/
-    orig_val = val.dup
-    val.gsub!(/\$\{(.+?)\}/, $config[$1])
-    # puts "\"#{orig_val}\" expands to \"#{val}\""
-  }
-end
-
-#
-# set active feed by id
-#
-def select_feed(id)
-  $a_feed = id
-  $a_item = 0
-
-  # clear item window
-  item_win = $wins[get_win_id('item')]
-  item_win.offset = 0
-  item_win.active_item = 0
-  item_win.items.clear
-
-  $wins[get_win_id('desc')].offset = 0
-  
-  # unused.. remove it?
-  fmt = $config['item_date_format']
-
-  # wtf is happening here?
-  raise "id.class.to_s = #{id.class.to_s}" unless id.class == Fixnum
-  
-  # iterate through feed items
-  $config['feeds'].get(id)['items'].each_with_index { |item, i|
-    # can't depend on the date being in a consistent format, or
-    # being defined at all, for that matter :( :( :(
-    # title = item['title'] + ' (' +
-    #         Time.at(item['date'].to_i).strftime(fmt) << ')'
-
-    # build title string
-    if item['date'] && item['date'].size > 0
-      d_str = item['date']
-      if item['date'] =~ /^\d+$/ && item['date'].to_i > 0
-        d_str = Time.at(d_str.to_i).strftime(fmt)
-      end
-      title = item['title'] ? "#{item['title'].strip} (#{d_str})" : d_str
-    elsif item['title'] !~ /^\s*$/ 
-      title = item['title'] ? item['title'].strip : ''
-    elsif item['desc'] !~ /^\s*$/ 
-      # fall back on cleaned up and truncated description if we're
-      # missing a title
-      w, h = item_win.dimensions
-      title = item['desc'].strip.strip_tags.unescape_html.split(/\s+/).join(' ')
-
-      if title.length > w - 5
-        title = title.slice 0, w - 5
-        title << '...'
-      end
-    else
-      # if title is garbage and we have no description, then fall back
-      # on formatted and truncated link (silly broken RSS feeds)
-      title = '[' << item['url'].strip << ']'
-
-      w, h = item_win.dimensions
-      title = title.strip_tags.unescape_html.split(/\s+/).join(' ')
-
-      if title.length > w - 5
-        title = title.slice 0, w - 5
-        title << '...'
-      end
-    end
-
-    item_win.items << {
-      'title' => title,
-      'item'  => i,
-      'read?' => item['read?']
-    }
-  }
-
-  # redraw item window
-  item_win.draw_items
-
-  $config['feeds'].describe($a_feed)
-  
-  # activate item window
-  set_active_win(get_win_id('item')) if $config['focus'] == 'select' ||
-                                        $config['focus'] == 'select_first'
-end
-
-#
-# populate feed window
-# 
-def populate_feed_win 
-  win = $wins[get_win_id('feed')]
-
-  win.items.clear
-  
-  $config['feeds'].each_with_index { |feed, i|
-    if $category && $category !~ /all/i
-      next unless feed['category'] =~ /#$category/i
-    end
-  
-    # count unread items
-    unread_count = 0
-    feed['items'].each { |item| unread_count += 1 unless item['read?'] }
-
-    # build title
-    if feed['title']
-      title = feed['title'].strip
-    else
-      title = ($config['default_feed_title'] || 'Untitled Feed').dup
-    end
-    title << " (#{unread_count}/#{feed['items'].size})"
-
-    win.items << {
-      'title'       => title,
-      'feed'        => i,
-      'read?'       => unread_count == 0,
-      'item_count'  => feed['items'].size,
-      'updated'     => feed['updated'],
-    }
-  }
-  win.draw_items
-end
-
-#
-# set active item by id
-#
-def select_item(id)
-  $a_item = id
-
-  desc_win = $wins[get_win_id('desc')]
-  item_win = $wins[get_win_id('item')]
-
-  # clear description window
-  desc_win.active_item = 0
-  desc_win.items.clear
-
-  # mark item as read
-  item_win.items[$a_item]['read?'] = true
-  $config['feeds'].get($a_feed)['items'][id]['read?'] = true
-
-  # redraw item window items (to mark selected item as read)
-  item_win.draw_items
-
-  # get feed
-  feed = $config['feeds'].get($a_feed)
-
-  # fix host-relative URLs
-  item_content = $config['feeds'].get($a_feed)['items'][id]['desc']
-  if $config['repair_relative_urls']
-    # get host portion of original URL
-    host_url = feed['url']
-    host_url = host_url.gsub(/^((?:\w+):\/\/)?([^\/]+)(\/.*)?$/, '\1\2')
-
-    item_content = item_content.gsub(/href\s*=\s*["']([^'"]+?)['"]/m) {
-      m = $1.dup
-      new_url = case m
-        when (/^(\w+):\/\//)
-          m
-        else
-          [host_url, m].join('/')
-      end
-      "href='#{new_url}'"
-    }
-
-    # fix host-relative item URL
-    item_url = feed['items'][id]['url'].dup
-    item_url = case item_url
-      when (/(\w+):\/\//)
-        item_url
-      else
-        [host_url, item_url].join('/')
-    end
-  end
-  
-  # load item
-  desc_win.items << {
-    'content'     => item_content,
-    'title'       => feed['items'][id]['title'],
-    'url'         => item_url,
-    'date'        => feed['items'][id]['date'],
-    'read?'       => feed['items'][id]['read?'],
-  }
-
-  # redraw feed window
-  populate_feed_win
-
-  # redraw description window
-  desc_win.offset = 0
-  desc_win.draw_items
-
-  # activate description window
-  if (($config['focus'] == 'select' ||
-       $config['focus'] == 'select_first') &&
-      !$config['no_desc_auto_focus'])
-    set_active_win(get_win_id('desc'))
-  end
-end
-
-def select_cat str
-  $category = str
-
-  # rebuild feed window
-  populate_feed_win
-
-  # select feed window and select top feed
-  w_id = get_win_id('feed')
-  set_active_win(w_id)
-  $wins[w_id].activate 0
-  
-  # delete category window
-  id = get_win_id('cat')
-  $wins.delete_at(id)
-end
-
-#
-# mark all items in feed as read
-# 
-def mark_items_as_read
-  win = $wins[get_win_id('item')]
-  # mark item as read
-  win.items.each { |item| item['read?'] = true }
-  $config['feeds'].get($a_feed)['items'].each { |item| item['read?'] = true }
-
-  populate_feed_win
-  win.draw_items
-end
-
-DIRECTION_BACKWARD = -1
-DIRECTION_FORWARD = 1
-
-#
-# Select next unread item in
-# direction +direction+. Direction
-# can be either +DIRECTION_FORWARD+
-# or +DIRECTION_BACKWARD+
-#
-def select_unread_item(direction)
-  win = $wins[get_win_id('item')]
-  size = win.items.size
-
-  return unless size > 0
-  
-  i = ($a_item + direction) % size
-  while i != $a_item
-    if win.items[i]['read?'] == false
-      select_item i
-      win.activate i
-      win.draw_items
-      return
-    end
-
-    i = (i + direction) % size
-  end
-end
-
-#
-# select next unread item
-#
-def select_next_unread
-  select_unread_item DIRECTION_FORWARD
-end
-
-#
-# select previous unread item
-#
-def select_prev_unread
-  select_unread_item DIRECTION_BACKWARD
-end
-
-#
-# load feed cache
-#
-def load_feed_cache
-  set_status "Loading feed cache..."
-  store = PStore::new $config['feed_cache_path']
-  store.transaction { |s|
-    $config['feeds'].each { |feed|
-      feed['items'] = s.root?(feed['url']) ? s[feed['url']] : []
-    }
-  }
-
-  unless $config['run_http_server'] || $config['run_drb_server']
-    populate_feed_win
-    select_feed 0
-    set_active_win get_win_id('feed')
-  end
-
-  set_status "Loading feed cache... done"
-end
-
-#
-# save feed cache 
-#
-def save_feed_cache
-  store = PStore::new $config['feed_cache_path']
-  store.transaction { |s|
-    $config['feeds'].each { |feed| s[feed['url']] = feed['items'] }
-  }
-end
-
-#
-# save feed list 
-#
-def save_feed_list
-  path = $config['feed_list_path']
-  new_path = path + '~'
-
-  # rename old feed list
-  begin 
-    File::rename path, new_path if test ?e, path
-  rescue
-  end
-  
-  # save feed list
-  File::open(path, 'w') { |f|
-    $stdout.puts $config['msg_save_list'] if $config['raggle_mode'] == 'view'
-    $stdout.flush
-
-    # save feed items before clearing htem (for web interface)
-    tmp = []
-    $config['feeds'].each { |feed| tmp << feed['items']; feed['items'] = [] }
-
-    f.puts $config['feeds'].to_yaml
-
-    # restore feed items (again, for web interface)
-    tmp.each_with_index { |t, i| $config['feeds'][i]['items'] = t }
-  }
-end
-
-#
-# save theme
-#
-def save_theme
-  File::open($config['theme_path'], 'w') { |f|
-    $stdout.puts $config['msg_save_theme']
-    $stdout.flush
-    f.puts $config['theme'].to_yaml
-  }
-end
-
-#
-# handle mouse events
-#
-def handle_mouse(ev) 
-  puts 'mouse'
-end
-
-def print_usage
-  puts <<ENDUSAGE
-Raggle - Console RSS feed aggregator.
-Version #$VERSION, by Paul Duncan <pabs@pablotron.org> and
-                      Richard Lowe <richlowe@richlowe.net>
-
-Usage:
-  #$0 [options]
-
-Options:
-  -a, --add, --add-feed         Add a new feed (requires '--url').
-  --ascii                       Use ASCII characters instead of ANSI for
-                                window borders.
-  -c, --config                  Specify an alternate config file.
-  -d, --delete, --delete-feed   Delete an existing feed.
-  -e, --edit, --edit-feed       Edit an existing feed.
-  --export-opml                 Export feeds to OPML.  
-  --force                       Force behavior Raggle won't normally allow.
-                                Use this option with caution.
-  -h, --help, --usage           Display this usage screen.
-  --import-opml                 Import feeds from an OPML file.
-  -i, --invalidate              Invalidate a feed (force an update).
-  -l, --list                    List existing feeds (use '--verbose' to 
-                                show URLs as well).
-  --lock-title                  Lock Title attribute of feed (for '--add'
-                                and '--edit').
-  --max-items                   Set the maximum number of items for a feed
-                                (for '--add' and '--edit').
-  --purge                       Purge deleted feeds from feed cache.
-  -r, --refresh                 Refresh attribute of feed (for '--add' and
-                                '--edit').
-  --save-items                  Save old items of feed (for '--add' and
-                                '--edit').
-  --server                      Run Raggle in HTTP server mode.
-  --sort, --sort-feeds          Sort feeds by title (case-insensitive).
-  -t, --title                   Title attribute of feed (for '--add' and
-                                '--edit').
-  --unlock-title                Unlock Title attribute of feed (for '--add'
-                                and '--edit').
-  --unsave-items                Don't save old items of feed (for '--add'
-                                and '--edit').
-  -u, --url                     URL attribute of feed (for '--add' and
-                                '--edit').
-  --verbose                     Turn on verbose output.
-  -v, --version                 Display version information.
-
-Examples:
-  # add a new feed (hello world!)
-  #$0 -a -u http://www.example.com/rss.xml
-
-  # add a new feed called 'test feed', refresh every 30 minutes
-  #$0 -a -t 'test feed' -u http://www.example.com/feed.rss -r 30
-
-  # list feeds and their ids
-  #$0 --list
-
-  # delete an existing feed
-  #$0 --delete 12
-
-  # set the title and refresh of an existing feed
-  #$0 --edit 10 --title 'hi there!' -r 20
-
-  # set and lock the title of feed 12
-  #$0 -e 12 -t 'short title' --lock-title
-
-  # run as HTTP server on port 2345
-  #$0 --server 2345
-  
-About the Authors:
-Paul Duncan <pabs@pablotron.org>
-http://www.pablotron.org/  (RSS: http://www.pablotron.org/rss/)
-http://www.paulduncan.org/ (RSS: http://www.paulduncan.org/rss/)
-
-Richard Lowe <richlowe@richlowe.net>
-http://www.richlowe.net/
-http://www.richlowe.net/ (RSS: http://www.richlowe.net/diary/index.rss)
-
-Ville Aine <vaine@cs.helsinki.fi>
+    About the Authors:
+    Paul Duncan <pabs@pablotron.org>
+    http://www.pablotron.org/  (RSS: http://www.pablotron.org/rss/)
+    http://www.paulduncan.org/ (RSS: http://www.paulduncan.org/rss/)
+
+    Richard Lowe <richlowe@richlowe.net>
+    http://www.richlowe.net/
+    http://www.richlowe.net/ (RSS: http://www.richlowe.net/diary/index.rss)
+
+    Ville Aine <vaine@cs.helsinki.fi>
 ENDUSAGE
 
-  exit(0)
-end
-
-#
-# handle command-line options
-# 
-def handle_command_line(opts)
-  ret = { 'mode' => 'view' }
-
-  gopts = GetoptLong.new(
-    ['--add', '-a',        '--add-feed',        GetoptLong::OPTIONAL_ARGUMENT],
-    ['--edit', '-e',       '--edit-feed',       GetoptLong::REQUIRED_ARGUMENT],
-    ['--delete', '-d',     '--delete-feed',     GetoptLong::REQUIRED_ARGUMENT],
-    ['--invalidate', '-i', '--invalidate-feed', GetoptLong::REQUIRED_ARGUMENT],
-    ['--config', '-c',     '--config-file',     GetoptLong::REQUIRED_ARGUMENT],
-    ['--force',                                 GetoptLong::NO_ARGUMENT],		 
-    ['--list', '-l',                            GetoptLong::NO_ARGUMENT],
-    ['--title', '-t',                           GetoptLong::REQUIRED_ARGUMENT],
-    ['--url', '-u',                             GetoptLong::REQUIRED_ARGUMENT],
-    ['--refresh', '-r',                         GetoptLong::REQUIRED_ARGUMENT],
-    ['--version', '-v',                         GetoptLong::NO_ARGUMENT],
-    ['--purge',                                 GetoptLong::NO_ARGUMENT],
-    ['--sort', '--sort-feeds',                  GetoptLong::NO_ARGUMENT],
-    ['--lock-title',                            GetoptLong::NO_ARGUMENT],
-    ['--unlock-title',                          GetoptLong::NO_ARGUMENT],
-    ['--save-items',                            GetoptLong::NO_ARGUMENT],
-    ['--unsave-items',                          GetoptLong::NO_ARGUMENT],
-    ['--verbose',                               GetoptLong::NO_ARGUMENT],
-    ['--import-opml',                           GetoptLong::REQUIRED_ARGUMENT],
-    ['--export-opml',                           GetoptLong::REQUIRED_ARGUMENT],
-    ['--diag',                                  GetoptLong::NO_ARGUMENT],
-    ['--server',                                GetoptLong::OPTIONAL_ARGUMENT],
-    ['--drb-server', '--drb',                   GetoptLong::NO_ARGUMENT],
-    ['--help', '-h', '--usage',                 GetoptLong::NO_ARGUMENT],
-    ['--ascii', '-A',                           GetoptLong::NO_ARGUMENT],
-    ['--max-items', '--max',                    GetoptLong::REQUIRED_ARGUMENT],
-    ['--find-feeds', '-f',                      GetoptLong::REQUIRED_ARGUMENT]
-  )
-
-  begin
-    gopts.each do |opt, arg|
-      case opt
-        when '--add'
-          ret['mode'] = 'add'
-          ret['url'] = arg if arg && arg.size > 0
-        when '--edit'
-          ret['mode'] = 'edit'
-          ret['id'] = arg.to_i
-        when'--delete'
-          ret['mode'] = 'delete'
-          ret['id'] = arg.to_i
-        when '--invalidate'
-          ret['mode'] = 'invalidate'
-          ret['id'] = arg.to_i
-        when '--config'
-          $config['config_path'] = arg
-        when '--force'
-          ret['force'] = true
-        when '--list'
-          ret['mode'] = 'list'
-        when '--title'
-          ret['title'] = arg
-        when '--url'
-          ret['url'] = arg
-        when '--refresh'
-          ret['refresh'] = arg.to_i
-        when '--version'
-          puts "Raggle v#$VERSION"
-          exit 0
-        when '--purge'
-          ret['mode'] = 'purge'
-        when '--sort', '--sort-feeds'
-          ret['mode'] = 'sort'
-        when '--lock-title'
-          ret['lock_title?'] = true
-        when '--unlock-title'
-          ret['lock_title?'] = false
-        when '--save-items'
-          ret['save_items?'] = true
-        when '--max-items'
-          ret['max_items'] = arg.to_i
-          ret['save_items?'] = true if ret['max_items'] > 0
-        when '--unsave-items'
-          ret['save_items?'] = false
-        when '--verbose'
-          $config['verbose'] = true
-        when '--import-opml'
-          ret['mode'] = 'import_opml'
-          ret['opml_file'] = arg
-        when '--export-opml'
-          ret['mode'] = 'export_opml'
-          ret['opml_file'] = arg
-        when '--diag'
-          $config['diag'] = true
-        when '--ascii'
-          ret['ascii'] = true
-        when '--server'
-          if $HAVE_LIB['webrick']
-            $config['run_http_server'] = true
-            $config['http_server']['port'] = arg.to_i \
-              if $config['http_server'] && arg && arg.to_i > 0
-          else
-            die 'Missing WEBrick, can\'t run HTTP Server.'
-          end
-        when '--drb-server'
-          if $HAVE_LIB['drb']
-            $config['run_drb_server'] = true
-          else
-            die "Missing DRb, can't run DRb Server."
-          end
-        when '--find-feeds'
-          ret['mode'] = 'find_feeds'
-          ret['find_str'] = arg
-        when '-h', '--help', '--usage'
-          print_usage
-      end
+      exit(0)
     end
-  rescue GetoptLong::InvalidOption 
-    exit -1
-  end
 
-       
-  # check options
-  if ret['mode'] == 'add'
-    ['url'].each { |val| # removed 'title' and 'refresh' for now
-      unless ret[val]
-        die "Missing '--#{val}'."
+    #
+    # handle command-line options
+    # 
+    def handle_command_line(opts)
+      ret = { 'mode' => 'view' }
+    
+      gopts = GetoptLong.new(
+        ['--add', '-a',        '--add-feed',        GetoptLong::OPTIONAL_ARGUMENT],
+        ['--edit', '-e',       '--edit-feed',       GetoptLong::REQUIRED_ARGUMENT],
+        ['--delete', '-d',     '--delete-feed',     GetoptLong::REQUIRED_ARGUMENT],
+        ['--invalidate', '-i', '--invalidate-feed', GetoptLong::REQUIRED_ARGUMENT],
+        ['--config', '-c',     '--config-file',     GetoptLong::REQUIRED_ARGUMENT],
+        ['--force',                                 GetoptLong::NO_ARGUMENT],		 
+        ['--list', '-l',                            GetoptLong::NO_ARGUMENT],
+        ['--title', '-t',                           GetoptLong::REQUIRED_ARGUMENT],
+        ['--url', '-u',                             GetoptLong::REQUIRED_ARGUMENT],
+        ['--refresh', '-r',                         GetoptLong::REQUIRED_ARGUMENT],
+        ['--version', '-v',                         GetoptLong::NO_ARGUMENT],
+        ['--purge',                                 GetoptLong::NO_ARGUMENT],
+        ['--sort', '--sort-feeds',                  GetoptLong::NO_ARGUMENT],
+        ['--lock-title',                            GetoptLong::NO_ARGUMENT],
+        ['--unlock-title',                          GetoptLong::NO_ARGUMENT],
+        ['--save-items',                            GetoptLong::NO_ARGUMENT],
+        ['--unsave-items',                          GetoptLong::NO_ARGUMENT],
+        ['--verbose',                               GetoptLong::NO_ARGUMENT],
+        ['--import-opml',                           GetoptLong::REQUIRED_ARGUMENT],
+        ['--export-opml',                           GetoptLong::REQUIRED_ARGUMENT],
+        ['--diag',                                  GetoptLong::NO_ARGUMENT],
+        ['--server',                                GetoptLong::OPTIONAL_ARGUMENT],
+        ['--drb-server', '--drb',                   GetoptLong::NO_ARGUMENT],
+        ['--help', '-h', '--usage',                 GetoptLong::NO_ARGUMENT],
+        ['--ascii', '-A',                           GetoptLong::NO_ARGUMENT],
+        ['--max-items', '--max',                    GetoptLong::REQUIRED_ARGUMENT],
+        ['--find-feeds', '-f',                      GetoptLong::REQUIRED_ARGUMENT]
+      )
+    
+      begin
+        gopts.each do |opt, arg|
+          case opt
+            when '--add'
+              ret['mode'] = 'add'
+              ret['url'] = arg if arg && arg.size > 0
+            when '--edit'
+              ret['mode'] = 'edit'
+              ret['id'] = arg.to_i
+            when'--delete'
+              ret['mode'] = 'delete'
+              ret['id'] = arg.to_i
+            when '--invalidate'
+              ret['mode'] = 'invalidate'
+              ret['id'] = arg.to_i
+            when '--config'
+              $config['config_path'] = arg
+            when '--force'
+              ret['force'] = true
+            when '--list'
+              ret['mode'] = 'list'
+            when '--title'
+              ret['title'] = arg
+            when '--url'
+              ret['url'] = arg
+            when '--refresh'
+              ret['refresh'] = arg.to_i
+            when '--version'
+              puts "Raggle v#$VERSION"
+              exit 0
+            when '--purge'
+              ret['mode'] = 'purge'
+            when '--sort', '--sort-feeds'
+              ret['mode'] = 'sort'
+            when '--lock-title'
+              ret['lock_title?'] = true
+            when '--unlock-title'
+              ret['lock_title?'] = false
+            when '--save-items'
+              ret['save_items?'] = true
+            when '--max-items'
+              ret['max_items'] = arg.to_i
+              ret['save_items?'] = true if ret['max_items'] > 0
+            when '--unsave-items'
+              ret['save_items?'] = false
+            when '--verbose'
+              $config['verbose'] = true
+            when '--import-opml'
+              ret['mode'] = 'import_opml'
+              ret['opml_file'] = arg
+            when '--export-opml'
+              ret['mode'] = 'export_opml'
+              ret['opml_file'] = arg
+            when '--diag'
+              $config['diag'] = true
+            when '--ascii'
+              ret['ascii'] = true
+            when '--server'
+              if $HAVE_LIB['webrick']
+                $config['run_http_server'] = true
+                $config['http_server']['port'] = arg.to_i \
+                  if $config['http_server'] && arg && arg.to_i > 0
+              else
+                die 'Missing WEBrick, can\'t run HTTP Server.'
+              end
+            when '--drb-server'
+              if $HAVE_LIB['drb']
+                $config['run_drb_server'] = true
+              else
+                die "Missing DRb, can't run DRb Server."
+              end
+            when '--find-feeds'
+              ret['mode'] = 'find_feeds'
+              ret['find_str'] = arg
+            when '-h', '--help', '--usage'
+              print_usage
+          end
+        end
+      rescue GetoptLong::InvalidOption 
         exit -1
       end
-    }
-  elsif ret['mode'] == 'edit'
-    unless ret['title'] || ret['url'] || ret['refresh'] ||
-           ret.has_key?('lock_title?') || ret.has_key?('save_items?')
-      die "Please specify a feed change to make."
-    end
-  end
-
-  # return options
-  ret
-end
-
-#
-# print a list of feeds to stdout
-#
-def list_feeds
-  i = -1
-  if $config['verbose']
-    puts 'ID, Title, URL, Refresh'
-    $config['feeds'].each { |feed|
-      title = feed['title'].escape_format
-      url = feed['url'].escape_format
-      puts "%2d, #{title}, #{url}, #{feed['refresh']}" % (i += 1)
-    }
-  else 
-    puts 'ID, Title'
-    $config['feeds'].each { |feed|
-      title = feed['title'].escape_format
-      puts "%2d, #{title}" % (i += 1)
-    }
-  end
-end
-
-#
-# add a new feed
-#
-def add_feed(opts)
-    %w{title refresh}.each { |i| opts[i] ||= $config["default_feed_#{i}"] }
-    $config['feeds'].add(opts['title'], opts['url'], opts['refresh'],
-                         opts['lock_title?'], opts['save_items?'],
-			                   '', '', [], nil, nil, opts['force'])
-
-    # can't keep adding params to FeedList#add forever :/
-    if opts['max_items']
-      $config['feeds'][-1]['max_items'] = opts['max_items']
-    end
-end
-
-#
-# add a new feed from ncurses
-# 
-def ncurses_add_feed
-  w, e_msg = $config['w'], $config['msg_add_feed']
-
-  # print entry message
-  msg = e_msg + (' ' * (w - e_msg.length - 1))
-  Ncurses::stdscr.color_set $config['theme']['status_bar_cols'], nil
-  Ncurses::mvprintw $config['h'], 0, msg.escape_format
-
-  # get string
-  str = ''
-  Ncurses::echo if $config['use_noecho']
-  Ncurses::mvprintw $config['h'], e_msg.size + 1, ''
-  Ncurses::getstr(str)
-  Ncurses::noecho if $config['use_noecho']
-
-  Ncurses::refresh
-
-  # if it's not nil, then add it to our list
-  if str && str.length > 0
-    add_feed({ 'url' => str })
-    populate_feed_win
-  end
     
-  # redraw status bar
-  $new_status = $status
-  $status = msg
-  set_status($new_status)
-
-  # force update now
-  $feed_thread.run if $config['update_after_add']
-end
-
-#
-# search for feeds, return array of hashes w/ results
-#
-def find_feeds(str)
-  syn = Raggle::Syndic8.new
-
-  syn.keys -= ['siteurl']
-  syn.max_results = $config['syndic8_max_results']
-
-  # query syndic8
-  ret = syn.find(str)
-
-  # find empty and duplicate results
-  cruft = []
-  ret.each do |feed| 
-    cruft << feed if feed['dataurl'].size == 0
-    cruft << feed if feed['sitename'].size == 0 &&
-    feed['description'].size == 0
-    dups = ret.find_all { |f| f['dataurl'] == feed['dataurl'] }
-    if dups.size > 1
-      dups.shift
-      dups.each { |dup| cruft << dup }
-    end
-  end
-
-  # delete cruft
-  cruft.each { |feed| ret.delete(feed) }
-
-  ret
-end
-
-def cli_find_feeds(str)
-  results = find_feeds(str)
-  results.each_with_index do |feed, i|
-    puts "% 2d. %s - %s" % [i + 1, feed['sitename'], feed['dataurl']]
-  end
-end
-
-#
-# search for feeds from ncurses
-# 
-def ncurses_find_feeds
-  w, e_msg = $config['w'], $config['msg_find_feed']
-
-  # print entry message
-  msg = e_msg + (' ' * (w - e_msg.length - 1))
-  Ncurses::stdscr.color_set $config['theme']['status_bar_cols'], nil
-  Ncurses::mvprintw $config['h'], 0, msg.escape_format
-
-  # get string
-  str = ''
-  Ncurses::echo if $config['use_noecho']
-  Ncurses::mvprintw $config['h'], e_msg.size + 1, ''
-  Ncurses::getstr(str)
-  Ncurses::noecho if $config['use_noecho']
-
-  Ncurses::refresh
-
-  # if it's not nil, then add it to our list
-  if str && str.length > 0
-    th = Thread.new do
-      results = find_feeds(str)
-      id = get_win_id('find')
-
-      if id == -1
-        # determine window height
-        w = $config['w'] - 10
-        h = $config['h'] - 5 
-        h = results.size + 3 if h > results.size + 3
-
-        # create window and add it to window list
-        $wins << win = ListWindow::new({
-          'title'   => $config['msg_find_title'] % [str],
-          'key'     => 'find',
-          'coords'  => [5, 3, w, h],
-          'colors'  => $wins[get_win_id('item')].colors,
-        })
-      else
-        win = $wins[id]
-      end
-
-      # build item list
-      win.items.clear
-      win.items << { 'title' => "Found #{results.size} feeds matching \"#{str}\"." }
-      results.each do |feed| 
-        title = [feed['sitename'],
-                 feed['description'], 
-                 feed['dataurl']
-                ].join ' - '
-        win.items << { 'title' => title, 'find' => feed['dataurl'] }
-      end
-      win.activate(2)
-
-      # add window to window list and draw item list
-      win.draw_items
-
-      # activate category window
-      set_active_win(get_win_id('find'))
-    end
-    th.priority = $config['thread_priority_find']
-  end
-    
-  # redraw status bar
-  $new_status = $status
-  $status = msg
-  set_status($new_status)
-
-  # force update now
-  $feed_thread.run if $config['update_after_add']
-end
-
-#
-# find entry in window
-# 
-def ncurses_find_entry(win, direction = 1)
-  if win && win.items && win.items.size > 0
-    w, e_msg = $config['w'], $config['msg_find_feed']
-
-    # print entry message
-    msg = e_msg + (' ' * (w - e_msg.length - 1))
-    Ncurses::stdscr.color_set $config['theme']['status_bar_cols'], nil
-    Ncurses::mvprintw $config['h'], 0, msg.escape_format
-
-    # get string
-    str = ''
-    Ncurses::echo if $config['use_noecho']
-    Ncurses::mvprintw $config['h'], e_msg.size + 1, ''
-    Ncurses::getstr(str)
-    Ncurses::noecho if $config['use_noecho']
-
-    Ncurses::refresh
-
-    # if it's not nil, then add it to our list
-    if ((str && str.size > 0) || ($last_search && $last_search.size > 0))
-      new_index = -1
-      
-      str = $last_search unless str && str.size > 0
-      regex = /#{str}/i
-
-      # search forward from item
-      (win.active_item + 1).upto(win.items.size - 1) { |i|
-        if win.items[i]['title'] =~ regex
-          new_index = i
-          break
-        end
-      }
-      
-      # wrap search  (should this be an option?)
-      if new_index < 0
-        0.upto(win.active_item - 1) { |i|
-          if win.items[i]['title'] =~ regex
-            new_index = i
-            break
+           
+      # check options
+      if ret['mode'] == 'add'
+        ['url'].each { |val| # removed 'title' and 'refresh' for now
+          unless ret[val]
+            die "Missing '--#{val}'."
+            exit -1
           end
         }
+      elsif ret['mode'] == 'edit'
+        unless ret['title'] || ret['url'] || ret['refresh'] ||
+               ret.has_key?('lock_title?') || ret.has_key?('save_items?')
+          die "Please specify a feed change to make."
+        end
       end
-
-      win.activate new_index if new_index >= 0
-      $last_search = str
+    
+      # return options
+      ret
     end
-      
-    # redraw status bar
-    $new_status = $status
-    $status = msg
-    set_status($new_status)
-  end
-end
 
-#
-# purge extra feeds in cache
-#
-def purge_feed_cache
-  urls = {}
-  $config['feeds'].each { |feed| urls[feed['url']] = true }
-  PStore::new($config['feed_cache_path']) { |cache|
-    cache.roots.each { |root| 
-      unless urls[root]
-        $stderr.puts "Purging \"#{root}\"" if $config['verbose']
-        cache[root] = nil
-      end
-    }
-  }
-end
-
-# 
-# delete a feed by id
-#
-def delete_feed(id)
-  $config['feeds'].delete(id)
-end
-
-#
-# Invalidate a feed by id
-#
-def invalidate_feed(id)
-  $config['feeds'].invalidate(id)
-end
-
-#
-# Sort feeds 
-#
-def sort_feeds
-  $config['feeds'].sort
-end
-
-#
-# edit an existing feed
-#
-def edit_feed(id, opts)
-  $config['feeds'].edit(id, opts)
-end
-
-# 
-# create a lock file for raggle
-#
-def create_cache_lock
-  path = $config['cache_lock_path']
-  
-  # open cache lock for writing
-  unless $config['cache_lock'] = File::open(path, 'w')
-    die "Couldn't open \"#{path}\"."
-  end
-
-  # obtain cache lock
-  unless $config['cache_lock'].flock(File::LOCK_EX | File::LOCK_NB)
-    $stderr.puts "WARNING: Couldn't obtain cache lock: " << 
-                 "Another instance of Raggle is running.\n"
-    $stderr.puts "WARNING: Disabling feed caching for this instance."
-    $stderr.puts "WARNING: Press enter to continue."
-
-    # wait for user response
-    $stdin.gets
-
-    # disable feed caching and theme saving
-    $config['use_cache_lock'] = false
-    $config['save_feed_list'] = false
-    $config['save_feed_cache'] = false
-    $config['save_theme'] = false
-  end
-end
-
-#
-# destroy raggle lock file
-#
-def destroy_cache_lock
-  path = $config['cache_lock_path']
-
-  # unlock cache lock
-  unless $config['cache_lock'].flock(File::LOCK_UN | File::LOCK_NB)
-    $stderr.puts "WARNING: Couldn't unlock \"#{path}\"."
-  end
-
-  # close cache lock
-  $config['cache_lock'].flush
-  $config['cache_lock'].close
-  $config['cache_lock'] = nil
-
-  # start garbage collection (flush out file descriptor)
-  GC.start
-
-  # unlink cache lock
-  unless File::unlink(path)
-    $stderr.puts "WARNING: Couldn't unlock \"#{path}\"."
-  end
-end
-
-
-def resize_term
-  # get screen coordinates
-  h = []; w = []
-  Ncurses::getmaxyx Ncurses::stdscr, h, w
-  $config['w'] = w[0]
-  $config['h'] = h[0] - 1
-
-  # resize each window
-  $config['theme']['window_order'].each { |key|
-    win = $wins[get_win_id(key)]
-
-    # determine new coordinates
-    coords = $config['theme']['win_' << key]['coords'].dup
-    coords[2] = $config['w'] - coords[0] if coords[2] == -1
-    coords[3] = $config['h'] - coords[1] if coords[3] == -1
-
-    win.win.move(coords[1], coords[0])
-    win.win.resize(coords[3], coords[2])
-
-    # refresh window
-    win.refresh
-    win.draw_items
-  }
-
-  set_status " #{$config['msg_term_resize']}#{w[0]}x#{h[0]}"
-
-  # refresh full screen
-  Ncurses::refresh
-end
-
-#
-# save screen mode, drop out of ncurses
-#
-def save_screen
-  Ncurses::def_prog_mode
-  Ncurses::endwin
-end
-
-#
-# restore saved screen settings
-#
-def restore_screen
-  Ncurses::reset_prog_mode
-  Ncurses::refresh
-  # Ncurses::getch
-end
-
-#
-# drop to sub-shell
-#
-def drop_to_shell
-  save_screen
-  system ENV['SHELL']
-  restore_screen
-end
-
-##
-# Ugly
-# -- richlowe 2003-07-01
-def setup_win
-      # initialize screen & keyboard
-    Ncurses::initscr
-    Ncurses::raw if $config['use_raw_mode']
-    Ncurses::keypad Ncurses::stdscr, 1
-    Ncurses::noecho if $config['use_noecho']
-    Ncurses::start_color
-    # Ncurses::mousemask(Ncurses::ALL_MOUSE_EVENTS, [])
-    
-    # exit -1 unless Ncurses::has_colors?
-    
-    # initialize color pairs
-    $config['color_palette'].each { |ary| Ncurses::init_pair *ary }
-    
-    # get screen coordinates
-    h = []; w = []
-    Ncurses::getmaxyx Ncurses::stdscr, h, w
-    $config['w'] = w[0]
-    $config['h'] = h[0] - 1
-    
-    # draw menu bar
-    # c_msg = $config['msg_close']
-    # msg = (' ' * ($config['w'] - c_msg.length)) << c_msg
-    # Ncurses::wcolor_set Ncurses::stdscr, $config['menu_bar_cols'], nil
-    # Ncurses::mvprintw 0, 0, msg.escape_format
-    # Ncurses::refresh
-    
-    # draw status bar
-    $new_status = ''
-    set_status $config['msg_welcome']
-    
-    # create windows
-    $a_win = 0
-    $wins = []
-    $config['theme']['window_order'].each { |i|
-      case i
-        when /feed/
-          cl = ListWindow
-        when /item/
-          cl = ListWindow
-        when /desc/
-          cl = TextWindow
-      else
-        raise "Unknown window #{i}"
-      end
-      $wins << cl.new($config['theme']["win_#{i}"])
-      # $wins[-1].draw LONG_STRING
-    }
-    set_active_win(0)
-    
-    $a_feed, $a_item = 0, 0
-    
-    # populate feed window
-    populate_feed_win
-    
-    select_feed(0)
-    set_active_win(0)
-end
-
-#
-# grab individual feed Ccalled by feed grabbing thread)
-#
-def grab_feed(feed)
-  t = Time.now
-  
-  # set the name and priority of the current thread
-  Thread::current['feed'] = feed
-  Thread::current.priority = $config['thread_priority_feed']
-  
-  $new_status = " Checking feed \"#{feed['title']}\"..."
-  $log.puts "#{Time.now}: Checking feed \"#{feed['title']}\""
-  return unless feed['refresh'] > 0 && 
-    feed['updated'] + (feed['refresh'] * 60) < t.to_i
-  
-  # update statusbar and grab log
-  $new_status = " Updating feed \"#{feed['title']}\"..."
-  $log.puts "#{t}: Updating feed \"#{feed['title']}\" from " +
-            "\"#{feed['url']}\""
-  
-  # get channel
-  begin
-    chan = Feed::Channel.new(feed['url'], feed['last_modified'])
-    feed.delete 'error'
-  rescue
-    # set_status "Error updating \"#{feed['title']}\"."
-    $log.puts "#{t}: Error: #$!"
-    feed['error'] = "#$!"
-    return
-  end
-  
-  # update feed attributes
-  if !chan.last_modified ||
-     chan.last_modified != feed['last_modified']
-    Thread::critical = $config['use_critical_regions']
-    feed['title'] = chan.title unless $config['lock_feed_title'] ||
-                                      feed['lock_title?'] == true
-    feed['desc'] = chan.desc
-    feed['site'] = chan.link
-    feed['image'] = chan.image
-    feed['updated'] = t.to_i
-
-    # Note: last_modified is slightly different than modified,
-    # because we're using it as a token, not as a timestamp
-    # -- paul
-    feed['last_modified'] = chan.last_modified
-    
-    # hash the urls, save the read status
-    urls = {}
-    feed['items'].each { |item| urls[item['url']] = item['read?'] }
-
-    # clear the list if we're not saving feed items
-    Thread::critical = $config['use_critical_regions']
-    feed['items'].clear unless $config['save_feed_items'] ||
-                               feed['save_items?']
-    Thread::critical = false
-    
-    # insert new items
-    new_items = []
-    chan.items.each { |item|
-      unless (($config['save_feed_items'] ||
-               feed['save_items?']) &&
-              urls.has_key?(item.link))
-        was_read = urls.has_key?(item.link) && urls[item.link]
-        new_items << {
-          'title' => item.title,
-          'date'  => item.date,
-          'url'   => item.link,
-          'desc'  => item.desc,
-          'read?' => was_read,
-          'added' => Time.now.to_i,
+    #
+    # print a list of feeds to stdout
+    #
+    def list_feeds
+      i = -1
+      if $config['verbose']
+        puts 'ID, Title, URL, Refresh'
+        $config['feeds'].each { |feed|
+          title = feed['title'].escape_format
+          url = feed['url'].escape_format
+          puts "%2d, #{title}, #{url}, #{feed['refresh']}" % (i += 1)
+        }
+      else 
+        puts 'ID, Title'
+        $config['feeds'].each { |feed|
+          title = feed['title'].escape_format
+          puts "%2d, #{title}" % (i += 1)
         }
       end
-    }
-    
-    # if we're saving old items, then prepend the new items
-    # otherwise, replace the old list
-    Thread::critical = $config['use_critical_regions']
-    if $config['save_feed_items'] || feed['save_items?']
-      feed['items'] = new_items + feed['items']
-
-      max = $config['max_feed_items'] || feed['max_items']
-      if max && max > 0
-        old = (feed['items'].slice!(max .. -1) || []).size
-        $log.puts "#{t}: Removing #{old} old items."
-      end
-    else
-      feed['items'] = new_items
     end
-    Thread::critical = false
-  else 
-    feed['updated'] = t.to_i
-    $log.puts "Feed \"#{feed['title']}\" hasn't changed."
-  end
-  
-  # if this is the currently selected feed, then re-select it
-  # so it's contents are updated
-  # TODO: make this select the currently selected item again
-  # (assuming it still exists)
-  if !$config['run_http_server'] && !$config['run_drb_server'] &&
-     $config['feeds'][$a_feed]['url'] == feed['url']
-    $wins[get_win_id('feed')].select_win_item
   end
 
-  # redraw feed / item windows
-  $update_wins = true
+  module Engine
+    #
+    # add a new feed
+    #
+    def add_feed(opts)
+      %w{title refresh}.each { |i| opts[i] ||= $config["default_feed_#{i}"] }
+      $config['feeds'].add(opts['title'], opts['url'], opts['refresh'],
+                           opts['lock_title?'], opts['save_items?'],
+                           '', '', [], nil, nil, opts['force'])
+    
+      # can't keep adding params to FeedList#add forever :/
+      if opts['max_items']
+        $config['feeds'][-1]['max_items'] = opts['max_items']
+      end
+    end
+  end
+
+  module Interfaces
+    module NcursesInterface
+      #
+      # add a new feed from ncurses
+      # 
+      def ncurses_add_feed
+        w, e_msg = $config['w'], $config['msg_add_feed']
+      
+        # print entry message
+        msg = e_msg + (' ' * (w - e_msg.length - 1))
+        Ncurses::stdscr.color_set $config['theme']['status_bar_cols'], nil
+        Ncurses::mvprintw $config['h'], 0, msg.escape_format
+      
+        # get string
+        str = ''
+        Ncurses::echo if $config['use_noecho']
+        Ncurses::mvprintw $config['h'], e_msg.size + 1, ''
+        Ncurses::getstr(str)
+        Ncurses::noecho if $config['use_noecho']
+      
+        Ncurses::refresh
+      
+        # if it's not nil, then add it to our list
+        if str && str.length > 0
+          add_feed({ 'url' => str })
+          populate_feed_win
+        end
+          
+        # redraw status bar
+        $new_status = $status
+        $status = msg
+        set_status($new_status)
+      
+        # force update now
+        $feed_thread.run if $config['update_after_add']
+      end
+      
+      #
+      # search for feeds, return array of hashes w/ results
+      #
+      def find_feeds(str)
+        syn = Raggle::Syndic8.new
+      
+        syn.keys -= ['siteurl']
+        syn.max_results = $config['syndic8_max_results']
+      
+        # query syndic8
+        ret = syn.find(str)
+      
+        # find empty and duplicate results
+        cruft = []
+        ret.each do |feed| 
+          cruft << feed if feed['dataurl'].size == 0
+          cruft << feed if feed['sitename'].size == 0 &&
+          feed['description'].size == 0
+          dups = ret.find_all { |f| f['dataurl'] == feed['dataurl'] }
+          if dups.size > 1
+            dups.shift
+            dups.each { |dup| cruft << dup }
+          end
+        end
+      
+        # delete cruft
+        cruft.each { |feed| ret.delete(feed) }
+      
+        ret
+      end
+    end
+  end
+
+  module CLI
+    def cli_find_feeds(str)
+      results = find_feeds(str)
+      results.each_with_index do |feed, i|
+        puts "% 2d. %s - %s" % [i + 1, feed['sitename'], feed['dataurl']]
+      end
+    end
+  end
+
+  module Interfaces
+    module NcursesInterface
+      #
+      # search for feeds from ncurses
+      # 
+      def ncurses_find_feeds
+        w, e_msg = $config['w'], $config['msg_find_feed']
+      
+        # print entry message
+        msg = e_msg + (' ' * (w - e_msg.length - 1))
+        Ncurses::stdscr.color_set $config['theme']['status_bar_cols'], nil
+        Ncurses::mvprintw $config['h'], 0, msg.escape_format
+      
+        # get string
+        str = ''
+        Ncurses::echo if $config['use_noecho']
+        Ncurses::mvprintw $config['h'], e_msg.size + 1, ''
+        Ncurses::getstr(str)
+        Ncurses::noecho if $config['use_noecho']
+      
+        Ncurses::refresh
+      
+        # if it's not nil, then add it to our list
+        if str && str.length > 0
+          th = Thread.new do
+            results = find_feeds(str)
+            id = get_win_id('find')
+      
+            if id == -1
+              # determine window height
+              w = $config['w'] - 10
+              h = $config['h'] - 5 
+              h = results.size + 3 if h > results.size + 3
+      
+              # create window and add it to window list
+              $wins << win = ListWindow::new({
+                'title'   => $config['msg_find_title'] % [str],
+                'key'     => 'find',
+                'coords'  => [5, 3, w, h],
+                'colors'  => $wins[get_win_id('item')].colors,
+              })
+            else
+              win = $wins[id]
+            end
+      
+            # build item list
+            win.items.clear
+            win.items << { 'title' => "Found #{results.size} feeds matching \"#{str}\"." }
+            results.each do |feed| 
+              title = [feed['sitename'],
+                       feed['description'], 
+                       feed['dataurl']
+                      ].join ' - '
+              win.items << { 'title' => title, 'find' => feed['dataurl'] }
+            end
+            win.activate(2)
+      
+            # add window to window list and draw item list
+            win.draw_items
+      
+            # activate category window
+            set_active_win(get_win_id('find'))
+          end
+          th.priority = $config['thread_priority_find']
+        end
+          
+        # redraw status bar
+        $new_status = $status
+        $status = msg
+        set_status($new_status)
+      
+        # force update now
+        $feed_thread.run if $config['update_after_add']
+      end
+      
+      #
+      # find entry in window
+      # 
+      def ncurses_find_entry(win, direction = 1)
+        if win && win.items && win.items.size > 0
+          w, e_msg = $config['w'], $config['msg_find_feed']
+      
+          # print entry message
+          msg = e_msg + (' ' * (w - e_msg.length - 1))
+          Ncurses::stdscr.color_set $config['theme']['status_bar_cols'], nil
+          Ncurses::mvprintw $config['h'], 0, msg.escape_format
+      
+          # get string
+          str = ''
+          Ncurses::echo if $config['use_noecho']
+          Ncurses::mvprintw $config['h'], e_msg.size + 1, ''
+          Ncurses::getstr(str)
+          Ncurses::noecho if $config['use_noecho']
+      
+          Ncurses::refresh
+      
+          # if it's not nil, then add it to our list
+          if ((str && str.size > 0) || ($last_search && $last_search.size > 0))
+            new_index = -1
+            
+            str = $last_search unless str && str.size > 0
+            regex = /#{str}/i
+      
+            # search forward from item
+            (win.active_item + 1).upto(win.items.size - 1) { |i|
+              if win.items[i]['title'] =~ regex
+                new_index = i
+                break
+              end
+            }
+            
+            # wrap search  (should this be an option?)
+            if new_index < 0
+              0.upto(win.active_item - 1) { |i|
+                if win.items[i]['title'] =~ regex
+                  new_index = i
+                  break
+                end
+              }
+            end
+      
+            win.activate new_index if new_index >= 0
+            $last_search = str
+          end
+            
+          # redraw status bar
+          $new_status = $status
+          $status = msg
+          set_status($new_status)
+        end
+      end
+    end
+  end
+
+  module Engine
+    #
+    # purge extra feeds in cache
+    #
+    def purge_feed_cache
+      urls = {}
+      $config['feeds'].each { |feed| urls[feed['url']] = true }
+      PStore::new($config['feed_cache_path']) { |cache|
+        cache.roots.each { |root| 
+          unless urls[root]
+            $stderr.puts "Purging \"#{root}\"" if $config['verbose']
+            cache[root] = nil
+          end
+        }
+      }
+    end
+    
+    # 
+    # delete a feed by id
+    #
+    def delete_feed(id)
+      $config['feeds'].delete(id)
+    end
+    
+    #
+    # Invalidate a feed by id
+    #
+    def invalidate_feed(id)
+      $config['feeds'].invalidate(id)
+    end
+    
+    #
+    # Sort feeds 
+    #
+    def sort_feeds
+      $config['feeds'].sort
+    end
+
+    #
+    # edit an existing feed
+    #
+    def edit_feed(id, opts)
+      $config['feeds'].edit(id, opts)
+    end
+    
+    # 
+    # create a lock file for raggle
+    #
+    def create_cache_lock
+      path = $config['cache_lock_path']
+      
+      # open cache lock for writing
+      unless $config['cache_lock'] = File::open(path, 'w')
+        die "Couldn't open \"#{path}\"."
+      end
+    
+      # obtain cache lock
+      unless $config['cache_lock'].flock(File::LOCK_EX | File::LOCK_NB)
+        $stderr.puts "WARNING: Couldn't obtain cache lock: " << 
+                     "Another instance of Raggle is running.\n"
+        $stderr.puts "WARNING: Disabling feed caching for this instance."
+        $stderr.puts "WARNING: Press enter to continue."
+    
+        # wait for user response
+        $stdin.gets
+    
+        # disable feed caching and theme saving
+        $config['use_cache_lock'] = false
+        $config['save_feed_list'] = false
+        $config['save_feed_cache'] = false
+        $config['save_theme'] = false
+      end
+    end
+    
+    #
+    # destroy raggle lock file
+    #
+    def destroy_cache_lock
+      path = $config['cache_lock_path']
+    
+      # unlock cache lock
+      unless $config['cache_lock'].flock(File::LOCK_UN | File::LOCK_NB)
+        $stderr.puts "WARNING: Couldn't unlock \"#{path}\"."
+      end
+    
+      # close cache lock
+      $config['cache_lock'].flush
+      $config['cache_lock'].close
+      $config['cache_lock'] = nil
+    
+      # start garbage collection (flush out file descriptor)
+      GC.start
+    
+      # unlink cache lock
+      unless File::unlink(path)
+        $stderr.puts "WARNING: Couldn't unlock \"#{path}\"."
+      end
+    end
+  end
+
+
+  module Interfaces
+    module NcursesInterface
+      def resize_term
+        # get screen coordinates
+        h = []; w = []
+        Ncurses::getmaxyx Ncurses::stdscr, h, w
+        $config['w'] = w[0]
+        $config['h'] = h[0] - 1
+      
+        # resize each window
+        $config['theme']['window_order'].each { |key|
+          win = $wins[get_win_id(key)]
+      
+          # determine new coordinates
+          coords = $config['theme']['win_' << key]['coords'].dup
+          coords[2] = $config['w'] - coords[0] if coords[2] == -1
+          coords[3] = $config['h'] - coords[1] if coords[3] == -1
+      
+          win.win.move(coords[1], coords[0])
+          win.win.resize(coords[3], coords[2])
+      
+          # refresh window
+          win.refresh
+          win.draw_items
+        }
+      
+        set_status " #{$config['msg_term_resize']}#{w[0]}x#{h[0]}"
+      
+        # refresh full screen
+        Ncurses::refresh
+      end
+      
+      #
+      # save screen mode, drop out of ncurses
+      #
+      def save_screen
+        Ncurses::def_prog_mode
+        Ncurses::endwin
+      end
+      
+      #
+      # restore saved screen settings
+      #
+      def restore_screen
+        Ncurses::reset_prog_mode
+        Ncurses::refresh
+        # Ncurses::getch
+      end
+      
+      #
+      # drop to sub-shell
+      #
+      def drop_to_shell
+        save_screen
+        system ENV['SHELL']
+        restore_screen
+      end
+      
+      ##
+      # Ugly
+      # -- richlowe 2003-07-01
+      def setup_win
+            # initialize screen & keyboard
+          Ncurses::initscr
+          Ncurses::raw if $config['use_raw_mode']
+          Ncurses::keypad Ncurses::stdscr, 1
+          Ncurses::noecho if $config['use_noecho']
+          Ncurses::start_color
+          # Ncurses::mousemask(Ncurses::ALL_MOUSE_EVENTS, [])
+          
+          # exit -1 unless Ncurses::has_colors?
+          
+          # initialize color pairs
+          $config['color_palette'].each { |ary| Ncurses::init_pair *ary }
+          
+          # get screen coordinates
+          h = []; w = []
+          Ncurses::getmaxyx Ncurses::stdscr, h, w
+          $config['w'] = w[0]
+          $config['h'] = h[0] - 1
+          
+          # draw menu bar
+          # c_msg = $config['msg_close']
+          # msg = (' ' * ($config['w'] - c_msg.length)) << c_msg
+          # Ncurses::wcolor_set Ncurses::stdscr, $config['menu_bar_cols'], nil
+          # Ncurses::mvprintw 0, 0, msg.escape_format
+          # Ncurses::refresh
+          
+          # draw status bar
+          $new_status = ''
+          set_status $config['msg_welcome']
+          
+          # create windows
+          $a_win = 0
+          $wins = []
+          $config['theme']['window_order'].each { |i|
+            case i
+              when /feed/
+                cl = ListWindow
+              when /item/
+                cl = ListWindow
+              when /desc/
+                cl = TextWindow
+            else
+              raise "Unknown window #{i}"
+            end
+            $wins << cl.new($config['theme']["win_#{i}"])
+            # $wins[-1].draw LONG_STRING
+          }
+          set_active_win(0)
+          
+          $a_feed, $a_item = 0, 0
+          
+          # populate feed window
+          populate_feed_win
+          
+          select_feed(0)
+          set_active_win(0)
+      end
+    end
+  end
+
+  module Engine
+    #
+    # grab individual feed Ccalled by feed grabbing thread)
+    #
+    def grab_feed(feed)
+      t = Time.now
+      
+      # set the name and priority of the current thread
+      Thread::current['feed'] = feed
+      Thread::current.priority = $config['thread_priority_feed']
+      
+      $new_status = " Checking feed \"#{feed['title']}\"..."
+      $log.puts "#{Time.now}: Checking feed \"#{feed['title']}\""
+      return unless feed['refresh'] > 0 && 
+        feed['updated'] + (feed['refresh'] * 60) < t.to_i
+      
+      # update statusbar and grab log
+      $new_status = " Updating feed \"#{feed['title']}\"..."
+      $log.puts "#{t}: Updating feed \"#{feed['title']}\" from " +
+                "\"#{feed['url']}\""
+      
+      # get channel
+      begin
+        chan = Feed::Channel.new(feed['url'], feed['last_modified'])
+        feed.delete 'error'
+      rescue
+        # set_status "Error updating \"#{feed['title']}\"."
+        $log.puts "#{t}: Error: #$!"
+        feed['error'] = "#$!"
+        return
+      end
+      
+      # update feed attributes
+      if !chan.last_modified ||
+         chan.last_modified != feed['last_modified']
+        Thread::critical = $config['use_critical_regions']
+        feed['title'] = chan.title unless $config['lock_feed_title'] ||
+                                          feed['lock_title?'] == true
+        feed['desc'] = chan.desc
+        feed['site'] = chan.link
+        feed['image'] = chan.image
+        feed['updated'] = t.to_i
+    
+        # Note: last_modified is slightly different than modified,
+        # because we're using it as a token, not as a timestamp
+        # -- paul
+        feed['last_modified'] = chan.last_modified
+        
+        # hash the urls, save the read status
+        urls = {}
+        feed['items'].each { |item| urls[item['url']] = item['read?'] }
+    
+        # clear the list if we're not saving feed items
+        Thread::critical = $config['use_critical_regions']
+        feed['items'].clear unless $config['save_feed_items'] ||
+                                   feed['save_items?']
+        Thread::critical = false
+        
+        # insert new items
+        new_items = []
+        chan.items.each { |item|
+          unless (($config['save_feed_items'] ||
+                   feed['save_items?']) &&
+                  urls.has_key?(item.link))
+            was_read = urls.has_key?(item.link) && urls[item.link]
+            new_items << {
+              'title' => item.title,
+              'date'  => item.date,
+              'url'   => item.link,
+              'desc'  => item.desc,
+              'read?' => was_read,
+              'added' => Time.now.to_i,
+            }
+          end
+        }
+        
+        # if we're saving old items, then prepend the new items
+        # otherwise, replace the old list
+        Thread::critical = $config['use_critical_regions']
+        if $config['save_feed_items'] || feed['save_items?']
+          feed['items'] = new_items + feed['items']
+    
+          max = $config['max_feed_items'] || feed['max_items']
+          if max && max > 0
+            old = (feed['items'].slice!(max .. -1) || []).size
+            $log.puts "#{t}: Removing #{old} old items."
+          end
+        else
+          feed['items'] = new_items
+        end
+        Thread::critical = false
+      else 
+        feed['updated'] = t.to_i
+        $log.puts "Feed \"#{feed['title']}\" hasn't changed."
+      end
+      
+      # if this is the currently selected feed, then re-select it
+      # so it's contents are updated
+      # TODO: make this select the currently selected item again
+      # (assuming it still exists)
+      if !$config['run_http_server'] && !$config['run_drb_server'] &&
+         $config['feeds'][$a_feed]['url'] == feed['url']
+        $wins[get_win_id('feed')].select_win_item
+      end
+    
+      # redraw feed / item windows
+      $update_wins = true
+    end
+  end
 end
-
 
 #######################################################################
 # End Shenanigans, Begin Actual Code                                  #

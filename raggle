@@ -257,7 +257,10 @@ class FeedList
     @feeds.size
   end
   
-  def add(title, url, refresh, site='', desc='', items=[])
+  def add(title, url, refresh, lock_title=false, save_items=false,
+          site='', desc='', items=[])
+    lock_title = false if !lock_title
+    save_items = false if !save_items
     @feeds << {
       'title'   => title,
       'url'     => url,
@@ -265,7 +268,9 @@ class FeedList
       'site'    => site,
       'desc'    => desc,
       'updated' => 0,
-      'items'   => items
+      'items'   => items,
+      'lock_title?' => lock_title,
+      'save_items?' => save_items,
     }
   end
   
@@ -1311,7 +1316,8 @@ end
 # add a new feed
 #
 def add_feed(opts)
-    $config['feeds'].add(opts['title'], opts['url'], opts['refresh'])
+    $config['feeds'].add(opts['title'], opts['url'], opts['refresh'],
+                         opts['lock_title?'], opts['save_items?'])
 end
 
 #
@@ -1473,6 +1479,7 @@ def main
   if $config['feeds'].size == 0
     $config['default_feeds'].each {|feed|
       $config['feeds'].add(feed['title'], feed['url'], feed['refresh'],
+                           feed['lock_title?'], feed['save_items?'],
                            feed['site'], feed['desc'], feed['items'])
     }
   end

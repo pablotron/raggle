@@ -1226,53 +1226,55 @@ def handle_Command_line(opts)
     ['-h', '--help', '--usage',                 GetoptLong::NO_ARGUMENT]
   )
 
-  gopts.each do |opt, arg|
-    case opt
-      when '-a', '--add', '--add-feed'
-        ret['mode'] = 'add'
-      when '-e', '--edit', '--edit-feed'
-        ret['mode'] = 'edit'
-        ret['id'] = arg.to_i
-      when '-d', '--delete', '--delete-feed'
-        ret['mode'] = 'delete'
-        ret['id'] = arg.to_i
-      when '-i', '--invalidate', '--invalidate-feed'
-        ret['mode'] = 'invalidate'
-        ret['id'] = arg.to_i
-      when '-c', '--config', '--config-file'
-        $config['config_path'] = arg
-      when '-l', '--list'
-        ret['mode'] = 'list'
-      when '-t', '--title'
-        ret['title'] = arg
-      when '-u', '--url'
-        ret['url'] = arg
-      when '-r', '--refresh'
-        ret['refresh'] = arg.to_i
-      when '-v', '--version'
-        puts "Raggle v#$VERSION"
-        exit 0
-      when '--purge'
-        ret['mode'] = 'purge'
-      when '--sort', '--sort-feeds'
-        ret['mode'] = 'sort'
-      when '--lock-title'
-        ret['lock_title?'] = true
-      when '--unlock-title'
-        ret['lock_title?'] = false
-      when '--save-items'
-        ret['save_items?'] = true
-      when '--unsave-items'
-        ret['save_items?'] = false
-      when '--verbose'
-        $config['verbose'] = true
-      when '-h', '--help', '--usage'
-        print_usage
-    else
-        $stderr.puts 'Unknown option: ' << opt
+  begin
+    gopts.each do |opt, arg|
+      case opt
+        when '-a', '--add', '--add-feed'
+          ret['mode'] = 'add'
+        when '-e', '--edit', '--edit-feed'
+          ret['mode'] = 'edit'
+          ret['id'] = arg.to_i
+        when '-d', '--delete', '--delete-feed'
+          ret['mode'] = 'delete'
+          ret['id'] = arg.to_i
+        when '-i', '--invalidate', '--invalidate-feed'
+          ret['mode'] = 'invalidate'
+          ret['id'] = arg.to_i
+        when '-c', '--config', '--config-file'
+          $config['config_path'] = arg
+        when '-l', '--list'
+          ret['mode'] = 'list'
+        when '-t', '--title'
+          ret['title'] = arg
+        when '-u', '--url'
+          ret['url'] = arg
+        when '-r', '--refresh'
+          ret['refresh'] = arg.to_i
+        when '-v', '--version'
+          puts "Raggle v#$VERSION"
+          exit 0
+        when '--purge'
+          ret['mode'] = 'purge'
+        when '--sort', '--sort-feeds'
+          ret['mode'] = 'sort'
+        when '--lock-title'
+          ret['lock_title?'] = true
+        when '--unlock-title'
+          ret['lock_title?'] = false
+        when '--save-items'
+          ret['save_items?'] = true
+        when '--unsave-items'
+          ret['save_items?'] = false
+        when '--verbose'
+          $config['verbose'] = true
+        when '-h', '--help', '--usage'
+          print_usage
+      else
+          $stderr.puts 'Unknown option: ' << opt
+      end
     end
-
-    ret
+  rescue 
+    exit -1
   end
        
   # check options

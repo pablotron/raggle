@@ -529,6 +529,10 @@
   * added MANIFEST
   * releasing 0.1.0
 
+* Mon Jun 23 19:18:17 2003, pabs <pabs@pablotron.org>
+  * raggle: pretty error for unknown options, not an exception
+  * okay, __really__ release 0.1.0 now
+
 
 
 

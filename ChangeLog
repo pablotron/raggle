@@ -1135,3 +1135,6 @@
   * raggle: explicitly invoke the GC at user-defined interval
   * raggle: slightly more concise fix to unset thread priorities in
     config
+
+* Wed Aug 20 16:54:47 2003, pabs <pabs@pablotron.org>
+  * BUGS: add entry for memory leak

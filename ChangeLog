@@ -259,3 +259,12 @@
   * raggle: added '--purge' command-line option: purge extra feeds
     in feed cache (only necessary if you manually edit your feed list, 
     since it's called automatically on delete).
+
+* Fri Jun 20 03:11:18 2003, pabs <pabs@pablotron.org>
+  * raggle: added 'save_feed_cache' option: save all old feed items,
+    indefinitely (pretty stupid to use; the per-feed --save-items
+    command-line option is probably much more appropriate)
+  * raggle: added '--save-items' and '--unsave-items' command-line
+    options.  They set and unset the save_items? attribute on feeds,
+    respectively.
+

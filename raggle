@@ -85,6 +85,12 @@ $config = {
   'load_feed_cache'       => true,
   'save_feed_cache'       => true,
 
+  # save old feed items indefinitely?
+  # Note: doing this with a lot of high-traffic feeds can make
+  # your feed cache grow very large, very fast.  It's probably better
+  # to use the per-feed --save-items command-line option.
+  'save_feed_items'       => false,
+
   # theme handling
   'load_theme'            => true,
   'save_theme'            => true,
@@ -1362,10 +1368,14 @@ Options:
   --purge                       Purge deleted feeds from feed cache.
   -r, --refresh                 Refresh attribute of feed (for '--add' and
                                 '--edit').
+  --save-items                  Save old items of feed (for '--add' and
+                                '--edit').
   --sort, --sort-feeds          Sort feeds by title (case-insensitive).
   -t, --title                   Title attribute of feed (for '--add' and
                                 '--edit').
   --unlock-title                Unlock Title attribute of feed (for '--add'
+                                and '--edit').
+  --unsave-items                Don't save old items of feed (for '--add'
                                 and '--edit').
   -u, --url                     URL attribute of feed (for '--add' and
                                 '--edit').
@@ -1489,6 +1499,10 @@ def handle_Command_line(opts)
       ret['lock_title?'] = true
     when '--unlock-title'
       ret['lock_title?'] = false
+    when '--save-items'
+      ret['save_items?'] = true
+    when '--unsave-items'
+      ret['save_items?'] = false
     when '--verbose'
       $config['verbose'] = true
     when '-h'
@@ -1769,19 +1783,38 @@ feed_thread = Thread.new {
         feed['site'] = chan.link
         feed['updated'] = t.to_i
 
-        # clear feed list
-        feed['items'].clear
+        # if we're saving old feed items, then hash the urls
+        # otherwise, clear the feed list
+        urls = {}
+        new_items = []
+        if $config['save_feed_items'] || feed['save_items?']
+          feed['items'].each { |item| urls[item['url']] = true }
+        else
+          feed['items'].clear 
+        end
 
         # insert new items
         chan.items.each { |item|
-          feed['items'] << {
-            'title' => item.title,
-            'date'  => item.date,
-            'url'   => item.link,
-            'desc'  => item.desc,
-            'read?' => false,
-          }
+          unless (($config['save_feed_items'] || feed['save_items?']) &&
+                  urls.has_key?(item.link))
+            new_items << {
+              'title' => item.title,
+              'date'  => item.date,
+              'url'   => item.link,
+              'desc'  => item.desc,
+              'read?' => false,
+              'added' => Time.now.to_i,
+            }
+          end
         }
+
+        # if we're saving old items, then prepend the new items
+        # otherwise, replace the old list
+        if $config['save_feed_items'] || feed['save_items?']
+          feed['items'] = new_items + feed['items']
+        else
+          feed['items'] = new_items
+        end
 
         # redraw feed / item windows
         $update_windows = true

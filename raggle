@@ -3348,7 +3348,7 @@ def main
   end
 
   # set abort on exception
-  # $feed_thread.abort_on_exception = true
+  $feed_thread.abort_on_exception = true
 
   begin
     if $config['run_http_server']

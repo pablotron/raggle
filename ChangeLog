@@ -1624,3 +1624,10 @@
 * Thu Sep 25 17:32:04 2003, pabs <pabs@pablotron.org>
   * README: update documentation to account for new 0.3.0 features 
     (including the web interface).
+
+* Thu Sep 25 20:00:14 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Uncomment the abort_on_exception for the feed thread, (the
+            TODO mentions it being wanted... if this is the wrong thing,
+	    feel free to revert and berrate me :)
+  * TODO: Mark the `abort_on_exception' item as done.
+

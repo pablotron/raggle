@@ -71,5 +71,5 @@ Raggle TODO
     ( I would prefer if what you mean is "If Ncurses isn't installed
     and webrick is, start the web interface by default" that there be
     a big obvious message say what is happening and why -- richlowe 2003-09-25)
-[ ] Thread#abort_on_exception for feed grabbing thread! (suggested by
+[*] Thread#abort_on_exception for feed grabbing thread! (suggested by
     Harry Ohlsen <harryo@qiqsolutions.com>).

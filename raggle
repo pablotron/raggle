@@ -855,8 +855,7 @@ module Raggle
     #              will be locked
     # save_items:: If true, then all imported feeds' items will be saved.
     #
-    def OPML::import(file_name, refresh=nil, lock_title=false, save_items=false, force=false)
-      refresh = $config['default_feed_refresh'] unless refresh
+    def OPML::import(file_name, refresh=nil, lock_title=nil, save_items=nil, force=false)
       feed_list = $config['feeds']
 
       begin
@@ -883,19 +882,28 @@ module Raggle
 
           doc = REXML::Document.new(contents)
           doc.root.elements.each('//outline') do |outline|
-            title = outline.attributes['title']
+            title = outline.attributes['title'] || $config['default_feed_title']
             url = outline.attributes['xmlUrl'] || outline.attributes['xmlurl']
             site = outline.attributes['htmlUrl'] || outline.attributes['htmlurl'] || ''
             desc = outline.attributes['description'] || ''
+            cat = outline.attributes['category'] || nil
+            image = outline.attributes['image'] || nil
+            max_items = outline.attributes['max_items'] || nil
             priority = outline.attributes['priority'].to_i || $config['default_feed_priority']
+            # the following properties take effect unless overridden on CLI
+            if outline.attributes['refresh']: opml_refresh = outline.attributes['refresh'].to_i 
+            else opml_refresh = nil; end  # fixes clobberation
+            frefresh = refresh || opml_refresh || $config['default_feed_refresh']
+            fsave_items = save_items || outline.attributes['save_items'] || false
+            flock_title = lock_title || outline.attributes['lock_title'] || false
 
-            if title.nil? || url.nil?
+            if url.nil?
               $stderr.puts "Warning: skipping incomplete OPML entry: #{outline}"
               next
             end
             raise "WARNING!!! EXEC URL IN OPML IMPORT" if (url =~ /^exec:/)
-            feed_list.add(title, url, refresh, lock_title, save_items,
-                          site, desc, [], nil, nil, force, priority)
+            feed_list.add(title, url, frefresh, flock_title, fsave_items,
+                          site, desc, [], image, cat, force, priority, max_items)
           end
         else
           raise "Empty input file \"#{file_name}\"."
@@ -939,8 +947,8 @@ module Raggle
         else
           raise "Couldn't open output file \"#{file_name}\"."
         end
-      rescue
-        die $!.message
+      rescue => err
+        die err.message
       end
     end
 
@@ -961,10 +969,16 @@ module Raggle
     def OPML::feed_to_outline(feed)
       outline = REXML::Element.new('outline')
       outline.attributes['title'] = feed['title'] || ''
-      outline.attributes['description'] = feed['desc'] || ''
       outline.attributes['xmlUrl'] = feed['url'] || ''
       outline.attributes['htmlUrl'] = feed['site'] if feed.has_key?('site')
+      outline.attributes['description'] = feed['desc'] || ''
+      outline.attributes['category'] = feed['category'] || ''
+      outline.attributes['image'] = feed['image'] if feed.has_key?('image')
       outline.attributes['priority'] = feed['priority'].to_i || $config['default_feed_priority']
+      outline.attributes['refresh'] = feed['refresh'] || $config['default_feed_refresh']
+      outline.attributes['save_items'] = feed['save_items?'] if feed.has_key?('save_items?')
+      outline.attributes['max_items'] = feed['max_items'] if feed.has_key?('max_items')
+      outline.attributes['lock_title'] = feed['lock_title?'] if feed.has_key?('lock_title?')
       outline.attributes['version'] = 'RSS'
       outline.attributes['type'] = 'rss'
       outline
@@ -1065,7 +1079,7 @@ module Raggle
       #
       def add(title, url, refresh, lock_title=false, save_items=false, site='',
               desc='', items=[], image = nil, category = nil, force=false,
-              priority=0)
+              priority=0, max_items=nil)
         refresh_interval_check(refresh) unless force || url =~ /^(file|exec):/
         lock_title = false if !lock_title
         save_items = false if !save_items
@@ -1081,6 +1095,7 @@ module Raggle
           'category'    => category, 
           'lock_title?' => lock_title,
           'save_items?' => save_items,
+          'max_items'   => max_items,
           'priority'    => priority,
         }
       end
@@ -1709,7 +1724,7 @@ ENDUSAGE
         Engine::purge_feed_cache
         exit(0)
       when 'import_opml'
-        OPML::import opts['opml_file'], opts['refresh'], opts['lock_title?'], opts['save_items'],
+        OPML::import opts['opml_file'], opts['refresh'], opts['lock_title?'], opts['save_items?'],
           opts['force']
         Engine::save_feed_list
         exit(0)
@@ -3880,7 +3895,9 @@ ENDUSAGE
         %w{title refresh priority}.each { |i| opts[i] ||= $config["default_feed_#{i}"] }
         $config['feeds'].add(opts['title'], opts['url'], opts['refresh'],
                              opts['lock_title?'], opts['save_items?'],
-                             '', '', [], nil, nil, opts['force'], opts['priority'])
+                             (opts['site'] || ''), (opts['desc'] || ''),
+                             [], opts['image'], opts['category'],
+                             opts['force'], opts['priority'])
     
         # can't keep adding params to Feed::List#add forever :/
         if opts['max_items']

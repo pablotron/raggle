@@ -2262,3 +2262,8 @@
     check as any string should be fine
   * raggle: default feeds weren't getting their priorities; fixed
   * raggle: miscellaneous cleanup
+
+* Thu Dec 30 15:26:00 2004, redshift <redshift@halffull.org>
+  * raggle: beefed up OPML support - saves all configurable feed attributes
+  * raggle: minor rescue cleanup
+  * raggle: allow Engine to add site, image, category, etc. if given

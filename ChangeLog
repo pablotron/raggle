@@ -687,6 +687,9 @@
     FeedList#edit.  Reported by Ville Aine (vaine@cs.helsinki.fi).
   * raggle: above methods should be using die, not raise.
 
+* Wed Jun 25 20:47:15 2003, pabs <pabs@pablotron.org>
+  * raggle: save read status of feed items, regardless of whether or
+    not we save the actual feed (much nicer this way)
 
 
 

@@ -1763,26 +1763,26 @@ def main
           feed['site'] = chan.link
           feed['updated'] = t.to_i
           
-          # if we're saving old feed items, then hash the urls
-          # otherwise, clear the feed list
+          # hash the urls, save the read status
           urls = {}
-          new_items = []
-          if $config['save_feed_items'] || feed['save_items?']
-            feed['items'].each { |item| urls[item['url']] = true }
-          else
-            feed['items'].clear 
-          end
+          feed['items'].each { |item| urls[item['url']] = item['read?'] }
+
+          # clear the list if we're not saving feed items
+          feed['items'].clear unless $config['save_feed_items'] ||
+                                     feed['save_items?']
           
           # insert new items
+          new_items = []
           chan.items.each { |item|
             unless (($config['save_feed_items'] || feed['save_items?']) &&
                     urls.has_key?(item.link))
+              was_read = urls.has_key?(item.link) && urls[item.link]
               new_items << {
                 'title' => item.title,
                 'date'  => item.date,
                 'url'   => item.link,
                 'desc'  => item.desc,
-                'read?' => false,
+                'read?' => was_read,
                 'added' => Time.now.to_i,
               }
             end

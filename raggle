@@ -1127,11 +1127,16 @@ module Feed
           # get item attributes (the ones that are set, anyway... stupid
           # RSS)
           h = {}
-          [ 'title', 'link', 'date', 'description' ].each { |val|
+
+          # basic item attribute element check
+          ['title', 'link', 'date', 'description'].each { |val|
             h[val] = (t_e = e.elements[val]) ? fix_character_encoding(t_e) : ''
           }
 
-	  h['description'] = find_description(e)
+          # more elaborate xpath checks for item attribute elements
+          ['link', 'date', 'description'].each { |key|
+            h[key] = find_element(e, key)
+          }
 
           # insert new item
           @items << Feed::Item.new(h['title'], h['link'],
@@ -1140,11 +1145,13 @@ module Feed
       end
     end
 
-    def find_description(elem)
-      $config['desc_element_xpaths'].each { |xpath|
-        e = elem.elements[xpath]
-        return fix_character_encoding(e) if e
-      }
+    def find_element(elem, name)
+      if $config['item_element_xpaths'][name]
+        $config['item_element_xpaths'][name].each { |xpath|
+          e = elem.elements[xpath]
+          return fix_character_encoding(e) if e
+        }
+      end
       ''
     end
 
@@ -1527,7 +1534,8 @@ class TextWindow < Window
       draw("Date: ", 1, y)
       
       # handle date string shenanigans
-      if ((i_val = item['date'].to_i) > 0 && i_val.is_a?(Fixnum))
+      if (item['date'] =~ /^\d+$/ && (i_val = item['date'].to_i) > 0 &&
+          i_val.is_a?(Fixnum))
         d_str = Time.at(i_val).strftime($config['desc_date_format'])
       else
         d_str = item['date']
@@ -2014,7 +2022,9 @@ def select_feed(id)
     # build title string
     if item['date'] && item['date'].size > 0
       d_str = item['date']
-      d_str = Time.at(item['date'].to_i).strftime(fmt) if item['date'].to_i > 0
+      if item['date'] =~ /^\d+$/ && item['date'].to_i > 0
+        d_str = Time.at(item['date'].to_i).strftime(fmt)
+      end
       title = "#{item['title']} (#{d_str})"
     elsif item['title'] !~ /^\s*$/ 
       title = item['title'] ? item['title'].strip : ''
@@ -3275,11 +3285,23 @@ $config = {
   'desc_show_url'         => false,
   'desc_show_divider'     => false,
 
-  # xpaths to elements to look for item's description
-  'desc_element_xpaths'   => [
-    "./[local-name() = 'encoded' and namespace-uri() = 'http://purl.org/rss/1.0/modules/content/']",
-    'description'
-  ],
+  
+  # xpaths to item elements
+  'item_element_xpaths'  => {
+    'description' => [
+      "./[local-name() = 'encoded' and namespace-uri() = 'http://purl.org/rss/1.0/modules/content/']",
+      'description',
+    ],
+    'link'  => [
+      'guid',
+      'link',
+    ],
+    'date'  => [
+      'date',
+      "./[local-name() = 'date' and namespace-uri() = 'http://purl.org/dc/elements/1.1/']",
+      'pubDate',
+    ],
+  },
 
   # key bindings
   'keys'            => {
@@ -3491,14 +3513,16 @@ $config = {
       'updated'   => 0,
       'items'     => [ ],
     },
-    { 'title'     => 'Daily Daemon News',
-      'url'       => 'http://daily.daemonnews.org/ddn.rdf.php3',
-      'site'      => 'http://daemonnews.org/',
-      'desc'      => 'Daily Daemon News',
-      'refresh'   => 120,
-      'updated'   => 0,
-      'items'     => [ ],
-    },
+# 
+#     { 'title'     => 'Daily Daemon News',
+#       'url'       => 'http://daily.daemonnews.org/ddn.rdf.php3',
+#       'site'      => 'http://daemonnews.org/',
+#       'desc'      => 'Daily Daemon News',
+#       'refresh'   => 120,
+#       'updated'   => 0,
+#       'items'     => [ ],
+#     },
+# 
     { 'title'     => 'FreshMeat',
       'url'       => 'http://themes.freshmeat.net/backend/fm-newsletter.rdf',
       'site'      => 'http://www.freshmeat.net/',

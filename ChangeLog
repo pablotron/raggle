@@ -1253,3 +1253,9 @@
   * raggle: send http headers with last-modified HEAD request
   * raggle: send if-modified-since with last-modified HEAD requeste
 
+* Tue Sep 02 23:32:48 2003, pabs <pabs@pablotron.org>
+  * raggle: added xpath lookups for link and date item attribute elements
+  * raggle: commented out daily daemon news from default feed list
+    (it's loading really slow here)
+  * raggle: don't attempt to read date as timestamp unless it's just a
+    number

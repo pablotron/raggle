@@ -144,6 +144,7 @@ class String
   end
 
   # this bit of love is from the pickaxe
+  # (augmented by me, of course)
   def unescape_html
     str = self.dup
     str.gsub!(/&(.*?);/n) {
@@ -159,6 +160,10 @@ class String
         '<'
       when /^gt$/ni
         '>'
+      when /^copy/
+        '(c)'
+      when /^trade/
+        '(tm)'
       when /^#8212$/n
         ","
       when /^#8217$/n

@@ -975,3 +975,6 @@
   * raggle: added $config['thread_priority_{main,feed}'], with the main
     thread priority set much higher than the grabbing (feed) thread.  Should
     fix UI stalls when grabbing feeds.
+
+* Fri Aug 15 19:13:18 2003, pabs <pabs@pablotron.org>
+  * raggle: handle &copy; and &trade; entities

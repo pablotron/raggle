@@ -891,3 +891,9 @@
   * doc/pauls_feeds.yaml: remove Digital Theatre; it's nothing but
     trouble
 
+* Sat Jul  5 01:01:57 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Escape everything we pass to Ncurses::mvprintw, it turns out
+            that there's an sprintf hidden away in there.  (Thanks to
+	    Richard Zidlicky for the backtrace, for some reason I hadn't
+	    managed to get a non-mangled one previously).
+

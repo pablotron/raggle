@@ -70,7 +70,7 @@ end
 def die(*args)
   errstr = "#$0: FATAL: #{args.join("\n")}"
   errstr << ": #$!" if $!
-  errstr.gsub!(/%/, '%%') if errstr =~ /%/
+  errstr.escape_format if errstr =~ /%/
   at_exit { $stderr.puts errstr }
   exit -1
 end
@@ -115,10 +115,16 @@ class String
   
   def escape
     gsub(/(["\\])/, "\\$1")
+    self
   end
 
   def escape!
     gsub!(/(["\\])/, "\\$1")
+    self
+  end
+
+  def escape_format
+    gsub(/%/, '%%')
   end
 
   # this bit of love is from the pickaxe
@@ -645,7 +651,7 @@ class Window
     win.color_set @colors[@active ? 'a_box' : 'box'], nil
     Ncurses::box win, 0, 0
     win.color_set @colors[@active ? 'a_title' : 'title'], nil
-    Ncurses::mvwprintw win, 0, 1, " #{@title} "
+    Ncurses::mvwprintw win, 0, 1, " #{@title.escape_format} "
     win.color_set @colors['text'], nil
     Ncurses::wrefresh @win
   end
@@ -669,7 +675,7 @@ class Window
         i += 1
         if i >= offset && y < (h - 1)
           Ncurses::mvwprintw @win, y, x,
-                             line.gsub(/%/, '%%').slice(0, w - x - 1)
+                             line.escape_format.slice(0, w - x - 1)
           y += 1
         end
       end
@@ -1123,7 +1129,7 @@ def set_status(str)
   msg = str << e_msg
 
   Ncurses::stdscr.color_set $config['theme']['status_bar_cols'], nil
-  Ncurses::mvprintw $config['h'], 0, msg
+  Ncurses::mvprintw $config['h'], 0, msg.escape_format
   Ncurses::refresh
 end
 
@@ -1647,14 +1653,14 @@ def list_feeds
   if $config['verbose']
     puts 'ID, Title, URL, Refresh'
     $config['feeds'].each { |feed|
-      title = feed['title'].gsub(/%/, '%%')
-      url = feed['url'].gsub(/%/, '%%')
+      title = feed['title'].escape_format
+      url = feed['url'].escape_format
       puts "%2d, #{title}, #{url}, #{feed['refresh']}" % (i += 1)
     }
   else 
     puts 'ID, Title'
     $config['feeds'].each { |feed|
-      title = feed['title'].gsub(/%/, '%%')
+      title = feed['title'].escape_format
       puts "%2d, #{title}" % (i += 1)
     }
   end
@@ -1856,7 +1862,7 @@ def setup_win
     # c_msg = $config['msg_close']
     # msg = (' ' * ($config['w'] - c_msg.length)) << c_msg
     # Ncurses::wcolor_set Ncurses::stdscr, $config['menu_bar_cols'], nil
-    # Ncurses::mvprintw 0, 0, msg
+    # Ncurses::mvprintw 0, 0, msg.escape_format
     # Ncurses::refresh
     
     # draw status bar

@@ -68,3 +68,5 @@ Raggle TODO
 [ ] clean separation of Ncurses and WEBrick interfaces (maybe an
     Interfaces module).  Don't require Ncurses if WEBrick is
     installed.
+[ ] Thread#abort_on_exception for feed grabbing thread! (suggested by
+    Harry Ohlsen <harryo@qiqsolutions.com>).

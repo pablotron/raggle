@@ -1322,3 +1322,6 @@
 
 * Thu Sep 04 02:31:04 2003, pabs <pabs@pablotron.org>
   * BUGS: add feed errors reported by karl d'adamo
+
+* Thu Sep 04 11:18:47 2003, pabs <pabs@pablotron.org>
+  * TODO: added a great way to debug the feed grabbing thread!

@@ -260,7 +260,7 @@ class TestRenderer < Test::Unit::TestCase
   end
 
   def test_links_are_rendered_offline
-    assert_equal "foo bar[1] baz\n\nLINKS:\n1. http://example.com\n", render("<p>foo <a href=\"http://example.com\">bar</a> baz</p>")
+    assert_equal "foo bar[1] baz\n\nLinks:\n1. http://example.com\n", render("<p>foo <a href=\"http://example.com\">bar</a> baz</p>")
   end
 
   def test_link_references_are_aligned_automagically

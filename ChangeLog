@@ -1328,3 +1328,7 @@
 
 * Thu Sep 04 12:28:05 2003, pabs <pabs@pablotron.org>
   * BUGS: add bugs for windows build
+
+* Fri Sep 05 01:52:00 2003, heap <vaine@cs.helsinki.fi>
+  * extras/test_html_renderer.rb: fixed failing 
+    #test_links_are_rendered_offline.

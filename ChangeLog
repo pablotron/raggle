@@ -709,6 +709,6 @@
 * Mon Jun 23 23:39:35 2003, richlowe <richlowe@richlowe.net>
   * raggle (String#reflow): Allow for space when calculating used space
 
-
-
-
+* Mon Jun 23 23:54:55 2003, richlowe <richlowe@richlowe.net>
+  * raggle (String#reflow): If we move when space is inserted, we don't
+                            have to tailor the math to allow for the extra

@@ -162,11 +162,11 @@ class String
       if line_delim_regex && word =~ line_delim_regex
         text << curr_line << "\n" 
         curr_line = ''
-      elsif curr_line.length + (word.length + 1) > width - 2
+      elsif curr_line.length + word.length > width - 2
         text << curr_line << "\n"
-        curr_line = "#{word} "
+        curr_line = "#{word}"
       else
-        curr_line << "#{word} "
+        curr_line << " #{word}"
       end
     }
     text << curr_line << "\n"
@@ -550,7 +550,6 @@ class Window
     w,i = dimensions[0], 0
     
     text = reflow_string text if reflow
-
     text.each_line do |line|
       i += 1
       if i >= offset

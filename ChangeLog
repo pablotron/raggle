@@ -1116,3 +1116,6 @@
 * Tue Aug 19 14:03:11 2003, pabs <pabs@pablotron.org>
   * raggle: apply fix from mgarriss@earthlink.net for "connection is already
     set up" bug
+
+* Tue Aug 19 14:14:02 2003, pabs <pabs@pablotron.org>
+  * BUGS: mark "connection is already set up" off the list

@@ -38,5 +38,5 @@ Bugs
 [*] Various forms of output, will be very unhappy in an unquoted %
     appears in what's passed to them, unfortunately, I'm not sure
     which ones. (I've seen this once, but can't reproduce reliably).
-[ ] No HTTP grabbing in OSX (only one report, can't reproduce, might
+[*] No HTTP grabbing in OSX (only one report, can't reproduce, might
     be bogus).  The error was "connection is already set up".

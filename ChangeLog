@@ -450,6 +450,10 @@
 * Sun Jun 22 04:40:36 2003, richlowe <richlowe@richlowe.net>
   * raggle.1: Pronouns.
 
+* Sun Jun 22 04:43:12 2003, richlowe <richlowe@richlowe.net>
+  * raggle.1: Fix type of list used in BUGS.
+
+
 
 
 

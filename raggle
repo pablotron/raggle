@@ -2907,63 +2907,63 @@ ENDUSAGE
       ##
       # Ugly
       # -- richlowe 2003-07-01
-      def NcursesInterface::setup_win
-            # initialize screen & keyboard
-          Ncurses::initscr
-          Ncurses::raw if $config['use_raw_mode']
-          Ncurses::keypad Ncurses::stdscr, 1
-          Ncurses::noecho if $config['use_noecho']
-          Ncurses::start_color
-          # Ncurses::mousemask(Ncurses::ALL_MOUSE_EVENTS, [])
-          
-          # exit -1 unless Ncurses::has_colors?
-          
-          # initialize color pairs
-          $config['color_palette'].each { |ary| Ncurses::init_pair *ary }
-          
-          # get screen coordinates
-          h = []; w = []
-          Ncurses::getmaxyx Ncurses::stdscr, h, w
-          $config['w'] = w[0]
-          $config['h'] = h[0] - 1
-          
-          # draw menu bar
-          # c_msg = $config['msg_close']
-          # msg = (' ' * ($config['w'] - c_msg.length)) << c_msg
-          # Ncurses::wcolor_set Ncurses::stdscr, $config['menu_bar_cols'], nil
-          # Ncurses::mvprintw 0, 0, msg.escape_format
-          # Ncurses::refresh
-          
-          # draw status bar
-          $new_status = ''
-          NcursesInterface::set_status $config['msg_welcome']
-          
-          # create windows
-          $a_win = 0
-          $wins = []
-          $config['theme']['window_order'].each { |i|
-            case i
-              when /feed/
-                cl = NcursesInterface::ListWindow
-              when /item/
-                cl = NcursesInterface::ListWindow
-              when /desc/
-                cl = NcursesInterface::TextWindow
-            else
-              raise "Unknown window #{i}"
-            end
-            $wins << cl.new($config['theme']["win_#{i}"])
-            # $wins[-1].draw LONG_STRING
-          }
-          NcursesInterface::set_active_win(0)
-          
-          $a_feed, $a_item = 0, 0
-          
-          # populate feed window
-          NcursesInterface::populate_feed_win
-          
-          NcursesInterface::select_feed(0)
-          NcursesInterface::set_active_win(0)
+      def NcursesInterface::init
+        # initialize screen & keyboard
+        Ncurses::initscr
+        Ncurses::raw if $config['use_raw_mode']
+        Ncurses::keypad Ncurses::stdscr, 1
+        Ncurses::noecho if $config['use_noecho']
+        Ncurses::start_color
+        # Ncurses::mousemask(Ncurses::ALL_MOUSE_EVENTS, [])
+        
+        # exit -1 unless Ncurses::has_colors?
+        
+        # initialize color pairs
+        $config['color_palette'].each { |ary| Ncurses::init_pair *ary }
+        
+        # get screen coordinates
+        h = []; w = []
+        Ncurses::getmaxyx Ncurses::stdscr, h, w
+        $config['w'] = w[0]
+        $config['h'] = h[0] - 1
+        
+        # draw menu bar
+        # c_msg = $config['msg_close']
+        # msg = (' ' * ($config['w'] - c_msg.length)) << c_msg
+        # Ncurses::wcolor_set Ncurses::stdscr, $config['menu_bar_cols'], nil
+        # Ncurses::mvprintw 0, 0, msg.escape_format
+        # Ncurses::refresh
+        
+        # draw status bar
+        $new_status = ''
+        NcursesInterface::set_status $config['msg_welcome']
+        
+        # create windows
+        $a_win = 0
+        $wins = []
+        $config['theme']['window_order'].each { |i|
+          case i
+            when /feed/
+              cl = NcursesInterface::ListWindow
+            when /item/
+              cl = NcursesInterface::ListWindow
+            when /desc/
+              cl = NcursesInterface::TextWindow
+          else
+            raise "Unknown window #{i}"
+          end
+          $wins << cl.new($config['theme']["win_#{i}"])
+          # $wins[-1].draw LONG_STRING
+        }
+        NcursesInterface::set_active_win(0)
+        
+        $a_feed, $a_item = 0, 0
+        
+        # populate feed window
+        NcursesInterface::populate_feed_win
+        
+        NcursesInterface::select_feed(0)
+        NcursesInterface::set_active_win(0)
       end
 
       #
@@ -3271,6 +3271,21 @@ ENDUSAGE
       end
 
       #
+      # initialize HTTP server interface
+      def HTTPServerInterface::init
+        # check to make sure web ui dir exists
+        path = $config['web_ui_root_path']
+        die "Missing Web UI Root directory \"#{path}\"." \
+          unless test ?e, path
+
+        # start HTTP server thread
+        Thread.new do
+          $http_server = HTTPServer::new($config['http_server'])
+          $http_server.start
+        end
+      end
+
+      #
       # Main loop for HTTP server interface.
       #
       def HTTPServerInterface::main_loop
@@ -3329,6 +3344,13 @@ ENDUSAGE
           DRb::start_service(@opts['bind_url'], @interface)
           DRb::thread.join
         end
+      end
+    end
+
+    def DRbServerInterface::init
+      # start DRb server thread
+      Thread::new do
+        $drb_server = DRbServer::new($config['drb_server'])
       end
     end
 
@@ -3399,7 +3421,7 @@ ENDUSAGE
       end
       
       # save feed list
-      File::open(path, 'w') { |f|
+      File::open(path, 'w') do |f|
         $stdout.puts $config['msg_save_list'] if $config['raggle_mode'] == 'view'
         $stdout.flush
     
@@ -3411,7 +3433,7 @@ ENDUSAGE
     
         # restore feed items (again, for web interface)
         tmp.each_with_index { |t, i| $config['feeds'][i]['items'] = t }
-      }
+      end
     end
   end
 
@@ -4073,7 +4095,7 @@ def main
 
   # Draw windows and such.
   # (unless we're running as a daemon)
-  Raggle::Interfaces::NcursesInterface::setup_win unless \
+  Raggle::Interfaces::NcursesInterface::init unless \
     $config['run_http_server'] || $config['run_drb_server']
   
   # load feed cache
@@ -4086,22 +4108,11 @@ def main
   # start feed grabbing thread
   $feed_thread = Raggle::Engine::start_feed_thread
 
-  # set up HTTP server
+  # set up HTTP or DRb server
   if $HAVE_LIB['webrick'] && $config['run_http_server']
-    # check to make sure web ui dir exists
-    die "Missing Web UI Root directory \"#{$config['web_ui_root_path']}\"." \
-      unless test ?e, $config['web_ui_root_path']
-
-    # start HTTP server thread
-    $http_thread = Thread.new {
-      $http_server = Raggle::Interfaces::HTTPServerInterface::HTTPServer::new($config['http_server'])
-      $http_server.start
-    }
+    $http_thread = Raggle::Interfaces::HTTPServerInterface::init
   elsif $HAVE_LIB['drb'] && $config['run_drb_server']
-    # start DRb server thread
-    $drb_thread = Thread::new {
-      $drb_server = Raggle::Interfaces::DRbServerInterface::DRbServer::new($config['drb_server'])
-    }
+    $drb_thread = Raggle::Interfaces::DRbServerInterface::init
   end
 
   # set thread priorities

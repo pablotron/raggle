@@ -2011,3 +2011,9 @@
 
 * Wed Jul 14 15:52:55 2004, pabs <pabs@pablotron.org>
   * raggle: update tom's RSS feed URL
+
+* Wed Jul 14 17:40:41 2004, pabs <pabs@pablotron.org>
+  * raggle: added Raggle::Interfaces::HTTPServerInterface::init and
+    Raggle::Interfaces::DRbServerInteface::init
+  * raggle: renamed Raggle::Interfaces::NcursesInterface::setup_win of
+    Raggle::Interfaces::NcursesInterfaces::init

@@ -1,6 +1,3 @@
-##################
-# default config #
-##################
 $config = {
   'config_dir'            => Raggle::Path::find_home + '/.raggle',
   'config_path'           => '${config_dir}/config.rb',
@@ -162,6 +159,7 @@ $config = {
   'msg_new_value'         => 'New value:',
   'msg_term_resize'       => 'Terminal Resize: ',
   'msg_links'             => 'Links:',
+  'msg_images'            => 'Images:',
   'msg_add_feed'          => 'Enter URL:',
   'msg_feed_added'        => 'Feed added',
   'msg_confirm_delete'    => 'Delete current feed? (y/n)',
@@ -170,6 +168,7 @@ $config = {
   'msg_find_feed'         => 'Find Feeds:',
   'msg_searching'         => ' Searching...',
   'msg_find_title'        => 'Search Results for "%s" - %s matching feeds',
+  'msg_find_desc'         => 'Please select a feed...',
   'msg_find_nomatches'    => 'No results found',
   'msg_keys_title'        => 'Current Key Bindings',
   'msg_added_existing'    => 'Warning: Added existing feed',
@@ -228,13 +227,54 @@ $config = {
   'force_text_wrap'       => false,
 
   # replace unicode chars with what?
+  #
+  # Note: this option is meaningless when iconv character encoding
+  # translation is enabled, unless 'use_iconv_munge' is true.
   'unicode_munge_str'     => '!u!',
 
-  # character encoding used to display text
-  # from RSS feeds.
+  # character encoding used to display text from RSS feeds.
   #
-  # Supported encodings are: ISO-8859-1, UTF-8, UTF-16 and UNILE
+  # The allowed values for 'character_encoding' vary depending on the
+  # character encoding method.  If you're using the pre-0.4.0
+  # REXML-style encoding translation (and you really shouldn't be unless
+  # you're having problems; see 'use_iconv' below for additional
+  # information), then the supported values are as follows:
+  # 
+  #   ISO-8859-1, UTF-8, UTF-16 and UNILE
+  #
+  # On the other hand, if you're using iconv-style encoding translation,
+  # the list of allowed values is any character encoding supported by 
+  # your version of iconv (use "iconv --list" for a full list).  Be sure
+  # to omit the trailing '//' from your character_encoding value; Raggle
+  # automatically appends it if it's necessary.
+  #
   'character_encoding'    => 'ISO-8859-1',
+
+  # iconv support 
+  # 
+  # This is the new character encoding support.  If iconv is installed
+  # and iconv support is enabled (with 'use_iconv'), then use iconv
+  # instead of REXML to do character encoding translations.  If
+  # 'use_iconv_translit' is enabled, then use iconv transliteration to
+  # approximate characters that cannot be directly represented in the
+  # character encoding (specified above in 'character_encoding').
+  #
+  # Both 'use_iconv' and 'use_iconv_translit' default to true.
+  #
+  # If you've got iconv installed, you really should be using it to do
+  # character conversions.  It's faster than REXML, supports a much
+  # broader range of character encodings, and has intelligent built-in 
+  # transliteration (as opposed to the unicode_munge_str chicanery
+  # Raggle uses for the REXML-style encoding translation).
+  #
+  # It's probably a good idea to leave transliteration enabled.  It will
+  # prevent iconv from barfing on characters it can't translate, and,
+  # since Ncurses-Ruby doesn't have wide character support, it will keep
+  # Ncurses from printing garbage all over the screen. 
+  # 
+  'use_iconv'             => true,
+  'use_iconv_translit'    => true,
+  'use_iconv_munge'       => false,
 
   # warn if feed refresh is set to less than this
   'feed_refresh_warn'     => 60,
@@ -253,6 +293,9 @@ $config = {
   # browser options
   'browser'               => Raggle::Path::find_browser,
   'browser_cmd'           => ['${browser}', '%s'],
+
+  # beep on new articles?
+  'do_beep'               => false,
 
   # Force raggle to accept shell metacharacters in urls.
   'force_url_meta'        => false,
@@ -339,7 +382,6 @@ $config = {
 
     # Literal control L is horrid -- richlowe 2003-06-26
     ?\                => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::resize_term} ),
-    Ncurses::KEY_RESIZE => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::resize_term} ),
 
     ?s                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::sort_feeds} ),
 
@@ -368,6 +410,7 @@ $config = {
     ?c                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::gui_cat_list} ),
     ?f                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::gui_find_feed} ),
     ?C                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::close_window} ),
+    ?                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::close_window} ),
 
     ??                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::show_key_bindings} ),
 
@@ -552,6 +595,15 @@ $config = {
       'category'  => 'Tech',
       'items'     => [ ],
     },
+    { 'title'     => 'Half Full.org',
+      'url'       => 'http://halffull.org/feed/',
+      'site'      => 'http://halffull.org/',
+      'desc'      => 'Thomas Kirchner\'s personal site.',
+      'refresh'   => 120,
+      'updated'   => 0,
+      'category'  => 'Blogs Tech',
+      'items'     => [ ],
+    },
     { 'title'     => 'KernelTrap',
       'url'       => 'http://kerneltrap.org/node/feed',
       'site'      => 'http://www.kerneltrap.org/',
@@ -571,7 +623,7 @@ $config = {
       'items'     => [ ],
     },
     { 'title'     => 'Linux Weekly News',
-      'url'       => 'http://www.lwn.net/headlines/rss',
+      'url'       => 'http://www.lwn.net/headlines/newrss',
       'site'      => 'http://www.lwn.net/',
       'desc'      => 'Linux Weekly News',
       'refresh'   => 120,
@@ -580,7 +632,7 @@ $config = {
       'items'     => [ ],
     },
     { 'title'     => 'Linuxbrit',
-      'url'       => 'http://www.linuxbrit.co.uk/feed/rss/',
+      'url'       => 'http://www.linuxbrit.co.uk/feed/rss2/',
       'site'      => 'http://www.linuxbrit.co.uk/',
       'desc'      => 'Tom Gilbert\'s personal site.',
       'refresh'   => 120,
@@ -606,33 +658,15 @@ $config = {
       'category'  => 'Blogs',
       'items'     => [ ],
     },
-    { 'title'     => 'Pigdog Journal',
-      'url'       => 'http://www.pigdog.org/pigdog.rdf',
-      'site'      => 'http://www.pigdog.org/',
-      'desc'      => 'Pigdog Journal',
-      'refresh'   => 120,
-      'updated'   => 0,
-      'category'  => 'Politics News',
-      'items'     => [ ],
-    },
     { 'title'     => 'Raggle: News',
       'url'       => 'http://raggle.org/rss/',
-      'site'      => 'http://www.raggle.org/',
+      'site'      => 'http://raggle.org/',
       'desc'      => 'Raggle News',
       'refresh'   => 120,
       'updated'   => 0,
       'category'  => 'Tech Raggle',
       'items'     => [ ],
       'priority'  => 1,
-    },
-    { 'title'     => 'Richlowe.net',
-      'url'       => 'http://richlowe.net/diary/index.rss',
-      'site'      => 'http://www.richlowe.net/',
-      'desc'      => 'Richlowe.net',
-      'refresh'   => 120,
-      'updated'   => 0,
-      'category'  => 'Blogs',
-      'items'     => [ ],
     },
     { 'title'     => 'Slashdot',
       'url'       => 'http://slashdot.org/slashdot.rss',
@@ -650,15 +684,6 @@ $config = {
       'refresh'   => 120,
       'updated'   => 0,
       'category'  => 'Blogs Politics',
-      'items'     => [ ],
-    },
-    { 'title'     => 'Tynian.net',
-      'url'       => 'http://tynian.net/rss/',
-      'site'      => 'http://tynian.net/',
-      'desc'      => 'tynian.net',
-      'refresh'   => 120,
-      'updated'   => 0,
-      'category'  => 'Blogs',
       'items'     => [ ],
     },
     { 'title'     => 'W3C',

@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+
 #######################################################################
 # Raggle - Console RSS aggregator                                     #
 # by Paul Duncan <pabs@pablotron.org>,                                #
@@ -1654,6 +1655,7 @@ ENDUSAGE
         ['--ascii', '-A',                           GetoptLong::NO_ARGUMENT],
         ['--config', '-c',                          GetoptLong::REQUIRED_ARGUMENT],
         ['--delete', '-d',                          GetoptLong::REQUIRED_ARGUMENT],
+        ['--default-config',                        GetoptLong::NO_ARGUMENT],
         ['--diag',                                  GetoptLong::NO_ARGUMENT],
         ['--drb-server', '--drb',                   GetoptLong::NO_ARGUMENT],
         ['--edit', '-e',                            GetoptLong::REQUIRED_ARGUMENT],
@@ -1723,6 +1725,8 @@ ENDUSAGE
               ret['mode'] = 'export_opml'
               ret['opml_file'] = arg
             when '--diag':          $config['diag'] = true
+            when '--default-config'
+              ret['mode'] = 'default_config'
             when '--ascii':         ret['ascii'] = true
             when '--server'
               if $HAVE_LIB['webrick']
@@ -1802,6 +1806,21 @@ ENDUSAGE
     end
 
     #
+    # print the default config hash to stdout
+    #
+    def CLI::default_config
+      File.readlines($0).inject(false) do |state, line|
+        if state
+          puts line
+          exit(0) if line =~ /^\}/
+        else
+          puts line if (state = (line =~ /^\$config = \{/))
+        end
+        state
+      end
+    end
+
+    #
     # Handle mode returned by CLI::parse_options.
     #
     def CLI::handle_mode(opts)
@@ -1842,6 +1861,9 @@ ENDUSAGE
         exit(0)
       when 'find_feeds'
         CLI::find_feeds(opts['find_str'])
+        exit(0)
+      when 'default_config'
+        CLI::default_config
         exit(0)
       end
       
@@ -2451,10 +2473,24 @@ ENDUSAGE
               NcursesInterface::select_item @active_item
             elsif @items[@active_item].has_key? 'cat'
               NcursesInterface::select_cat @items[@active_item]['cat']
+            elsif @items[@active_item].has_key? 'find'
+              item = @items[@active_item]
+
+              # add the new feed
+              Engine::add_feed({ 
+                'url'    => item['find'], 
+                'title'  => item[:otitle],
+              })
+
+              # repopulate the feed window
+              NcursesInterface::populate_feed_win
+              NcursesInterface::set_status($config['msg_feed_added'])
             elsif @items[@active_item].has_key? 'feedopt'
               NcursesInterface::edit_feed @items[@active_item]['feedopt']
             elsif @items[@active_item].has_key? 'url'
               NcursesInterface::open_link @items[@active_item]
+            elsif @items[@active_item].has_key? 'item'
+              NcursesInterface::select_item @active_item
             end
           end
         end
@@ -2529,7 +2565,8 @@ ENDUSAGE
           status = status.split(/\s+/).join(' ')
           NcursesInterface::set_status status
 
-          select_win_item if $config['focus'] == 'auto' and @key != 'cat' and @key != 'edit'
+          select_win_item if $config['focus'] == 'auto' && 
+            !%w{cat edit find}.include?(@key)
         end
         private :adjust_to
 
@@ -2864,7 +2901,8 @@ ENDUSAGE
         if $config['focus'] == 'auto' && 
            ![NcursesInterface::get_win_id('desc'), 
              NcursesInterface::get_win_id('cat'),
-             NcursesInterface::get_win_id('edit')].include?($a_win) && 
+             NcursesInterface::get_win_id('edit'),
+             NcursesInterface::get_win_id('find')].include?($a_win) && 
            $wins[$a_win].items && $wins[$a_win].items.size > 0
           $wins[$a_win].select_win_item
         end
@@ -3405,7 +3443,7 @@ ENDUSAGE
             # determine window height
             w = $config['w'] - 10
             h = $config['h'] - 5 
-            h = results.size + 2 if h > results.size + 2
+            h = results.size + 3 if h > results.size + 3
       
             new_win = {
               'title' => $config['msg_find_title'] % [ str, results.size ],
@@ -3428,6 +3466,7 @@ ENDUSAGE
                        feed['description'], 
                        feed['dataurl']
                       ].join ' - '
+              win.items << { 'title' => $config['msg_find_desc'] }
               win.items << { 'title' => title, 'find' => feed['dataurl'], :otitle => feed['sitename'] }
             end
       
@@ -5157,6 +5196,7 @@ $config = {
   'msg_find_feed'         => 'Find Feeds:',
   'msg_searching'         => ' Searching...',
   'msg_find_title'        => 'Search Results for "%s" - %s matching feeds',
+  'msg_find_desc'         => 'Please select a feed...',
   'msg_find_nomatches'    => 'No results found',
   'msg_keys_title'        => 'Current Key Bindings',
   'msg_added_existing'    => 'Warning: Added existing feed',
@@ -5398,6 +5438,7 @@ $config = {
     ?c                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::gui_cat_list} ),
     ?f                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::gui_find_feed} ),
     ?C                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::close_window} ),
+    ?                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::close_window} ),
 
     ??                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::show_key_bindings} ),
 

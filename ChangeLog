@@ -2376,3 +2376,25 @@ _Cvs
 
 * Tue Mar 15 13:58:21 2005, pabs <pabs@pablotron.org>
   * raggle: speed up FeedList#categories
+
+* Tue Mar 15 18:53:54 2005, pabs <pabs@pablotron.org>
+  * Makefile: added defaultconfig rule
+  * README: update last updated date
+  * README: added all the new features to the introduction
+  * README: changed system requirements to a table
+  * README: update getting started section "--add --url 'url'"to 
+    "--add 'url'"
+  * README: add note about viewing command-line options via --help and 
+    key bindings via ? to "Getting Started" section
+  * README: added note about importing blogrols via --import-opml
+  * README: added note about finding feeds (and example)
+  * README: added note about --default-config
+  * README: removed FAQ about terminal resize
+  * README: updates to all links (mainly removing www. sillyness)
+  * README: removed richard's non-existant RSS feed
+  * raggle: added --default-config command-line option (dumsp default
+    configuration hash to stdout)
+  * raggle: selecting an item in the find feeds window adds it to feed
+    list
+  * raggle: don't auto-select in find feed window
+  * doc/default_config.rb: regenerated

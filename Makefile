@@ -27,6 +27,9 @@ install :
 	cp -r ${DOCS} ${DOCDIR} && \
 	cp -r ${DATA} ${DATADIR}
 
+defaultconfig:
+	ruby -e 'puts((/^.config = \{/ .. /^\}/).join)' > doc/default_config.rb
+
 apidoc:
 	rdoc -o doc/api --title "Raggle API Documentation" --webcvs http://cvs.pablotron.org/cgi-bin/viewcvs.cgi/raggle/ raggle README COPYING AUTHORS ChangeLog
 

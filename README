@@ -1,7 +1,7 @@
 Raggle 0.4.0 README
 ===================
 
-This document was last updated on Sat Apr 17 12:04:33 2004.
+This document was last updated on Tue Mar 15 17:52:06 2005.
 Please see the file COPYING for licensing and warranty information.  The
 latest version of this software is available at the following URL:
 http://www.raggle.org/.
@@ -22,36 +22,60 @@ Table of Contents
 
 Introduction
 ============
-Raggle is a RSS (RDF Site Summary) aggregator, written in Ruby
-(http://www.ruby-lang.org/).  Raggle has two interfaces: a console
-interface and an alpha web interface.  Features include HTTP proxy
-support, OPML import/export, themes, and support for various versions of
-RSS.  The console interface also features customizable keybindings,
-basic HTML rendering, Screen support, and browser auto-detection.
-Raggle has been tested under Linux, OpenBSD, MacOS X, and Windows.  It
-should work properly under most Unix variants.  If this is the first
-time you've used Raggle, please read the "Getting Started" section below
-for a brief overview of the keyboard controls and command-line options.
+Raggle is an RSS aggregator, written in Ruby (http://ruby-lang.org/).
+Raggle has two interfaces: a console interface and a (beta) web
+interface.  Features include HTTP proxy, authentication, and conditional
+GET support, OPML import/export, themes, Syndic8 integration, feed
+categories, and support for various versions of RSS.  The console
+interface also features customizable keybindings, basic HTML rendering,
+Screen support, and browser auto-detection.  Raggle has been tested
+under Linux, OpenBSD, MacOS X, and Windows.  It should work properly
+under most Unix variants.  If this is the first time you've used Raggle,
+please read the "Getting Started" section below for a brief overview of
+the keyboard controls and command-line options.
 
 
 System Requirements
 ===================
-* Ruby, version 1.6.8 (or newer), or 1.8.0 (or newer):
-  http://www.ruby-lang.org/
-* REXML, version 2.4.0 (or newer) (included in Ruby 1.8.x):
-  http://www.germane-software.com/software/rexml/
-* xmlrpc4r (included in Ruby 1.8.x):
-  http://www.fantasy-coders.de/ruby/xmlrpc4r/
-* YAML support
-  Either:
-    o YAML-Ruby, version 0.49.1 (or newer):
-      http://www.yaml.org/ 
-    o Syck, version 0.35 (included in Ruby 1.8.x)
-      http://whytheluckystiff.net/syck/ 
+The libraries required to run Raggle vary depending on the interface
+you're using.  Here's a list of requirements that are necessary
+regardless of interface:
 
-You'll also need either Ncurses-Ruby or WEBrick depending the Raggle
-interface you're using.  Requirements for each interface are covered
-below.
+  Name            Min Version URL
+  ----            ----------- ---
+  Ruby            1.8         http://ruby-lang.org/
+  REXML           2.4         http://www.germane-software.com/software/rexml/
+  YAML (or Syck)  0.49        http://www.yaml.org/ (or
+                              http://whytheluckystiff.net/syck/)
+
+Both YAML and REXML are included in the Ruby 1.8 standard library, but
+some platforms (Debian Linux, for example), install them as separate
+packages.  Here's a list of optional libraries which Raggle will use if
+it can:
+
+  Name              Used For
+  ----              --------
+  DRb               DRb interface (alpha status).
+  FileUtils         Initial web interface setup.
+  Iconv             Character encoding conversions (RECOMMENDED).
+  Ncurses-Ruby [*]  Required for Console interface. 
+  OpenSSL-Ruby      https support.
+  WEBrick           Required for Web interface.
+  xmlrpc4r          Syndic8 integration (Searching for feeds).
+
+* Ncurses-Ruby is _not_ included with the Ruby standard library;
+  you'll need to download it from the URL below.
+
+All of the libraries above except Ncurses-Ruby are included with the
+Ruby standard library.  Again, some platforms (eg Debian Linux) may
+split these libraries into separate packages.  Ncurses-Ruby is available
+at the following URL:
+
+  http://ncurses-ruby.berlios.de/
+
+Note that you'll need either Ncurses-Ruby or WEBrick depending the
+interface you're using.  Specific requirements for each interface are
+covered below.
 
 
 System Requirements (Console Interface)
@@ -76,12 +100,14 @@ frames, and JavaScript.
 Installation
 ============
 The easiest way to install Raggle is to use a package for your system.
-There are Raggle packages available for Debian, Gentoo, and FreeBSD.  If
-you're determined to install Raggle from the tarball, read on.
+There are Raggle packages available for Debian, Gentoo, FreeBSD, and
+Windows.  If you're determined to install Raggle from the tarball, read
+on.
 
 The included Makefile will install the Raggle executable in a system-
-wide executable directory, install the Raggle documentation, and install
-the Raggle themes.  Here's the command:
+wide executable directory, install the Raggle documentation in the
+system-wide documentation directory, and install the Raggle data files
+in the system-wide data directory.  Here's the command:
 
   # install raggle, raggle docs, and raggle data
   sudo make install
@@ -129,16 +155,38 @@ To add a new RSS feed, press 'a', then type in the URL of the feed.
 Alternatively, you add a new RSS feed from the command-line:
 
   # add a new feed to raggle
-  raggle --add --url "url"
+  raggle --add "url"
 
 Where "url" is the URL of the RSS feed.  A complete list of feed editing
 commands is available in the Raggle man page, or by typing "raggle
---help".
+--help".  If you'd like to import an OPML file (often referred to as a 
+"blogroll"), press shift-O and type in the URL or path of the OPML file.
+You can also import OPML files from the command-line by using the
+following command:
 
-And that's it!  If you have any questions or comments about Raggle, feel
-free to subscribe to the Raggle mailing list, or email Richard, Ville,
-or myself; our email addresses are available in the "About the Authors"
-section below.
+  # import OPML file "my_blogroll.opml" into raggle
+  raggle --import-opml my_blogrole.opml
+
+To find a feed, press f, type in a couple of words to search for, and
+press Enter.  Raggle will search for matching RSS feeds using Syndic8
+(http://syndic8.com/), and open a new window with the results (note:
+this can take a minute or two if the phrase returns a lot of results, so
+be specific!).  Once the search window opens, press hilight and feed and
+press Enter to add it to your feed list.  You can also search for RSS
+feeds from the command- line.  For example, if here's how I would find
+the RSS feed for my personal page (http://paulduncan.org/) from the
+command-line:
+
+  # find RSS feed for paulduncan.org using Raggle:
+  raggle --find paulduncan
+   1. Paul Duncan - http://paulduncan.org/rss/
+
+And that's it!  Don't worry about remembering the keys for everything
+before running Raggle, you can press ? at any time to view a list of the
+current key bindings. If you have any questions or comments about
+Raggle, feel free to subscribe to the Raggle mailing list, or email
+Richard, Ville, Thomas, or myself; our email addresses are available in
+the "About the Authors" section below.
 
 
 Configuration Files
@@ -153,11 +201,12 @@ Raggle will fall back to internal defaults if any of these files are
 deleted, or if they don't exist.  The feed list, feed cache, and theme
 files are automatically regenerated by Raggle; the main configuration
 file is not (although it is not required).  If you'd like to change
-Raggle defaults, browse through the default configuration file 
-("doc/default_config.rb"), then create a file called "config.rb" in
-your raggle configuration directory containing the settings you'd like
-to override.  For example, here's how you'd change the default focus
-mode:
+your Raggle settings, browse through the default configuration
+(the file is located in "doc/default_config.rb", but you can also see
+Raggle's default settings by typing "raggle --default-config"), then 
+create a file called "config.rb" in your raggle configuration directory
+("$HOME/.raggle") containing the settings you'd like to override.  For
+example, here's how you'd change the default focus mode:
 
   # change focus mode from 'auto' to 'select'
   # (warning: this command over-writes your existing config file!)
@@ -221,13 +270,6 @@ A.  Your terminal font doesn't contain the ANSI characters Ncurses uses to
     draw lines.  Either switch fonts or run Raggle with the --ascii (-A)
     command-line flag.
 
-Q.  When I resize the terminal window, Raggle doesn't change size
-    immediately.  How do I fix this?
-A.  You can't, at least not at the moment.  We know about this problem,
-    but we can't fix it until we have a proper way to handle Ncurses
-    events without blocking the entire application (and stopping the
-    feed grabbing threads).
-
 
 Related Links
 =============
@@ -236,31 +278,31 @@ Related Links
   http://backend.userland.com/rss
 
 * RSS Feed Directories / Search Engines:
-  http://www.syndic8.com/
-  http://www.newsisfree.com/
-  http://www.blogstreet.com/rssdiscovery.html
-  http://www.feedster.com/
+  http://syndic8.com/
+  http://newsisfree.com/
+  http://blogstreet.com/rssdiscovery.html
+  http://feedster.com/
 
 * RSS Aggregators (all of which pale in comparison to Raggle :-D):
   http://blogspace.com/rss/readers
-  http://www.bloglines.com/
-  http://www.newsgator.org/
+  http://bloglines.com/
+  http://newsgator.org/
 
 * Ruby Links:
-  http://www.ruby-lang.org/
+  http://ruby-lang.org/
   http://raa.ruby-lang.org/
-  http://www.rubygarden.org/
-  http://www.rubycentral.com/
+  http://rubygarden.org/
+  http://rubycentral.com/
 
 
 About the Authors
 =================
 Paul Duncan <pabs@pablotron.org>
-http://www.pablotron.org/  (RSS: http://www.pablotron.org/rss/)
-http://www.paulduncan.org/ (RSS: http://www.paulduncan.org/rss/)
+http://pablotron.org/  (RSS: http://pablotron.org/rss/)
+http://paulduncan.org/ (RSS: http://paulduncan.org/rss/)
 
 Richard Lowe <richlowe@richlowe.net>
-http://www.richlowe.net/ (RSS: http://www.richlowe.net/index.cgi/index.rss)
+http://richlowe.net/
 
 Ville Aine <vaine@cs.helsinki.fi>
 

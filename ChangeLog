@@ -1380,4 +1380,8 @@
 
 * Tue Sep 09 16:31:07 2003, pabs <pabs@pablotron.org>
   * raggle: redraw item window after selecting item, so item is marked
-    as read before next refresh
+    as read before next refresh (fixes bug reported by karl d'adamo
+    <karld@ugcs.caltech.edu)
+
+* Tue Sep 09 16:32:12 2003, pabs <pabs@pablotron.org>
+  * raggle attribute bug report above to proper source

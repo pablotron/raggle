@@ -1,6 +1,6 @@
 Bugs
 =====
-[-] Description doesn't scroll (work in progress)
+[-] Description doesn't scroll (work in progress, richlowe has patches)
 [-] Feed grabbing thread will block if the HTTP connection blocks 
     (work in progress)
 [ ] Sometimes (totally unreproducibly), the feeds file will be saved

@@ -290,7 +290,7 @@ module OPML
   # lock_title:: If true, then all titles of imported feeds
   #              will be locked
   # save_items:: If true, then all imported feeds' items will be saved.
-  def OPML::import(file_name, refresh=nil, lock_title=false, save_items=false)
+  def OPML::import(file_name, refresh=nil, lock_title=false, save_items=false, force=false)
     refresh = $config['feed_default_refresh'] unless refresh
     feed_list = $config['feeds']
 
@@ -308,7 +308,7 @@ module OPML
 	    next
 	  end
 
-	  feed_list.add(title, url, refresh, lock_title, save_items, site, desc)
+	  feed_list.add(title, url, refresh, lock_title, save_items, site, desc, [], force)
 	end
       end
     rescue REXML::ParseException
@@ -380,7 +380,8 @@ class FeedList
   end
   
   def add(title, url, refresh, lock_title=false, save_items=false, site='',
-          desc='', items=[])
+          desc='', items=[], force=true)
+    refresh_interval_check(refresh) unless force
     lock_title = false if !lock_title
     save_items = false if !save_items
     @feeds << {
@@ -1577,6 +1578,7 @@ def handle_command_line(opts)
     ['--delete', '-d',     '--delete-feed',     GetoptLong::REQUIRED_ARGUMENT],
     ['--invalidate', '-i', '--invalidate-feed', GetoptLong::REQUIRED_ARGUMENT],
     ['--config', '-c',     '--config-file',     GetoptLong::REQUIRED_ARGUMENT],
+    ['--force',                                 GetoptLong::NO_ARGUMENT],		 
     ['--list', '-l',                            GetoptLong::NO_ARGUMENT],
     ['--title', '-t',                           GetoptLong::REQUIRED_ARGUMENT],
     ['--url', '-u',                             GetoptLong::REQUIRED_ARGUMENT],
@@ -1611,6 +1613,8 @@ def handle_command_line(opts)
           ret['id'] = arg.to_i
         when '--config'
           $config['config_path'] = arg
+        when '--force'
+	  ret['force'] = true
         when '--list'
           ret['mode'] = 'list'
         when '--title'
@@ -1698,7 +1702,8 @@ end
 #
 def add_feed(opts)
     $config['feeds'].add(opts['title'], opts['url'], opts['refresh'],
-                         opts['lock_title?'], opts['save_items?'])
+                         opts['lock_title?'], opts['save_items?'],
+			 '', '', [], opts['force'])
 end
 
 #
@@ -1986,7 +1991,8 @@ def main
     purge_feed_cache
     exit 0
   when 'import_opml'
-    OPML::import opts['opml_file'], opts['refresh'], opts['lock_title?'], opts['save_items']
+    OPML::import opts['opml_file'], opts['refresh'], opts['lock_title?'], opts['save_items'],
+      opts['force']
     save_feed_list
     exit 0
   when 'export_opml'

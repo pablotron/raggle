@@ -27,9 +27,12 @@ Ville Aine <vaine@cs.helsinki.fi>
 * fixed off by one in select_next_unread
 * fixed crash in Key::delete
 * OPML import/export
+* select_{next,prev}_unread wraparound
+* support for content:encoded element
+* make --add and OPML import use refresh checking
 
 Richard Zidlicky <rz@linux-m68k.org>
-* HTTP proxy support
+* preliminary HTTP proxy support
 
 Claes Nasten <pekdon@pekdon.net>
 * find_browser() fix

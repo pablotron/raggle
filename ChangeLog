@@ -930,3 +930,7 @@
     usual).
   * raggle: applied select_unread patch from Ville Aine
   * raggle: applied preferred desc element patch from Ville Aine
+
+* Thu Jul 10 05:02:37 2003, pabs <pabs@pablotron.org>
+  * raggle: do refresh check on opml import and with --add (patch from
+    Ville Aine).

@@ -169,7 +169,7 @@ class String
           curr_line = curr_line[width - 2, curr_line.length]
         else
           text << curr_line << "\n"
-          curr_line = " #{word}"
+          curr_line = "#{word} "
         end
       else
         curr_line << "#{word} "

@@ -752,6 +752,9 @@
   * raggle: fix "Link:" and "Date:" X values now that the String\#reflow
     bug is fixed
 
+* Thu Jun 26 21:28:14 2003, pabs <pabs@pablotron.org>
+  * raggle: redo the String#reflow fix (I changed it to show Richard
+    why it broke, and accidentally recommitted it that way)
 	
 
 

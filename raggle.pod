@@ -41,6 +41,10 @@ Show B<raggle> version
 
 Use I<file> as an alternate configuration file.
 
+=item B<-a> B<--add>
+
+Add a new feed.  Requires B<--url>.
+
 =item B<--diag>
 
 Print out full stack traces, and other diagnostic information

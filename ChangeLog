@@ -1183,3 +1183,6 @@
 
 * Sun Aug 24 21:08:30 2003, pabs <pabs@pablotron.org>
   * removed extras/web_ui/inc/default.css
+
+* Mon Aug 25 16:44:50 2003, pabs <pabs@pablotron.org>
+  * raggle.pod: add --add to manpage (reported by sfire||mouse)

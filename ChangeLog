@@ -2242,3 +2242,13 @@
   * raggle: fixed bug where feed window would cover other windows if
     a feed is updated in the background
   * raggle: miscellaneous cleanup
+
+* Wed Dec 29 20:03:00 2004, redshift <redshift@halffull.org>
+  * TODO, AUTHORS, raggle.pod, raggle.1: updated for new features
+  * raggle: added ability to add feeds directly from find results
+  * raggle: can pass ncurses add_feed a hash of url/title to skip
+    user input, but still get useful ncurses effects
+  * raggle: created ncurses get_input function to replace the much-
+    duplicated code for retrieving input on status line
+  * raggle: fixed some usages of set_status, added new informative messages
+  * raggle: gui_add_feed -> add_feed

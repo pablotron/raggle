@@ -129,7 +129,7 @@
 .\" ========================================================================
 .\"
 .IX Title "RAGGLE 1"
-.TH RAGGLE 1 "2004-12-23" "0.4" "User Commands Manual"
+.TH RAGGLE 1 "2004-12-29" "0.4" "User Commands Manual"
 .SH "NAME"
 raggle \- text mode RSS aggregator
 .SH "SYNOPSIS"
@@ -308,7 +308,11 @@ Scroll down one page.
 Select item.
 .IP "\fIo\fR" 5
 .IX Item "o"
-Open Link.
+Open the current feed or item's link in your browser.
+.IP "\fI1\fR through \fI9\fR" 5
+.IX Item "1 through 9"
+Open a link from the current story in your browser.  Link numbers are given
+at the bottom of the description window.
 .IP "\fIu\fR" 5
 .IX Item "u"
 Move item up.
@@ -317,7 +321,11 @@ Move item up.
 Move item down.
 .IP "\fIa\fR" 5
 .IX Item "a"
-Add a feed from within \fBraggle\fR.
+Add a feed.  Will add the currently selected feed after a search
+via \fIf\fR, otherwise you will be prompted for the address.
+.IP "\fIe\fR" 5
+.IX Item "e"
+Edit the current feed's options to your liking.
 .IP "\fII\fR" 5
 .IX Item "I"
 Invalidate the current feed, causing a refresh.
@@ -335,10 +343,10 @@ Find an entry.
 Search for a feed via Syndic8.
 .IP "\fIp\fR" 5
 .IX Item "p"
-Select previous unread item
+Select previous unread item.
 .IP "\fIn\fR" 5
 .IX Item "n"
-Select next unread item
+Select next unread item.
 .IP "\fIm\fR" 5
 .IX Item "m"
 Mark all items as read.

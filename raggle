@@ -1750,8 +1750,15 @@ ENDUSAGE
           $done = true
         end
 
-        def Key::gui_add_feed
-          NcursesInterface::add_feed
+        def Key::add_feed
+          if $a_win == NcursesInterface::get_win_id('find')
+            # add the feed selected in find window
+            win = $wins[NcursesInterface::get_win_id('find')]
+            item = win.items[win.active_item]
+            NcursesInterface::add_feed({:url => item['find'], :title => item['title']})
+          else  # ask via ncurses and add given feed
+            NcursesInterface::add_feed
+          end
         end
 
         def Key::next_window
@@ -2674,19 +2681,7 @@ ENDUSAGE
       # edit the current feed's options
       #
       def NcursesInterface::edit_feed(feedopt)
-        # print entry message
-        e_msg = "New #{feedopt}: "
-        msg = e_msg + (' ' * ($config['w'] - e_msg.length - 1))
-        Ncurses::stdscr.color_set $config['theme']['status_bar_cols'], nil
-        Ncurses::mvprintw $config['h'], 0, msg
-
-        # get new value for feed option
-        str = ''
-        Ncurses::echo if $config['use_noecho']
-        Ncurses::mvprintw $config['h'], e_msg.size + 1, ''
-        Ncurses::getstr(str)
-        Ncurses::noecho if $config['use_noecho']
-        Ncurses::refresh
+        str = NcursesInterface::get_input('new_value')
 
         error = false
         if str and str.length > 0
@@ -2728,8 +2723,8 @@ ENDUSAGE
           $wins[NcursesInterface::get_win_id('edit')].close(true)
           NcursesInterface::populate_feed_win
           NcursesInterface::set_status($config['msg_edit_success'])
-        else
-          NcursesInterface::set_status('')  # no change
+        else  # if no change
+          NcursesInterface::set_status('')
         end
       end
 
@@ -3082,40 +3077,55 @@ ENDUSAGE
       end
 
       #
-      # add a new feed from ncurses
-      # 
-      def NcursesInterface::add_feed
-        w, e_msg = $config['w'], $config['msg_add_feed']
-      
+      # get input from the user via the status line
+      #
+      def NcursesInterface::get_input(msg = 'default_input')
+        e_msg = $config["msg_#{msg}"]
+
         # print entry message
-        msg = e_msg + (' ' * (w - e_msg.length - 1))
+        msg = e_msg + (' ' * ($config['w'] - e_msg.length - 1))
         Ncurses::stdscr.color_set $config['theme']['status_bar_cols'], nil
         Ncurses::mvprintw $config['h'], 0, msg.escape_format
-      
+
         # get string
         str = ''
         Ncurses::echo if $config['use_noecho']
         Ncurses::mvprintw $config['h'], e_msg.size + 1, ''
         Ncurses::getstr(str)
         Ncurses::noecho if $config['use_noecho']
-      
         Ncurses::refresh
-      
+
+        str  # return the input
+      end
+
+      #
+      # add a new feed from ncurses
+      #
+      def NcursesInterface::add_feed(opts = nil)
+        if not opts.nil? and opts[:url]
+          url = opts[:url]
+          title = opts[:title] || $config['default_feed_title']
+        else
+          url = NcursesInterface::get_input('add_feed')
+        end
+
         # if it's not nil, then add it to our list
         added = false
-        if str && str.length > 0
-          added = Engine::add_feed({ 'url' => str })
+        if url && url.length > 0
+          if title: added = Engine::add_feed({ 'url' => url })
+          else added = Engine::add_feed({ 'url' => url, 'title' => title }); end
           NcursesInterface::populate_feed_win
+        else
+          NcursesInterface::set_status('')  # no change
         end
 
         if added
+          if (find_win = NcursesInterface::get_win_id('find')) != -1
+            $wins[find_win].close(true)  # close find window if it's still up
+          end
           # redraw status bar
-          $new_status = $status
-          $status = msg
-          NcursesInterface::set_status($new_status)
-
-          # force update now
-          $feed_thread.run if $config['update_after_add']
+          NcursesInterface::set_status($config['msg_feed_added'])
+          $feed_thread.run if $config['update_after_add']  # force update now
         end
       end
       
@@ -3123,24 +3133,11 @@ ENDUSAGE
       # search for feeds from ncurses
       # 
       def NcursesInterface::find_feeds
-        w, e_msg = $config['w'], $config['msg_find_feed']
-      
-        # print entry message
-        msg = e_msg + (' ' * (w - e_msg.length - 1))
-        Ncurses::stdscr.color_set $config['theme']['status_bar_cols'], nil
-        Ncurses::mvprintw $config['h'], 0, msg.escape_format
-      
-        # get string
-        str = ''
-        Ncurses::echo if $config['use_noecho']
-        Ncurses::mvprintw $config['h'], e_msg.size + 1, ''
-        Ncurses::getstr(str)
-        Ncurses::noecho if $config['use_noecho']
-      
-        Ncurses::refresh
-      
+        str = NcursesInterface::get_input('find_feed')
+
         # if it's not nil, then add it to our list
         if str && str.length > 0
+          NcursesInterface::set_status($config['msg_searching'])
           th = Thread.new do
             results = Engine::find_feeds(str)
             if results.length == 0
@@ -3185,12 +3182,9 @@ ENDUSAGE
             NcursesInterface::set_active_win(get_win_id('find'))
           end
           th.priority = $config['thread_priority_find']
+        else
+          NcursesInterface::set_status($config['msg_find_nomatches'])
         end
-          
-        # redraw status bar
-        $new_status = $status
-        $status = msg
-        NcursesInterface::set_status($new_status)
       end
       
       #
@@ -3198,22 +3192,8 @@ ENDUSAGE
       # 
       def NcursesInterface::find_entry(win, direction = 1)
         if win && win.items && win.items.size > 0
-          w, e_msg = $config['w'], $config['msg_find_entry']
-      
-          # print entry message
-          msg = e_msg + (' ' * (w - e_msg.length - 1))
-          Ncurses::stdscr.color_set $config['theme']['status_bar_cols'], nil
-          Ncurses::mvprintw $config['h'], 0, msg.escape_format
-      
-          # get string
-          str = ''
-          Ncurses::echo if $config['use_noecho']
-          Ncurses::mvprintw $config['h'], e_msg.size + 1, ''
-          Ncurses::getstr(str)
-          Ncurses::noecho if $config['use_noecho']
-      
-          Ncurses::refresh
-      
+          str = NcursesInterface::get_input('find_entry')
+
           # if it's not nil, then add it to our list
           if ((str && str.size > 0) || ($last_search && $last_search.size > 0))
             new_index = -1
@@ -3238,15 +3218,14 @@ ENDUSAGE
                 end
               }
             end
-      
-            win.activate new_index if new_index >= 0
+
+            if new_index >= 0
+              win.activate new_index 
+            else
+              NcursesInterface::set_status($config['msg_find_nomatches'])
+            end
             $last_search = str
           end
-            
-          # redraw status bar
-          $new_status = $status
-          $status = msg
-          NcursesInterface::set_status($new_status)
         end
       end
 
@@ -4804,12 +4783,16 @@ $config = {
   'msg_load_theme'        => 'Raggle: Loading theme...',
   'msg_save_theme'        => 'Raggle: Saving theme...',
   'msg_thanks'            => 'Thanks for using Raggle!',
+  'msg_default_input'     => 'Input:',
+  'msg_new_value'         => 'New value:',
   'msg_term_resize'       => 'Terminal Resize: ',
   'msg_links'             => 'Links:',
   'msg_add_feed'          => 'Enter URL:',
+  'msg_feed_added'        => 'Feed added',
   'msg_find_entry'        => 'Find:',
   'msg_cat_title'         => 'Display Category',
   'msg_find_feed'         => 'Find Feeds:',
+  'msg_searching'         => ' Searching...',
   'msg_find_title'        => 'Search Results for "%s" - %s matching feeds',
   'msg_find_nomatches'    => 'No results found',
   'msg_keys_title'        => 'Current Key Bindings',
@@ -4995,7 +4978,7 @@ $config = {
 
     ?U                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::manual_update} ),
     ?S                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::manual_save} ),
-    ?a                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::gui_add_feed} ),
+    ?a                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::add_feed} ),
 
     # i know this is using 'c'.. we'll see if this fucks us (see note
     # about 'C' above)

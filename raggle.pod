@@ -223,7 +223,12 @@ Select item.
 
 =item I<o>
 
-Open Link.
+Open the current feed or item's link in your browser.
+
+=item I<1> through I<9>
+
+Open a link from the current story in your browser.  Link numbers are given
+at the bottom of the description window.
 
 =item I<u>
 
@@ -235,7 +240,12 @@ Move item down.
 
 =item I<a>
 
-Add a feed from within B<raggle>.
+Add a feed.  Will add the currently selected feed after a search
+via I<f>, otherwise you will be prompted for the address.
+
+=item I<e>
+
+Edit the current feed's options to your liking.
 
 =item I<I>
 
@@ -259,11 +269,11 @@ Search for a feed via Syndic8.
 
 =item I<p>
 
-Select previous unread item
+Select previous unread item.
 
 =item I<n>
 
-Select next unread item
+Select next unread item.
 
 =item I<m>
 

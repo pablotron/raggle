@@ -1570,4 +1570,5 @@
   * extras/web_ui/inc/quit.html: added copyright and version info
   * removed extras/web_ui/inc/titlebar.css
 
-
+* Tue Sep 23 22:43:28 2003, pabs <pabs@pablotron.org>
+  * extras/win32/raggle_server.bat: launch client automatically

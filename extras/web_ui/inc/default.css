@@ -360,7 +360,7 @@ a.tb-title:hover {
 }
 
 #titlebar-opts {
-  position: fixed;
+  position: absolute;
   top: 0px;
   right: 0px;
   padding: 5px;

@@ -1585,3 +1585,10 @@
 
 * Tue Sep 23 23:46:13 2003, pabs <pabs@pablotron.org>
   * raggle: fix win32 proxy stuff
+
+* Tue Sep 23 23:56:23 2003, pabs <pabs@pablotron.org>
+  * raggle: disable win32 proxy debug code
+
+* Wed Sep 24 00:08:51 2003, pabs <pabs@pablotron.org>
+  * extras/web_ui/inc/default.css: fixed => absolute, so things look
+    right in IE

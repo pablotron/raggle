@@ -212,7 +212,7 @@ def find_win32_proxy
     end
   end
   
-  ret.each { |key, val| puts "DEBUG: #{key} => #{val}" }
+  # ret.each { |key, val| puts "DEBUG: #{key} => #{val}" }
   
   ret
 end

@@ -787,7 +787,7 @@ module Raggle
 
       begin
         contents = if file_name =~ /:\/\//
-          Engine::get_url(file_name)[0]
+          Raggle::Engine::get_url(file_name)[0]
         else
           file = (file_name == '-') ? $stdin : File::open(file_name)
           raise "Couldn't open input file \"#{file_name}\"." unless file
@@ -1765,7 +1765,7 @@ ENDUSAGE
         end
 
         def Key::gui_cat_list
-          id = get_win_id('cat')
+          id = NcursesInterface::get_win_id('cat')
           if id == -1
             cats = $config['feeds'].categories
 
@@ -1779,7 +1779,7 @@ ENDUSAGE
               'title'   => $config['msg_cat_title'],
               'key'     => 'cat',
               'coords'  => [20, 3, w, h],
-              'colors'  => $wins[get_win_id('item')].colors,
+              'colors'  => $wins[NcursesInterface::get_win_id('item')].colors,
             })
 
             # build item list
@@ -1802,7 +1802,7 @@ ENDUSAGE
           end
 
           # activate category window
-          NcursesInterface::set_active_win(get_win_id('cat'))
+          NcursesInterface::set_active_win(NcursesInterface::get_win_id('cat'))
         end
 
         def Key::gui_find_feed
@@ -3390,6 +3390,64 @@ ENDUSAGE
     end
 
     #
+    # Load default config, handle command-line arguments, load user
+    # config file.
+    #
+    def Engine::load_config
+      # expand the default config hash
+      Engine::expand_config
+
+      # parse command-line options
+      opts = Raggle::CLI::parse_cli_options ARGV
+      
+      # if $HOME/.raggle doesn't exist, then create it
+      Dir::mkdir $config['config_dir'] unless test ?d , $config['config_dir']
+      
+      # save default config
+      default_config = $config
+
+      # load user config ($HOME/.raggle/config.rb)
+      puts $config['msg_load_config'] if opts['mode'] == 'view'
+      load $config['config_path'], false if test ?e, $config['config_path']
+
+      # save user config, switch to default config, and update from
+      # user config
+      user_config = $config
+      $config = default_config
+      $config.update user_config
+      
+      # expand config again (to handle macros in user config)
+      Engine::expand_config
+      
+      # load feed list
+      puts $config['msg_load_list'] if opts['mode'] == 'view'
+      if $config['load_feed_list'] && test(?e, $config['feed_list_path'])
+        $config['feeds'] = YAML::load(File::open($config['feed_list_path']))
+      end
+
+      # if there is no feed list, then load the default one
+      if $config['feeds'] && $config['feeds'].size == 0
+        $config['default_feeds'].each {|feed|
+          $config['feeds'].add(feed['title'], feed['url'], feed['refresh'],
+                               feed['lock_title?'], feed['save_items?'],
+                               feed['site'], feed['desc'], feed['items'],
+                               nil, feed['category'])
+        }
+      end
+
+      opts
+    end
+
+    #
+    # Save configuration (feed cache, feed list, and possibly theme)
+    #
+    def Engine::save_config
+      Raggle::Engine::save_feed_cache if $config['save_feed_cache']
+      Raggle::Engine::save_feed_list if $config['save_feed_list']
+      Raggle::Interfaces::NcursesInterface::save_theme if $config['save_theme']
+    end
+
+    #
     # purge extra feeds in cache
     #
     def Engine::purge_feed_cache
@@ -3555,7 +3613,7 @@ ENDUSAGE
       end
 
       # start up proxy support
-      proxy = find_proxy(host) || { }
+      proxy = Raggle::Proxy::find_proxy(host) || { }
       
       # initialize http connection
       http = Net::HTTP::new(host, port, proxy['host'], proxy['port'])
@@ -3635,7 +3693,7 @@ ENDUSAGE
                        location
           end
 
-          ret = get_http_url(location, last_modified)
+          ret = Engine::get_http_url(location, last_modified)
         else
           raise "HTTP Error: #$!"
         end
@@ -3740,7 +3798,7 @@ ENDUSAGE
       
       # get channel
       begin
-        chan = Feed::Channel.new(feed['url'], feed['last_modified'])
+        chan = Raggle::Feed::Channel.new(feed['url'], feed['last_modified'])
         feed.delete 'error'
       rescue
         # set_status "Error updating \"#{feed['title']}\"."
@@ -3827,6 +3885,75 @@ ENDUSAGE
     end
 
     #
+    # Start and return the feed-grabbing thread
+    #
+    def Engine::start_feed_thread
+      ret = Thread.new do
+        File.open($config['grab_log_path'], $config['grab_log_mode']) do |log|
+          log.sync = true
+          log.puts "#{Time.now}: Starting grab log."
+          $log = log
+
+          first_iteration = true
+          loop do
+            if !first_iteration || $config['update_on_startup']
+              begin
+                threads = []
+                $config['feeds'].each do |the_feed|
+                  threads << Thread::new(the_feed) do |feed| 
+                    Raggle::Engine::grab_feed(feed)
+                  end
+
+                  until Thread::list.size < ($config['max_threads'] || 60)
+                    $log.puts 'DEBUG: Waiting for threads'
+                    sleep 5
+                  end
+                end
+
+                # wait for outstanding feed grabbing threads to finish
+                threads.each do |th| 
+                  begin
+                    if th && th.status && th.alive?
+                      th_title = th['feed'] ? th['feed']['title'] : th
+                      $log.puts "#{Time.now}: Waiting on \"#{th_title}\""
+                      th.join($config['thread_reap_timeout'] || 2)
+                    end
+                  rescue Exception
+                    $log.puts "Feed Thread Reap Error: \"#$!\"."
+                    next
+                  end
+                end
+              rescue
+                log.puts 'Feed Error: ' << $!.to_s
+              end
+            end
+
+            first_iteration = false
+            
+            # finish log entries
+            interval = $config['feed_sleep_interval']
+            $new_status = $config['msg_grab_done']
+            if $config['use_manual_update']
+              log.puts "#{Time.now}: Done checking."
+              Thread::stop
+            else
+              Thread::list.each do |th|
+                if th && th.status && th.alive? && th['feed']
+                  $log.puts "DEBUG: thread list: #{th['feed']['title']}"
+                end
+              end
+              log.puts "#{Time.now}: Done checking.  Sleeping for #{interval}s."
+              sleep interval
+            end
+          end
+        end
+      end
+
+      # return thread
+      ret 
+    end
+
+    #
     # search for feeds, return array of hashes w/ results
     #
     def Engine::find_feeds(str)
@@ -3864,49 +3991,13 @@ end
 #######################################################################
 
 def main
-  # expand the default config hash
-  Raggle::Engine::expand_config
-
-  # parse command-line options
-  opts = Raggle::CLI::parse_cli_options ARGV
-  
-  # if $HOME/.raggle doesn't exist, then create it
-  Dir::mkdir $config['config_dir'] unless test ?d , $config['config_dir']
-  
-  # save default config
-  default_config = $config
-
-  # load user config ($HOME/.raggle/config.rb)
-  puts $config['msg_load_config'] if opts['mode'] == 'view'
-  load $config['config_path'], false if test ?e, $config['config_path']
-
-  # save user config, switch to default config, and update from
-  # user config
-  user_config = $config
-  $config = default_config
-  $config.update user_config
-  
-  Raggle::Engine::expand_config
-  
-  # load feed list
-  puts $config['msg_load_list'] if opts['mode'] == 'view'
-  if $config['load_feed_list'] && test(?e, $config['feed_list_path'])
-    $config['feeds'] = YAML::load(File::open($config['feed_list_path']))
-  end
-
-  if $config['feeds'] && $config['feeds'].size == 0
-    $config['default_feeds'].each {|feed|
-      $config['feeds'].add(feed['title'], feed['url'], feed['refresh'],
-                           feed['lock_title?'], feed['save_items?'],
-                           feed['site'], feed['desc'], feed['items'],
-                           nil, feed['category'])
-    }
-  end
+  # load config files (config.rb, and feeds.yaml)
+  opts = Raggle::Engine::load_config
   
   # create cache lock
   Raggle::Engine::create_cache_lock if $config['use_cache_lock']
   
-  # handle command-line options
+  # handle command-line mode
   $config['raggle_mode'] = opts['mode']
   Raggle::CLI::handle_mode(opts)
 
@@ -3932,66 +4023,7 @@ def main
   Net::HTTP.version_1_1
 
   # start feed grabbing thread
-  $feed_thread = Thread.new {
-    File.open($config['grab_log_path'], $config['grab_log_mode']) { |log|
-      log.sync = true
-      log.puts "#{Time.now}: Starting grab log."
-      $log = log
-
-      first_iteration = true
-      loop {
-        if !first_iteration || $config['update_on_startup']
-          begin
-            threads = []
-            $config['feeds'].each do |the_feed|
-              threads << Thread::new(the_feed) do |feed| 
-                Raggle::Engine::grab_feed(feed)
-              end
-
-              until Thread::list.size < ($config['max_threads'] || 60)
-                $log.puts 'DEBUG: Waiting for threads'
-                sleep 5
-              end
-            end
-
-            # wait for outstanding feed grabbing threads to finish
-            threads.each do |th| 
-              begin
-                if th && th.status && th.alive?
-                  th_title = th['feed'] ? th['feed']['title'] : th
-                  $log.puts "#{Time.now}: Waiting on \"#{th_title}\""
-                  th.join($config['thread_reap_timeout'] || 2)
-                end
-              rescue Exception
-                $log.puts "Feed Thread Reap Error: \"#$!\"."
-                next
-              end
-            end
-          rescue
-            log.puts 'Feed Error: ' << $!.to_s
-          end
-        end
-
-        first_iteration = false
-        
-        # finish log entries
-        interval = $config['feed_sleep_interval']
-        $new_status = $config['msg_grab_done']
-        if $config['use_manual_update']
-          log.puts "#{Time.now}: Done checking."
-          Thread::stop
-        else
-          Thread::list.each do |th|
-            if th && th.status && th.alive? && th['feed']
-              $log.puts "DEBUG: thread list: #{th['feed']['title']}"
-            end
-          end
-          log.puts "#{Time.now}: Done checking.  Sleeping for #{interval}s."
-          sleep interval
-        end
-      }
-    }
-  }
+  $feed_thread = Raggle::Engine::start_feed_thread
 
   # set up HTTP server
   if $HAVE_LIB['webrick'] && $config['run_http_server']
@@ -4065,9 +4097,7 @@ def main
     $feed_thread.exit if $feed_thread.alive?
 
     # save feed cache, feed list, and theme
-    Raggle::Engine::save_feed_cache if $config['save_feed_cache']
-    Raggle::Engine::save_feed_list if $config['save_feed_list']
-    Raggle::Interfaces::NcursesInterface::save_theme if $config['save_theme']
+    Raggle::Engine::save_config
   ensure
     unless $done # if done is set then we're exiting cleanly
       # clean up either screen or HTTP server on exit
@@ -4080,11 +4110,7 @@ def main
       end
       
       # save feed cache, feed list, and theme (if requested)
-      if $config['save_on_crash']
-        Raggle::Engine::save_feed_cache if $config['save_feed_cache']
-        Raggle::Engine::save_feed_list if $config['save_feed_list']
-        Raggle::Interfaces::NcursesInterface::save_theme if $config['save_theme']
-      end
+      Raggle::Engine::save_config if $config['save_on_crash']
     end
       
     # unlock everything
@@ -4180,10 +4206,10 @@ $config = {
 
   # URL handlers
   'url_handlers'          => {
-    'http'      => proc { |url, last_mod| Engine::get_http_url(url, last_mod) },
-    'https'     => proc { |url, last_mod| Engine::get_http_url(url, last_mod) },
-    'file'      => proc { |url, last_mod| Engine::get_file_url(url, last_mod) },
-    'exec'      => proc { |url, last_mod| Engine::get_exec_url(url, last_mod) },
+    'http'      => proc { |url, last_mod| Raggle::Engine::get_http_url(url, last_mod) },
+    'https'     => proc { |url, last_mod| Raggle::Engine::get_http_url(url, last_mod) },
+    'file'      => proc { |url, last_mod| Raggle::Engine::get_file_url(url, last_mod) },
+    'exec'      => proc { |url, last_mod| Raggle::Engine::get_exec_url(url, last_mod) },
   },
 
   # Raise an exception (which generally means crash) if the URL type is
@@ -4329,7 +4355,7 @@ $config = {
   # Force raggle to accept shell metacharacters in urls.
   'force_url_meta'        => false,
   # Regular expression matching shell metacharacters to not allow in URLs
-  'shell_meta_regex'       => /([\`\$]|\#\{)/, # the #{ is to stop ruby
+  # 'shell_meta_regex'       => /([\`\$]|\#\{)/, # the #{ is to stop ruby
                                               # expansion.
                                               # Is that necessary?
 
@@ -4426,8 +4452,8 @@ $config = {
     # i know this is using 'c'.. we'll see if this fucks us (see note
     # about 'C' above)
     # -- pabs (Sat Mar 20 21:10:55 2004)
-    ?c                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::gui_cat_list },
-    ?f                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::gui_find_feed },
+    ?c                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::gui_cat_list },
+    ?f                  => proc { |win, key| Raggle::Interfaces::NcursesInterface::Key::gui_find_feed },
   } : {}),
 
   # color palette (referenced by themes)

@@ -1995,3 +1995,12 @@
 * Sun Jul 11 12:05:25 2004, pabs <pabs@pablotron.org>
   * raggle: put Engine:find_feeds() back where it belongs (hint:
     it's not in NcursesInterface)
+
+* Mon Jul 12 20:31:53 2004, pabs <pabs@pablotron.org>
+  * raggle: moved config loading and saving from main to Engine::load_config
+    and Engine::save_config, respectively
+  * raggle: fixed URL handlers so feed grabbing works again
+  * raggle: moved feed grabbing thread code to Engine::start_feed_thread
+  * raggle: fixed HTTP redirect handling
+  * raggle: commented out 'shell_meta_regex' in default config; we don't
+    use it any more and it was screwing up my syntax hilighting

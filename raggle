@@ -1407,12 +1407,15 @@ end
 # load feed cache
 #
 def load_feed_cache
+  set_status "Loading feed cache..."
   store = PStore::new $config['feed_cache_path']
   store.transaction { |s|
     $config['feeds'].each { |feed|
       feed['items'] = s.root?(feed['url']) ? s[feed['url']] : []
     }
   }
+  populate_feed_win
+  set_status "Loading feed cache... done"
 end
 
 #
@@ -1821,6 +1824,68 @@ end
 # End Shenanigans, Begin Actual Code                                  #
 #######################################################################
 
+##
+# Ugly
+# -- richlowe 2003-07-01
+def setup_win
+      # initialize screen & keyboard
+    Ncurses::initscr
+    Ncurses::raw if $config['use_raw_mode']
+    Ncurses::keypad Ncurses::stdscr, 1
+    Ncurses::noecho if $config['use_noecho']
+    Ncurses::start_color
+    # Ncurses::mousemask(Ncurses::ALL_MOUSE_EVENTS, [])
+    
+    # exit -1 unless Ncurses::has_colors?
+    
+    # initialize color pairs
+    $config['color_palette'].each { |ary| Ncurses::init_pair *ary }
+    
+    # get screen coordinates
+    h = []; w = []
+    Ncurses::getmaxyx Ncurses::stdscr, h, w
+    $config['w'] = w[0]
+    $config['h'] = h[0] - 1
+    
+    # draw menu bar
+    # c_msg = $config['msg_close']
+    # msg = (' ' * ($config['w'] - c_msg.length)) << c_msg
+    # Ncurses::wcolor_set Ncurses::stdscr, $config['menu_bar_cols'], nil
+    # Ncurses::mvprintw 0, 0, msg
+    # Ncurses::refresh
+    
+    # draw status bar
+    $new_status = ''
+    set_status $config['msg_welcome']
+    
+    # create windows
+    $a_win = 0
+    $wins = []
+    $config['theme']['window_order'].each { |i|
+      case i
+        when /feed/
+          cl = ListWindow
+        when /item/
+          cl = ListWindow
+        when /desc/
+          cl = TextWindow
+      else
+        raise "Unknown window #{i}"
+      end
+      $wins << cl.new($config['theme']["win_#{i}"])
+      # $wins[-1].draw LONG_STRING
+    }
+    set_active_win(0)
+    
+    $a_feed, $a_item = 0, 0
+    
+    # populate feed window
+    populate_feed_win
+    
+    select_feed(0)
+    set_active_win(0)
+end
+
 def main
   # expand the default config hash
   expand_config
@@ -1891,15 +1956,18 @@ def main
     exit 0
   end
   
-  # load feed cache
-  load_feed_cache if $config['load_feed_cache'] &&
-    test(?e, $config['feed_cache_path'])
-  
+
   # load theme
   puts $config['msg_load_theme']
   if $config['load_theme'] && test(?e, $config['theme_path'])
     $config['theme'] = YAML::load(File::open($config['theme_path']))
   end
+
+  setup_win
+  
+  # load feed cache
+  load_feed_cache if $config['load_feed_cache'] &&
+    test(?e, $config['feed_cache_path'])
   
   # start feed grabbing thread
   feed_thread = Thread.new {
@@ -1988,62 +2056,7 @@ def main
   }
 
   begin
-    # initialize screen & keyboard
-    Ncurses::initscr
-    Ncurses::raw if $config['use_raw_mode']
-    Ncurses::keypad Ncurses::stdscr, 1
-    Ncurses::noecho if $config['use_noecho']
-    Ncurses::start_color
-    # Ncurses::mousemask(Ncurses::ALL_MOUSE_EVENTS, [])
-    
-    # exit -1 unless Ncurses::has_colors?
-    
-    # initialize color pairs
-    $config['color_palette'].each { |ary| Ncurses::init_pair *ary }
-    
-    # get screen coordinates
-    h = []; w = []
-    Ncurses::getmaxyx Ncurses::stdscr, h, w
-    $config['w'] = w[0]
-    $config['h'] = h[0] - 1
-    
-    # draw menu bar
-    # c_msg = $config['msg_close']
-    # msg = (' ' * ($config['w'] - c_msg.length)) << c_msg
-    # Ncurses::wcolor_set Ncurses::stdscr, $config['menu_bar_cols'], nil
-    # Ncurses::mvprintw 0, 0, msg
-    # Ncurses::refresh
-    
-    # draw status bar
-    $new_status = ''
-    set_status $config['msg_welcome']
-    
-    # create windows
-    $a_win = 0
-    $wins = []
-    $config['theme']['window_order'].each { |i|
-      case i
-        when /feed/
-          cl = ListWindow
-        when /item/
-          cl = ListWindow
-        when /desc/
-          cl = TextWindow
-      else
-        raise "Unknown window #{i}"
-      end
-      $wins << cl.new($config['theme']["win_#{i}"])
-      # $wins[-1].draw LONG_STRING
-    }
-    set_active_win(0)
-    
-    $a_feed, $a_item = 0, 0
-    
-    # populate feed window
-    populate_feed_win
-    
-    select_feed(0)
-    set_active_win(0)
+
     
     # trap('WINCH') { resize_term }
     
@@ -2068,8 +2081,6 @@ def main
       set_status $new_status if $new_status != $status
     end
   ensure
-    # ignore resize signals
-    # trap 'WINCH', 'IGNORE'
     
     # clean up screen on exit
     Ncurses::endwin

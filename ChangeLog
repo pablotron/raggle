@@ -827,12 +827,9 @@
 	    good, it's also a mechanical change, but we all know what
 	    happens when I make 'simple' changes.
 
-
-	
-
-
-
-
-
+* Tue Jul  1 06:36:25 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Draw the windows before we load the feed cache (not noticable
+            here, but hopefully an improvement for large values of
+	    FeedCache.size). 
 
 

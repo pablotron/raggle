@@ -3631,7 +3631,7 @@ ENDUSAGE
           # get the result
           resp, content = http.get(('/' << path), headers)
 
-          if resp.code.to_i != 200
+          if resp.code !~ /2\d{2}/
             # if we got anythign other than success, raise an exception
             # (this might be a little overzealous, anyone?
             raise "HTTP Error: #{resp.code} #{resp.message}" \

@@ -1983,3 +1983,7 @@
   * raggle: move Feed::get_* to Engine::get_*
   * raggle: FeedList => Feed::List (breaks feeds.yaml again)
   * raggle: documentation for tons of methods.
+
+* Sun Jul 11 10:03:34 2004, pabs <pabs@pablotron.org>
+  * raggle: apply old fix for HTTP success codes (all 2xx codes are
+    considered success, not just 200).

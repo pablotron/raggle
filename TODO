@@ -65,7 +65,7 @@ Raggle TODO
 [ ] user-configurable http open timeout and http read timeout
 [ ] per-feed xpath configuration?
 [*] feed groups (only in web interface at the moment)
-[ ] clean separation of Ncurses and WEBrick interfaces (maybe an
+[-] clean separation of Ncurses and WEBrick interfaces (maybe an
     Interfaces module).  Don't require Ncurses if WEBrick is
     installed. 
     ( I would prefer if what you mean is "If Ncurses isn't installed
@@ -84,3 +84,5 @@ Raggle TODO
     contents or only having the active feed in memory: note this
     method is easier, but relies on sane disk caching for any speed)
 [ ] update keybindings documentation
+[ ] save feed attributes on OPML export
+[ ] XBEL import/export?

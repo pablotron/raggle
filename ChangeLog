@@ -2485,3 +2485,6 @@ _Cvs
 * Mon Mar 21 09:11:00 2005, redshift <redshift@halffull.org>
   * raggle: fixed Michael Ablassmeier's bug with content == nil
   * raggle: fixed minor bug with bookmarks causing crash
+
+* Wed Mar 23 07:54:00 2005, redshift <redshift@halffull.org>
+  * raggle: fix issue with moving feeds more than one place

@@ -2027,6 +2027,7 @@ ENDUSAGE
           win = $wins[NcursesInterface::get_win_id('feed')]
           $a_feed = $config['feeds'].move_up(win.active_item)
           win.move_item_up
+          NcursesInterface::populate_feed_win
         end
 
         #
@@ -2036,6 +2037,7 @@ ENDUSAGE
           win = $wins[NcursesInterface::get_win_id('feed')]
           $a_feed = $config['feeds'].move_down(win.active_item)
           win.move_item_down
+          NcursesInterface::populate_feed_win
         end
 
         #

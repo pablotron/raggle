@@ -220,3 +220,7 @@
   * raggle: don't allow someone to set a feed refresh of less than 30
     minutes without passing the '--force' option on the command-line
   * raggle: added String#reflow
+
+* Thu Jun 19 15:15:08 2003, pabs <pabs@pablotron.org>
+  * raggle: strip leading and trailing whitespace from feed item 
+    titles

@@ -1158,12 +1158,12 @@ def select_feed(id)
       d_str = Time.at(item['date'].to_i).strftime(fmt) if item['date'].to_i > 0
       title = "#{item['title']} (#{d_str})"
     elsif item['title'] !~ /^\s*$/ 
-      title = item['title'].dup
+      title = item['title'].strip
     elsif item['desc'] !~ /^\s*$/ 
       # fall back on cleaned up and truncated description if we're
       # missing a title
       w, h = $wins[item_id].dimensions
-      title = item['desc'].dup.strip_tags.unescape_html.split(/\s+/).join(' ')
+      title = item['desc'].strip.strip_tags.unescape_html.split(/\s+/).join(' ')
 
       if title.length > w - 5
         title = title.slice 0, w - 5
@@ -1172,10 +1172,10 @@ def select_feed(id)
     else
       # if title is garbage and we have no description, then fall back
       # on formatted and truncated link (silly broken RSS feeds)
-      title = '[' << item['url'].dup << ']'
+      title = '[' << item['url'].strip << ']'
 
       w, h = $wins[item_id].dimensions
-      title = title.dup.strip_tags.unescape_html.split(/\s+/).join(' ')
+      title = title.strip_tags.unescape_html.split(/\s+/).join(' ')
 
       if title.length > w - 5
         title = title.slice 0, w - 5

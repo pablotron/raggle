@@ -1364,3 +1364,8 @@
 
 * Tue Sep 09 01:14:19 2003, pabs <pabs@pablotron.org>
   * raggle: fix OPML import
+
+* Tue Sep 09 13:46:00 2003, pabs <pabs@pablotron.org>
+  * extras/web_ui/titlebar.html: start merging feedopts into
+    titlebar (the titlebar is going to be a titlebar and a panel of
+    options)

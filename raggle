@@ -2965,6 +2965,32 @@ ENDUSAGE
           NcursesInterface::select_feed(0)
           NcursesInterface::set_active_win(0)
       end
+
+      #
+      # main input loop
+      #
+      def NcursesInterface::main_loop
+        timeout = $config['input_select_timeout']
+        $done = false
+        until $done
+          # handle keyboard input
+          r = select [$stdin], nil, nil, timeout
+          if r && r.size > 0
+            c = Ncurses::getch
+            $config['keys'][c].call($wins[$a_win],c) \
+              if $config['keys'].has_key? c
+          end
+          
+          # refresh window contents if there's been a feed update
+          if $update_wins
+            $update_wins = false
+            Raggle::Interfaces::NcursesInterface::populate_feed_win
+            # wins.each { |win| win.draw_items }
+          end
+          
+          NcursesInterface::set_status $new_status if $new_status != $status
+        end
+      end
     end
 
     module HTTPServerInterface
@@ -3243,6 +3269,14 @@ ENDUSAGE
           ret
         end
       end
+
+      #
+      # Main loop for HTTP server interface.
+      #
+      def HTTPServerInterface::main_loop
+        # block until http thread exits
+        $http_thread.join
+      end
     end
 
     module DRbServerInterface
@@ -3296,6 +3330,14 @@ ENDUSAGE
           DRb::thread.join
         end
       end
+    end
+
+    #
+    # DRb server interface main loop.
+    #
+    def DRbServerInterface::main_loop
+      # wait until drb server exits
+      $drb_server.start # (this does a join)
     end
   end
     
@@ -3436,6 +3478,25 @@ ENDUSAGE
       end
 
       opts
+    end
+
+    #
+    # Set thread priorities 
+    #
+    def Engine::set_thread_priorities
+      Thread::main.priority = $config['thread_priority_main'] || 5
+      $feed_thread.priority = $config['thread_priority_feed'] || 0
+
+      if $config['run_http_server']
+        $http_thread.priority  = $config['thread_priority_http'] || 1
+      end
+
+      if $config['run_drb_server']
+        $drb_thread.priority = $config['thread_priority_drb'] || 1
+      end
+
+      # set abort on exception for feed grabbing thread
+      $feed_thread.abort_on_exception = $config['abort_on_exception']
     end
 
     #
@@ -4043,50 +4104,16 @@ def main
     }
   end
 
-  #########################
-  # set thread priorities #
-  #########################
-  Thread::main.priority = $config['thread_priority_main'] || 5
-  $feed_thread.priority = $config['thread_priority_feed'] || 0
-
-  if $config['run_http_server']
-    $http_thread.priority  = $config['thread_priority_http'] || 1
-  end
-
-  if $config['run_drb_server']
-    $drb_thread.priority = $config['thread_priority_drb'] || 1
-  end
-
-  # set abort on exception for feed grabbing thread
-  $feed_thread.abort_on_exception = $config['abort_on_exception']
+  # set thread priorities
+  Raggle::Engine::set_thread_priorities
 
   begin
     if $config['run_http_server']
-      $http_thread.join
+      Raggle::Interfaces::HTTPServerInterface::main_loop
     elsif $config['run_drb_server']
-      $drb_server.start # (this does a join)
+      Raggle::Interfaces::DRbServerInterface::main_loop
     else # ncurses interface
-      # main input loop
-      timeout = $config['input_select_timeout']
-      $done = false
-      until $done
-        # handle keyboard input
-        r = select [$stdin], nil, nil, timeout
-        if r && r.size > 0
-          c = Ncurses::getch
-          $config['keys'][c].call($wins[$a_win],c) \
-            if $config['keys'].has_key? c
-        end
-        
-        # refresh window contents if there's been a feed update
-        if $update_wins
-          $update_wins = false
-          Raggle::Interfaces::NcursesInterface::populate_feed_win
-          # wins.each { |win| win.draw_items }
-        end
-        
-        Raggle::Interfaces::NcursesInterface::set_status $new_status if $new_status != $status
-      end
+      Raggle::Interfaces::NcursesInterface::main_loop
     end
     
     # clean up screen on exit (unless running HTTP server)

@@ -2004,3 +2004,7 @@
   * raggle: fixed HTTP redirect handling
   * raggle: commented out 'shell_meta_regex' in default config; we don't
     use it any more and it was screwing up my syntax hilighting
+
+* Wed Jul 14 10:36:30 2004, pabs <pabs@pablotron.org>
+  * raggle: moved thread handling to Engine::set_thread_priorities
+  * raggle: each interface now has a main_loop method

@@ -1429,7 +1429,7 @@ def main
   case opts['mode']
   when 'list'
     list_feeds
-p    exit 0
+    exit 0
   when 'add'
     add_feed opts
     save_feed_list

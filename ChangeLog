@@ -364,6 +364,8 @@
   * raggle: misc 1.8 cleanup.  still doesn't work in 1.8, but it's
     a little closer
 	
+* Sat Jun 21 23:38:31 EDT 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Remove a 'p' before an exit 0 that I *think* I added by mistake
 
 
 

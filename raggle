@@ -445,7 +445,7 @@ module Raggle
             'port'      => $2,
           }
 
-          ret['no_proxy'] = np.gsub(/;/, ',') if np && np.length > 0
+          ret['no_proxy'] = np.tr(';', ',') if np && np.length > 0
         end
       end
       
@@ -3047,7 +3047,7 @@ ENDUSAGE
         }
         # strip off extraneous method info and return hash
         keys.each { |key, value|
-          keys[key] = value.to_s.sub(/^\|.*\|\s?/, '').sub(/.*::/, '').gsub(/_/, ' ').capitalize
+          keys[key] = value.to_s.sub(/^\|.*\|\s?/, '').sub(/^.*::/, '').sub(/\(.*\)$/, '').tr('_', ' ').capitalize
         }
         # Note: I can't get \n to display properly in the help window, so:
         keys.delete_if { |key, value| value == 'Select item' and key != 'Space' }

@@ -1012,3 +1012,7 @@
 
 * Sat Aug 16 12:20:40 2003, pabs <pabs@pablotron.org>
   * doc/pauls_feeds.yaml: updated Richard's feed URL.  Ditto for mine.
+
+* Sat Aug 16 19:54:13 2003, pabs <pabs@pablotron.org>
+  * raggle: added HTTP headers to config: includes Accept, User-Agent, and
+    Accept-Charset.

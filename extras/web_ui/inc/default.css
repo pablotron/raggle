@@ -90,6 +90,16 @@ body.feed-frame {
   margin-right: 0;
 }
 
+#category-form {
+  background-color: #dddddd;
+  text-align: center;
+  font-family: verdana, arial, helvetica, sans-serif;
+  font-size: 10px;
+  color: #333333;
+  padding: 2px;
+}
+
+
 #feed-list-title {
   font-family: arial, helvetica, sans-serif;
   font-weight: bold;
@@ -240,17 +250,17 @@ body.item-frame {
 /**************************/
 #item-table {
   width: 100%;
-  font-size: 12px;
+  font-size: 10px;
 }
 
 .item-tr-unread-even {
   background-color: #ffffff;
-  font-size: 12px;
+  font-size: 10px;
 }
 
 .item-tr-unread-odd {
   background-color: #eeeeee;
-  font-size: 12px;
+  font-size: 10px;
 }
 
 .item-date-unread-even {
@@ -278,12 +288,12 @@ body.item-frame {
 /************************/
 .item-tr-read-even {
   background-color: #ffffff;
-  font-size: 12px;
+  font-size: 10px;
 }
 
 .item-tr-read-odd {
   background-color: #eeeeee;
-  font-size: 12px;
+  font-size: 10px;
 }
 
 .item-date-read-even {
@@ -325,12 +335,22 @@ body.titlebar {
   margin-right: 0;
 }
 
+a.tb-title {
+  color: #111111;
+}
+
+a.tb-title:hover {
+  color: #4444aa;
+  text-decoration: none;
+}
+
 #titlebar {
   left: 0;
   right: 0;
   font-family: arial, helvetica, sans-serif;
   font-weight: bold;
-  font-size: 28px;
+  font-size: 18px;
+  letter-spacing: 12px;
   text-align: left;
   color: #111111;
   background-color: #eeeeee;
@@ -339,18 +359,37 @@ body.titlebar {
   padding: 5px;
 }
 
-/* #titlebar:hover {
-  background-color: #ffffff;
-} */
+#titlebar-opts {
+  position: fixed;
+  top: 0px;
+  right: 0px;
+  padding: 5px;
 
-#titlebar-link {
+  color: #000000;
   font-family: arial, helvetica, sans-serif;
-  font-weight: bold;
-  font-size: 32px;
-  color: #111111;
+  font-size: 11px;
 }
 
-#titlebar-link:hover {
-  text-decoration: none;
-  color: #111111;
+/*********************************************************************/
+/* Quit Style                                                        */
+/*********************************************************************/
+body.quit {
+  background-color: #eeeeee;
+}
+
+#quit-thanks {
+  text-align: center;
+  font-size: 24px;
+  padding: 40px;
+}
+
+div.quit-info {
+  position: fixed;
+  left: 25%;
+  right: 25%;
+  background-color: #ffffff;
+  font-family: verdana, helvetica, arial, sans-serif;
+  font-size: 12px;
+  border: 1px solid black;
+  padding: 5px;
 }

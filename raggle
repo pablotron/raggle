@@ -56,7 +56,7 @@ if __FILE__ == $0
   # win32 doesn't support these signals
   if RUBY_PLATFORM !~ /win32/i
     trap('QUIT') { puts 'Quit'; exit -1 }
-    trap('TERM') { puts 'Term'; exit -1 }
+    # trap('TERM') { puts 'Term'; exit -1 } # don't trap -TERM
 
     # HUP invalidates all feeds and forces a refresh immediately
     trap('HUP') { invalidate_feed(-1); $feed_thread.run }
@@ -79,8 +79,8 @@ require 'pstore'
 #########################
 { # key => [path, title, required]
   'ncurses' => ['ncurses',        'Ncurses-Ruby', false],
-  'rexml'   => ['rexml/document', 'REXML',        true],
-  'yaml'    => ['yaml',           'YAML',         true],
+  'rexml'   => ['rexml/document', 'REXML',        true ],
+  'yaml'    => ['yaml',           'YAML',         true ],
   'ssl'     => ['net/https',      'OpenSSL-Ruby', false],
   'webrick' => ['webrick',        'WEBrick',      false],
 }.each { |key, info|
@@ -115,17 +115,6 @@ Please see the file README or visit the following URL:
 ENDERR
   exit -1
 end
-
-# hackery to avoid mucking with config below
-# 
-# unless $HAVE_LIB['ncurses'] 
-#   module Ncurses
-#     def Ncurses::method_missing(*args)
-#       
-#     end
-#   end
-# end
-# 
 
 ###################
 # utility methods #
@@ -591,42 +580,42 @@ module HTML
       @context = []
       
       Parser::each_token(@source) do |token, data, attributes|
-	#puts "C: #{context[-1]} T: #{token} D: <#{data}> L: #{lines.inspect}"
-	case token
-	when :TEXT
-	  if @context[-1] == :in_pre
-	    @lines.pop if @lines[-1] == ""
-	    @lines += data.split("\n", -1)
-	  else
-	    reflow_text(data)
-	  end
-	when :START_TAG
-	  @current_attributes = attributes
-	  tag = TAG_SET[data]
-	  next unless tag
-	  context_enter(@context, tag)
-	  call_actions(tag, :start)
-	when :END_TAG
-	  tag = TAG_SET[data]
-	  next unless tag
-	  context_exit(@context, tag)
-	  call_actions(tag, :end)
-	end
+      #puts "C: #{context[-1]} T: #{token} D: <#{data}> L: #{lines.inspect}"
+      case token
+      when :TEXT
+        if @context[-1] == :in_pre
+          @lines.pop if @lines[-1] == ""
+          @lines += data.split("\n", -1)
+        else
+          reflow_text(data)
+        end
+      when :START_TAG
+        @current_attributes = attributes
+        tag = TAG_SET[data]
+        next unless tag
+        context_enter(@context, tag)
+        call_actions(tag, :start)
+      when :END_TAG
+        tag = TAG_SET[data]
+        next unless tag
+        context_exit(@context, tag)
+        call_actions(tag, :end)
+      end
       end
 
       # trim trailine new lines
       until @lines[-1] != ''
-	@lines.delete_at(@lines.size - 1)
+        @lines.delete_at(@lines.size - 1)
       end
 
       # If there are links, insert the them here
       unless @links.empty?
-	@lines << ''
-	@lines << $config['msg_links']
-	padding = @links.size / 10 + 1
-	@links.each_with_index do |link, index|
-	  @lines << "%#{padding}d. %s" % [index + 1, link]
-	end
+        @lines << ''
+        @lines << $config['msg_links']
+        padding = @links.size / 10 + 1
+        @links.each_with_index do |link, index|
+          @lines << "%#{padding}d. %s" % [index + 1, link]
+        end
       end
       
       rendered_text = @lines.join("\n") + "\n"
@@ -644,7 +633,7 @@ module HTML
     # is one already.
     def action_maybe_new_paragraph
       unless @lines[-1] == '' || @lines.empty?
-	@lines.push(*['', ''])
+        @lines.push(*['', ''])
       end
     end
 
@@ -1866,13 +1855,22 @@ module Raggle
       # set up quit mount point
       s.mount_proc('/raggle/quit') { |req, res|
         quit_thread = Thread::new {
+          $http_server.shutdown
           sleep opts['shutdown_sleep'];
           $feed_thread.kill if $feed_thread && $feed_thread.alive?
-          $http_server.shutdown
+          $http_thread.kill if $http_thread && $http_thread.alive?
         }
 
         res['Content-Type'] = 'text/html'
-        res.body = @templates['quit']
+
+        # handle quit template
+        ret = @templates['quit'].dup
+        { 'VERSION'   => $VERSION,
+        }.each { |key, val|
+          ret.gsub!(/__#{key}__/, val) if ret =~ /__#{key}__/
+        }
+
+        res.body = ret
       }
 
       # set up feed list mount point
@@ -1988,7 +1986,9 @@ module Raggle
             'EVEN'          => ((i % 2 == 0) ? 'even' : 'odd'),
             'READ'          => item['read?'] ? 'read' : 'unread',
             'FEED_ID'       => feed_id.to_s,
-            'INDEX'         => i.to_s }.each { |key, val|
+            'INDEX'         => i.to_s,
+            'CATEGORY'      => cat,
+          }.each { |key, val|
             str.gsub!(/__#{key}__/, val) if str =~ /__#{key}__/
           }
           ret << str
@@ -2005,6 +2005,7 @@ module Raggle
           'FEED_IMAGE'      => feed_image,
           'REFRESH'         => opts['page_refresh'].to_s,
           'VERSION'         => $VERSION,
+          'CATEGORY'        => cat,
         }.each { |key, val|
           body.gsub!(/__#{key}__/, val) if body =~ /__#{key}__/
         }
@@ -2043,7 +2044,9 @@ module Raggle
             'URL'           => item['url'], 
             'FEED_IMAGE'    => feed_image,
             'DESC'          => item['desc'],
-            'REFRESH'       => opts['refresh'], }.each { |key, val|
+            'REFRESH'       => opts['refresh'], 
+            'CATEGORY'      => cat,
+          }.each { |key, val|
             body.gsub!(/__#{key}__/, val) if body =~ /__#{key}__/
           }
         end
@@ -3282,7 +3285,7 @@ def main
       unless test ?e, $config['web_ui_root_path']
 
     # start HTTP server thread
-    http_thread = Thread.new {
+    $http_thread = Thread.new {
       $http_server = Raggle::HTTPServer::new($config['http_server'])
       $http_server.start
     }
@@ -3303,7 +3306,7 @@ def main
   $feed_thread.priority = $config['thread_priority_feed'] || 0
   # gc_thread.priority    = $config['thread_priority_gc']   || 1
   if $config['run_http_server']
-    http_thread.priority  = $config['thread_priority_http'] || 1
+    $http_thread.priority  = $config['thread_priority_http'] || 1
   end
 
   # set abort on exception
@@ -3311,7 +3314,7 @@ def main
 
   begin
     if $config['run_http_server']
-      http_thread.join
+      $http_thread.join
     else
       # main input loop
       timeout = $config['input_select_timeout']
@@ -3349,7 +3352,7 @@ def main
   ensure
     # clean up either screen or HTTP server on exit
     if $config['run_http_server']
-      $http_server.shutdown
+      $http_server.shutdown unless $done
     else
       Ncurses::endwin unless $done
     end
@@ -3474,7 +3477,7 @@ $config = {
     'bind_address'        => '127.0.0.1', # localhost only
     'port'                => 2222,        # port to bind to
     'page_refresh'        => 120,         # refresh interval (feed & item wins)
-    'shutdown_sleep'      => 2,           # seconds to wait for shutdown
+    'shutdown_sleep'      => 0.5,         # seconds to wait for shutdown
     'empty_item'          => {
       'title'             => '',
       'url'               => '',

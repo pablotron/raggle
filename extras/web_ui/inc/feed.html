@@ -8,10 +8,18 @@
        href='/raggle/item/?category=__CATEGORY__&amp;feed_id=__INDEX__'>__TITLE__</a>
   </td>
   <td class='feed-opts-__READ__-__EVEN__'>
-    <a href='/raggle/feed?mode=invalidate&amp;id=__INDEX__'
-       onMouseOver='window.status = "Update Feed"'>U</a>
+<!--  
+          <a href='/raggle/feed?mode=invalidate&amp;id=__INDEX__'
+             title='Update Feed'
+             onMouseOver='window.status = "Update Feed"'>U</a>
+  -->
+    <a href='/raggle/edit/?category=__CATEGORY__&amp;feed_id=__INDEX__'
+       target='edit_feed'
+       onMouseOver='window.status = "Edit Feed"; return true;'
+       onMouseOut='window.status = ""; return true;'>E</a>
     <a href='/raggle/feed?mode=delete&amp;id=__INDEX__'
        onClick='return confirm("Delete feed \"__TITLE__\"?")'
-       onMouseOver='window.status = "Delete Feed"'>X</a>
+       onMouseOver='window.status = "Delete Feed"; return true'
+       onMouseOut='window.status = ""; return true;'>X</a>
   </td>
 </tr>

@@ -31,7 +31,7 @@ Bugs
 [*] One feed (actually, the same one that triggers the above) will
     reliably bend the description window over, and bugger it backwards
     with a steam iron.
-[ ] Long descriptions are *very* slow to scroll
+[*] Long descriptions are *very* slow to scroll
 [*] TextWindow#draw_items draws the title at x=1, but if the rest is
     drawn with x=1 it appears to be drawn one block to the right of the
     title.  Why? (workedaround, but very confusing).
@@ -40,8 +40,9 @@ Bugs
     which ones. (I've seen this once, but can't reproduce reliably).
 [*] No HTTP grabbing in OSX (only one report, can't reproduce, might
     be bogus).  The error was "connection is already set up".
-[ ] Memory leak (might be fixed by GC thread; we'll have to wait
-    and see).
+[-] Memory leak (might be fixed by GC thread; we'll have to wait
+    and see). (don't think this is a mem leak; I think it's the feeds
+    getting cached in memory).
 [*] corrupting international characters? (see
     http://www.raggle.org/files/swedish_char_corruption/)
 [ ] doesn't handle host relative URLs properly (reported by Harry Ohlsen
@@ -66,3 +67,6 @@ Bugs
 [*] inconsistent theme color specification (some items take multiple
     attributes, some don't). reported by Phil Gregory
     <phil@mithrandir.aperiodic.net>
+[ ] over-zealous UTF-8 mangling (reported by Gea-Suan Lin
+    <gslin@ccca.nctu.edu.tw>). see
+    http://raggle.org/pipermail/raggle-dev/2003-September/000146.html.

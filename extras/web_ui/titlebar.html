@@ -7,34 +7,20 @@
     <title>Raggle</title>
     <meta name='author'         content='Raggle' />
     <meta name='description'    content='Raggle Titlebar' />
-    <meta name='keywords'       content='rss channels feeds' />
+    <meta name='keywords'       content='rss feed aggregator' />
 
-    <link title='default' href='/inc/titlebar.css'
+    <link title='default' href='/inc/default.css'
       rel='stylesheet' type='text/css' />
   </head>
 
-  <!--body bgcolor="#eeeeee">
+  <body bgcolor='#eeeeee' class='titlebar'>
     <div id='titlebar'>
-      <a class='titlebar-link' target='raggle-article'
+      <a class='tb-title' target='_new'
          href='http://www.raggle.org/'>Raggle</a>
-    </div-->
-  <script language='javascript'>
-    <!--
-    function addFeed() {
-      url = prompt('Please enter the Feed URL.', 'http://');
-      if (url && url != '')
-        parent.feed.location.href = '/raggle/feed/?mode=add&url=' + url;
-    }
-    // -->
-  </script>
-
-  <body bgcolor="#eeeeee">
-    <a target='feed' href=''
-      onClick='javascript:addFeed(); return false;'>Add Feed</a> |
-    <a target='feed'
-      href='/raggle/feed/?mode=invalidate_all'>Reload Feeds</a> |
-    <a target='feed' href='/raggle/feed/?mode=sort'>Sort Feeds</a> |
-    <a target='feed' href='/raggle/feed/?mode=save_feed_list'>Save Feeds</a> |
-    <a target='_top' href='/raggle/quit'>Quit Raggle</a>
+    </div>
+    <div id='titlebar-opts'>
+      <a target='_new' href='http://www.raggle.org/docs/'>Help</a> |
+      <a target='_top' href='/raggle/quit'>Quit</a>
+    </div>
   </body>
 </html>

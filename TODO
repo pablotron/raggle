@@ -33,9 +33,9 @@ Raggle TODO
 [ ] RSS locator (see link from http://www.pablotron.org/?cid=1154)
 [ ] item delete, mark items as unread, stick (save, hilite?) items, etc
 [*] proxy support (via ENV['HTTP_PROXY'], etc?)
-[ ] display / dump raw feed output
+[*] display / dump raw feed output
 [*] conditional HTTP GET to reduce bandwidth use and increase speed
-[ ] "update this feed now!" option from within Raggle
+[*] "update this feed now!" option from within Raggle
 [*] 'manual_update' option for modem lusers
 [ ] Select Next Unread (n), should work for feeds as well as items
 [*] Previous unread item would be useful also (I don't read in order, always)
@@ -53,7 +53,7 @@ Raggle TODO
       not doing it.
 [-] extended RSS support (1.0 modules, including Dublin Core and
     Syndication support, etc)
-[ ] Check that the feedlist and feedcache are valid, after saving
+[-] Check that the feedlist and feedcache are valid, after saving
     them. Write to another file, and check it, then move it into place
 [ ] select and follow links in description window (suggested by Omnic)
 [-] add, remove, edit feeds inside Raggle
@@ -64,7 +64,7 @@ Raggle TODO
 [ ] BlogThis support?
 [ ] user-configurable http open timeout and http read timeout
 [ ] per-feed xpath configuration?
-[ ] feed groups
+[*] feed groups
 [ ] clean separation of Ncurses and WEBrick interfaces (maybe an
     Interfaces module).  Don't require Ncurses if WEBrick is
     installed.

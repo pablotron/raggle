@@ -1532,3 +1532,42 @@
   * raggle: don't save feed list and feed cache on crash (I don't like
     this behavior, but hey)
   * raggle: back-up feeds.yaml before saving it (to feeds.yaml~)
+
+* Tue Sep 23 22:21:17 2003, pabs <pabs@pablotron.org>
+  * BUGS: marked off old ones, added new ones from mailing list
+  * TODO: marked off completed stuff
+  * raggle: don't trap SIGTERM any more
+  * raggle: minor tabbing cleanups
+  * raggle: remove some commented cruft
+  * raggle: fix web interface quit
+  * raggle: make quit a template (for version)
+  * raggle: add category to item list and desc templates (as CATEGORY)
+  * raggle: http_thread => $http_thread
+  * raggle: lower shutdown sleep to 0.5 seconds
+  * extras/web_ui/titlebar.html: use inc/default.css
+  * extras/web_ui/titlebar.html: get rid of old commented junk
+  * extras/web_ui/titlebar.html: remove feed options (in feed list now)
+  * extras/web_ui/titlebar.html: add title back
+  * extras/web_ui/titlebar.html: add help and quit buttons
+  * extras/web_ui/inc/default.css: add category-form style
+  * extras/web_ui/inc/default.css: fix oogly item list font sizes
+    (that's the last time i listen to web design advice from a web
+     designer)
+  * extras/web_ui/inc/default.css: add style for titlebar
+  * extras/web_ui/inc/default.css: add style for quit page
+  * removed extras/web_ui/inc/desc.css
+  * extras/web_ui/inc/feed.html: remove invalidate feed button
+  * extras/web_ui/inc/feed.html: add edit feed button
+  * extras/web_ui/inc/feed.html: javascript desc for edit and del btns
+  * extras/web_ui/inc/feed_list.html: add addFeed() 
+  * extras/web_ui/inc/feed_list.html: make selectFeed() is category-aware
+  * extras/web_ui/inc/feed_list.html: add add, save, and sort to cat form
+  * removed extras/web_ui/inc/feedopts.css
+  * extras/web_ui/inc/item.html:  make link category-aware
+  * removed extras/web_ui/inc/item_list.css
+  * extras/web_ui/inc/item_list.html: make selectFeedItem() category-aware
+  * extras/web_ui/inc/quit.html: removed javascript (silly copy & paste)
+  * extras/web_ui/inc/quit.html: added copyright and version info
+  * removed extras/web_ui/inc/titlebar.css
+
+

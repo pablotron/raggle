@@ -16,11 +16,17 @@
 
   <script language='javascript'>
   <!--
-  function selectFeed(feed_id) {
-    parent.feed.location.href = '/raggle/feed';
-    parent.desc.location.href = '/raggle/desc?feed_id=' +
-      feed_id + '&amp;item_id=0';
-  }
+    function addFeed() {
+      url = prompt('Please enter the Feed URL.', 'http://');
+      if (url && url != '')
+        parent.feed.location.href = '/raggle/feed/?mode=add&url=' + url;
+    }
+
+    function selectFeed(feed_id) {
+      parent.feed.location.href = '/raggle/feed/?category=__CATEGORY__';
+      parent.desc.location.href = '/raggle/desc?category=__CATEGORY__' + 
+        '&amp;feed_id=' + feed_id + '&amp;item_id=0';
+    }
 
   // -->
   </script>
@@ -30,9 +36,13 @@
       __FEED_LIST_TITLE__
     </div>
 
-    <form method='get' action='/raggle/feed' class='category-form'>
-      <b>Category:</b>
-      __CATEGORY_SELECT__
+    <form method='get' action='/raggle/feed' id='category-form'>
+      <b>Show:</b>
+      __CATEGORY_SELECT__ |
+      <a href='' onClick='javascript:addFeed(); return false;'>Add</a> |
+      <!--a href='/raggle/feed/?mode=invalidate_all'>Reload</a> | -->
+      <a href='/raggle/feed/?mode=save_feed_list'>Save</a> |
+      <a href='/raggle/feed/?mode=sort'>Sort</a>
     </form>
 
     <table id='feed-list-table' width='100%'>

@@ -860,7 +860,8 @@
   * raggle: make die() take multiple arguments. ala puts
 
 * Thu Jul 03 15:15:19 2003, pabs <pabs@pablotron.org>
-  * raggle: escape % in die strings
+  * raggle: escape % in die strings.  Based on a patch from
+    Nikolai Weibull (lone-star@home.se)
 	
 * Thu Jul 03 16:06:09 2003, pabs <pabs@pablotron.org>
   * raggle: args => *args in die()
@@ -877,3 +878,5 @@
   * raggle: don't draw if text == nil or text.size <= 0 in
     draw_text
 
+* Thu Jul 03 21:08:51 2003, pabs <pabs@pablotron.org>
+  * ChangeLog: attributed % escape in die() to correct person

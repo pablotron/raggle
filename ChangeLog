@@ -2162,3 +2162,5 @@
   * raggle: minor fixes to String functions
   * raggle: fixed get_key_bindings to not show parameters
   * raggle: more accurate line counting for String#lines
+  * raggle: fixed saving of item position when changing windows
+    if you've scrolled to other pages in item window

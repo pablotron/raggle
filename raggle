@@ -2549,9 +2549,11 @@ ENDUSAGE
 
         # clear item window
         item_win = $wins[NcursesInterface::get_win_id('item')]
-        item_win.offset = 0
         # don't reset active item unless feed actually changed
-        item_win.active_item = 0 unless $old_feed == $a_feed
+        unless $old_feed == $a_feed
+          item_win.offset = 0
+          item_win.active_item = 0
+        end
         item_win.items.clear
 
         $wins[NcursesInterface::get_win_id('desc')].offset = 0

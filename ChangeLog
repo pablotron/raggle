@@ -1705,3 +1705,8 @@
 
 * Fri Nov 07 15:23:13 2003, pabs <pabs@pablotron.org>
   * raggle: don't require ruby1.8
+
+* Thu Nov 13 00:34:14 2003, heap <vaine@cs.helsink.fi>
+  * raggle: Change how the browser is launched, this seems to fix 
+  the bug that prevented some urls from loading properly.
+  * BUGS: mark the URL loading bug as fixed.

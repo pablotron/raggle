@@ -1487,29 +1487,33 @@ class Window
         save_screen unless use_screen
 
         # get browser command
-        cmd = $config['browser_cmd'] % @items[@active_item]['url'].escape
+	cmd = $config['browser_cmd'].map do |cmd_part|
+	  case cmd_part
+	  when /%s/
+	    cmd_part % @items[@active_item]['url'].escape
+	  when '${browser}'
+	    $config['browser']
+	  else
+	    cmd_part
+	  end
+	end
 
         # prepend screen command if we're using it
         if use_screen
-          screen_cmd = if $config['screen_cmd'] =~ /%s/
-            # $config['screen_cmd'] % @items[@active_item]['real_title']
-            $config['screen_cmd'] % @items[@active_item]['title']
-          else
-            $config['screen_cmd']
-          end
+	  screen_cmd = $config['screen_cmd'].map do |cmd_part|
+	    if cmd_part =~ /%s/
+	      cmd_part % @items[@active_item]['title']
+	    else
+	      cmd_part
+	    end
+	  end
 
           # build new command
-          cmd = screen_cmd << ' ' << cmd
+          cmd.unshift(*screen_cmd) 
         end
 
-        if cmd =~ $config['shell_meta_regex'] and !$config['force_url_meta']
-          Ncurses::beep
-          set_status "Refusing to open link containing meta-characters"
-        else
-          # execute command
-          system cmd
-        end
-
+	system(*cmd)
+	
         # reset screen
         restore_screen unless use_screen
       end
@@ -3737,11 +3741,11 @@ $config = {
   'use_screen'            => true,
 
   # screen command
-  'screen_cmd'            => 'screen -t "%s"',
+  'screen_cmd'            => ['screen', '-t', '%s'],
   
   # browser options
   'browser'               => Path::find_browser,
-  'browser_cmd'           => '${browser} %s',
+  'browser_cmd'           => ['${browser}', '%s'],
 
   # Force raggle to accept shell metacharacters in urls.
   'force_url_meta'        => false,

@@ -2353,3 +2353,8 @@ _Cvs
 * Mon Mar 14 16:16:59 2005, pabs <pabs@pablotron.org>
   * raggle: remove www. from raggle sites
   * raggle: fix terminal resizing (yes, i'm fucking serious!)
+
+* Mon Mar 14 16:58:24 2005, pabs <pabs@pablotron.org>
+  * raggle: add comments to several methods and modules missing them
+    (for API documentation, and some vague attempt at a semblence of
+    organization)

@@ -1836,36 +1836,67 @@ ENDUSAGE
   # Interface-specific components of Raggle.
   #
   module Interfaces
+    #
+    # NcursesInterface - methods and classes specific to the Ncurses
+    # interface of Raggle.
+    #
     module NcursesInterface
+      #
+      # Keyboard wrappers for common functions
+      #
       module Key
+        #
+        # Generic key wrapper for scrolling up a line
+        #
         def Key::scroll_up
           $wins[$a_win].scroll_up if $wins[$a_win]
         end
 
+        #
+        # Generic key wrapper for scrolling down a line
+        #
         def Key::scroll_down
           $wins[$a_win].scroll_down if $wins[$a_win]
         end
 
+        #
+        # Generic key wrapper for scrolling to the top of the list
+        #
         def Key::scroll_top
           $wins[$a_win].scroll_top if $wins[$a_win]
         end
 
+        #
+        # Generic key wrapper for scrolling to the bottom of the list
+        #
         def Key::scroll_bottom
           $wins[$a_win].scroll_bottom if $wins[$a_win]
         end
 
+        #
+        # Generic key wrapper for scrolling up a page
+        #
         def Key::scroll_up_page
           $wins[$a_win].scroll_up_page if $wins[$a_win]
         end
 
+        #
+        # Generic key wrapper for scrolling down a page
+        #
         def Key::scroll_down_page
           $wins[$a_win].scroll_down_page if $wins[$a_win]
         end
 
+        #
+        # Generic key wrapper for quitting raggle
+        #
         def Key::quit
           $done = true
         end
 
+        #
+        # Generic key wrapper for adding a feed.
+        #
         def Key::add_feed
           if $a_win == NcursesInterface::get_win_id('find')
             # add the feed selected in find window
@@ -1896,11 +1927,17 @@ ENDUSAGE
           end
         end
 
+        #
+        # Generic key wrapper for skipping to next window
+        #
         def Key::next_window
           win_id = ($a_win + 1) % $wins.size
           NcursesInterface::set_active_win(win_id)
         end
 
+        #
+        # Generic key wrapper for skipping to previous window
+        #
         def Key::prev_window
           win_id = (($a_win - 1 < 0) ? $wins.size : $a_win) - 1
           NcursesInterface::set_active_win(win_id)
@@ -1918,16 +1955,25 @@ ENDUSAGE
           end
         end
 
+        #
+        # Generic key wrapper for selecting the current item
+        #
         def Key::select_item
           $wins[$a_win].select_win_item if $wins[$a_win]
         end
 
+        #
+        # Generic key wrapper for moving the current feed up
+        #
         def Key::move_feed_up
           win = $wins[NcursesInterface::get_win_id('feed')]
           $a_feed = $config['feeds'].move_up(win.active_item)
           win.move_item_up
         end
 
+        #
+        # Generic key wrapper for moving the current feed down
+        #
         def Key::move_feed_down
           win = $wins[NcursesInterface::get_win_id('feed')]
           $a_feed = $config['feeds'].move_down(win.active_item)
@@ -2097,14 +2143,23 @@ ENDUSAGE
           end
         end
 
+        #
+        # Generic key wrapper for forcing a feed upate
+        #
         def Key::manual_update
           $feed_thread.run
         end
 
+        #
+        # Generic key wrapper for forcing a feed list save
+        #
         def Key::manual_save
           Engine::save_config(quit=false)
         end
 
+        #
+        # Generic key wrapper for finding an entry in the current window
+        #
         def Key::find_entry(win)
           NcursesInterface::find_entry(win)
         end
@@ -2128,6 +2183,9 @@ ENDUSAGE
           ret << ' ' * (width - ret.size - count_str.size) << count_str
         end
 
+        #
+        # Get a list of categories and select one
+        #
         def Key::gui_cat_list
           id = NcursesInterface::get_win_id('cat')
           if id == -1
@@ -2173,6 +2231,9 @@ ENDUSAGE
           end
         end
 
+        #
+        # Find a feed using Syndic8.
+        #
         def Key::gui_find_feed
           NcursesInterface::find_feeds if $HAVE_LIB['xmlrpc']
         end
@@ -2215,6 +2276,9 @@ ENDUSAGE
         end
       end
 
+      #
+      # Window - basic window class
+      #
       class Window
         attr_accessor :win, :title, :key, :colors, :active, :items, :active_item, :offset
 
@@ -2281,6 +2345,9 @@ ENDUSAGE
           Ncurses::wrefresh @win
         end
 
+        #
+        # Clear lines start to fini in the current window.
+        # 
         def clearrange(start, fini)
           w = dimensions[0]
           set_color('text')
@@ -2374,16 +2441,25 @@ ENDUSAGE
           end
         end
 
+        #
+        # reflow a string for this window
+        #
         def reflow_string(str)
           w = dimensions[0]
           str.reflow(w - 4)
         end
         
+        #
+        # Debugging method
+        #
         def method_missing(id)
           raise "Please implement #{self.class}##{id.id2name}"
         end
       end
         
+      #
+      # ListWindow - window with a list of items in it.
+      #
       class ListWindow < Window
         #
         # redraw window items
@@ -2523,6 +2599,9 @@ ENDUSAGE
           activate 0
         end
 
+        #
+        # move selected item down one spot
+        #
         def move_item_down
           if @active_item < @items.size - 1 
             nitem = @items[@active_item + 1]
@@ -2533,6 +2612,9 @@ ENDUSAGE
           end
         end
 
+        #
+        # move selected item up one spot
+        #
         def move_item_up
           if @active_item > 0
             pitem = @items[@active_item - 1]
@@ -2543,12 +2625,18 @@ ENDUSAGE
           end
         end
 
+        #
+        # delete active item
+        #
         def delete_item
           @items.delete_at(@active_item)
           NcursesInterface::populate_feed_win
         end
       end
 
+      #
+      # TextWindow - window with text in it
+      #
       class TextWindow < Window
         def reflow_string(str)
           w = dimensions[0]
@@ -3058,6 +3146,9 @@ ENDUSAGE
         end
       end
       
+      #
+      # select the specified category
+      #
       def NcursesInterface::select_cat(str)
         $old_cat = $category || 'all'
         $category = str
@@ -3417,9 +3508,13 @@ ENDUSAGE
         keys.delete_if { |key, value| value == 'Select item' and key != 'Space' }
       end
 
+      #
+      # terminal resize handler
+      #
       def NcursesInterface::resize_term
         # force refresh (to get new screen coords)
         Ncurses::refresh
+
         # get screen coordinates
         h = []; w = []
         Ncurses::getmaxyx Ncurses::stdscr, h, w
@@ -3475,9 +3570,9 @@ ENDUSAGE
         NcursesInterface::restore_screen
       end
       
-      ##
-      # Ugly
-      # -- richlowe 2003-07-01
+      #
+      # initialize Ncurses interface
+      #
       def NcursesInterface::init
         # immediately set up resize queue and resize thread
         $resize_queue ||= Queue.new
@@ -3551,7 +3646,7 @@ ENDUSAGE
       end
 
       #
-      # main input loop
+      # main input loop for Ncurses interface
       #
       def NcursesInterface::main_loop
         timeout = $config['input_select_timeout']
@@ -3577,10 +3672,20 @@ ENDUSAGE
       end
     end
 
+    #
+    # HTTPServerInterface - module containing classes and functions
+    # specific to the Raggle WEBrick interface.
+    #
     module HTTPServerInterface
+      #
+      # HTTPServer - HTTP server interface class
+      #
       class HTTPServer
         attr_accessor :server, :opts, :templates
 
+        #
+        # Create a new HTTPServer object
+        #
         def initialize(opts)
           @opts = opts
           s = WEBrick::HTTPServer::new(
@@ -3810,14 +3915,23 @@ ENDUSAGE
           @server = s
         end
 
+        #
+        # Start this HTTPServer object
+        #
         def start
           @server.start
         end
 
+        #
+        # Shut down (stop) this HTTPServer object.
+        #
         def shutdown
           @server.shutdown
         end
 
+        #
+        # Build feed image string from feed_image template.
+        #
         def build_feed_image(feed)
           # get feed image
           feed_image = ''
@@ -3835,6 +3949,9 @@ ENDUSAGE
           feed_image
         end
 
+        #
+        # Build category select list.
+        #
         def build_category_select(cat = nil)
           cat = 'all' unless cat
           
@@ -3856,6 +3973,7 @@ ENDUSAGE
 
       #
       # initialize HTTP server interface
+      #
       def HTTPServerInterface::init
         # check to make sure web ui dir exists
         path = $config['web_ui_root_path']
@@ -3947,6 +4065,10 @@ ENDUSAGE
     end
   end
     
+  # 
+  # Module containing Raggle functions and classes specific to grabbing,
+  # parsing, and storing feeds.
+  #
   module Engine
     # 
     # expand path macros in $config
@@ -4718,6 +4840,9 @@ end
 # End Shenanigans, Begin Actual Code                                  #
 #######################################################################
 
+#
+# main program
+#
 def main
   # load config files (config.rb, and feeds.yaml)
   opts = Raggle::Engine::load_config

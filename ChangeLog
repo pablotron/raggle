@@ -1243,3 +1243,6 @@
 * Tue Sep 02 18:32:46 2003, pabs <pabs@pablotron.org>
   * correct autofocus behavior (select active item on window change
     as well)
+
+* Tue Sep 02 19:09:10 2003, pabs <pabs@pablotron.org>
+  * TODO: more ideas!!!

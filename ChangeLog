@@ -394,3 +394,15 @@
   * raggle: mark empty feeds in _red_, not as read (that's what I
     get for _talking_ to Richard, instead of typing to him :D)
 
+* Sun Jun 22 02:07:56 EDT 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Allow FeedList's to be derefed like Array's
+            (just for Paul)
+	    INTERESTING NOTE:
+	    We can't delegate to Array, because that breaks YAML in all
+	    *sorts* of ways, basically, it makes a call that's delegated
+	    to the array, and thus assumes writes out based on the fact
+	    that FeedList *is* that array.  This is not good.  If only I
+	    knew the exact method I had to implement in FeedList to
+	    convince it not to do that.
+	  
+

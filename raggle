@@ -274,6 +274,10 @@ class FeedList
     @feeds << feed
   end
 
+  def [](*n)
+    @feeds[*n]
+  end
+  
   def get(id)
     raise "FeedList#get: Feed not found: #{id}" unless @feeds.size >= id
     @feeds[id]

@@ -53,3 +53,5 @@ Raggle TODO
       not doing it.
 [ ] extended RSS support (1.0 modules, including Dublin Core and
     Syndication support, etc)
+[ ] Check that the feedlist and feedcache are valid, after saving
+    them. Write to another file, and check it, then move it into place

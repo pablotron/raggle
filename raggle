@@ -684,13 +684,13 @@ module OPML
   # Import OPML file
   # file_name::  OPML file
   # refresh::    refresh rate used for all imported feeds.
-  #              If nil, then value of option +feed_default_value+
+  #              If nil, then value of option +default_feed_refresh+
   #              is used.
   # lock_title:: If true, then all titles of imported feeds
   #              will be locked
   # save_items:: If true, then all imported feeds' items will be saved.
   def OPML::import(file_name, refresh=nil, lock_title=false, save_items=false, force=false)
-    refresh = $config['feed_default_refresh'] unless refresh
+    refresh = $config['default_feed_refresh'] unless refresh
     feed_list = $config['feeds']
 
     begin

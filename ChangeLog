@@ -300,3 +300,8 @@
 * Fri Jun 20 21:24:25 EDT 2003, richlowe <richlowe@richlowe.net>
   * raggle.1: Add mdoc manpage (needs changing to ms, preferably).
 
+* Fri Jun 20 21:31:31 EDT 2003, richlowe <richlowe@richlowe.net>
+  * raggle: Add -i/--invalidate to usage.
+  * raggle.1: Document -i/--invalidate.
+
+

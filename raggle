@@ -4495,17 +4495,20 @@ ENDUSAGE
         # load feed list
         feeds_str = File.read($config['feed_list_path'])
 
-        # if it's a pre-0.4.0 feed list, then strip out the ruby/object
-        # nonsense and shift all lines over
-        if feeds_str =~ /^--- !ruby\/object:/
-          feeds_str = feeds_str.select { |line| 
-            line !~ /^(feeds:|--- !ruby\/object:)/ 
-          }.map { |line| line.gsub(/^  /, '') }.join
-        end
+        # check if feed list is empty
+        if feeds_str.size > 0
+          # if it's a pre-0.4.0 feed list, then strip out the ruby/object
+          # nonsense and shift all lines over
+          if feeds_str =~ /^--- !ruby\/object:/
+            feeds_str = feeds_str.select { |line| 
+              line !~ /^(feeds:|--- !ruby\/object:)/ 
+            }.map { |line| line.gsub(/^  /, '') }.join
+          end
 
-        # make sure the feed list exists, deserialize our feed list
-        $config['feeds'] ||= Raggle::Feed::List.new
-        $config['feeds'].feeds = YAML::load(feeds_str)
+          # make sure the feed list exists, deserialize our feed list
+          $config['feeds'] ||= Raggle::Feed::List.new
+          $config['feeds'].feeds = YAML::load(feeds_str)
+        end
       end
 
       # if there is no feed list, then load the default one

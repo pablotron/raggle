@@ -2491,3 +2491,6 @@ _Cvs
 
 * Wed Mar 23 17:55:00 2005, redshift <redshift@halffull.org>
   * raggle: add status message upon searching if we lack xmlrpc
+
+* Mon May 16 15:15:00 2005, redshift <redshift@halffull.org>
+  * raggle: add patch to fix empty feed lists

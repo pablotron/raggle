@@ -593,6 +593,8 @@ module Raggle
       end
     end
     
+    BROWSERS = %w{links elinks w3m lynx iexplore.exe explorer.exe}
+    
     #
     # Find browser, or exit if a browser cannot be found.
     #
@@ -606,12 +608,15 @@ module Raggle
     def Path::find_browser
       ret = ENV['RAGGLE_BROWSER']
       ret ||= ENV['BROWSER']
-      ret ||= %w{links elinks w3m lynx iexplore.exe explorer.exe}.find { |app| find_app(app) }
+      ret ||= BROWSERS.find { |app| find_app(app) }
 
       # die if we couldn't find a browser
-      die "Couldn't find suitable browser.",
-          "Please set $RAGGLE_BROWSER, $BROWSER, or install one of the following",
-          "console browsers: ELinks, Links, Lynx. or W3M." unless ret
+      unless ret
+        $stderr.puts "WARNING: Couldn't find suitable browser, opening external links.",
+          "WARNING: has been disabled.  Please set $RAGGLE_BROWSER, $BROWSER, or install",
+          "WARNING: one of the following browsers: ELinks, Links, Lynx. or W3M."
+        $stdin.gets
+      end
 
       # return browser
       ret
@@ -3447,6 +3452,7 @@ ENDUSAGE
       #
       def NcursesInterface::open_link(item)
         return unless item['title'] and (item['url'] or item['site'])
+        return unless $config['browser']
         url = item['site'] || item['url']
 
         # are we opening new screen windows?

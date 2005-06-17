@@ -2515,4 +2515,8 @@ _Cvs
   * TODO: mark some old stuff off
 
 * Fri Jun 17 02:48:59 2005, pabs <pabs@pablotron.org>
-  * fix host-relative URLs using URI (Fixes: #17)
+  * raggle: fix host-relative URLs using URI (Fixes: #17)
+
+* Fri Jun 17 03:53:57 2005, pabs <pabs@pablotron.org>
+  * raggle: don't require a browser, but disable opening links if
+    one doesn't exist (Fixes: #14)

@@ -2513,3 +2513,6 @@ _Cvs
   * COPYING: add 2005 to copyright notice
   * raggle: ditto
   * TODO: mark some old stuff off
+
+* Fri Jun 17 02:48:59 2005, pabs <pabs@pablotron.org>
+  * fix host-relative URLs using URI (Fixes: #17)

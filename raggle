@@ -80,7 +80,7 @@ require 'net/http'
 require 'pstore'
 require 'thread'
 require 'time'
-# require 'rubygems'
+require 'uri'
 
 #########################
 # load external modules #
@@ -3375,14 +3375,14 @@ ENDUSAGE
         # TODO: fix this stuff with URI#merge
         item_content = feed['items'][id]['desc']
         if $config['repair_relative_urls']
-          # get host portion of original URL
-          host_url = feed['url'].gsub(/^((?:\w+):\/\/)?([^\/]+)(\/.*)?$/, '\1\2')
+          # parse feed URL
+          host_uri = URI::parse(feed['url'])
       
           item_content = item_content.gsub(/href\s*=\s*["']([^'"]+?)['"]/m) {
             m = $1.dup
             new_url = case m
               when (/^(\w+):\/\//): m
-              else [host_url, m].join('/')
+              else host_uri.merge(m).to_s
             end
             "href='#{new_url}'"
           }

@@ -67,14 +67,14 @@ Bugs
 [*] inconsistent theme color specification (some items take multiple
     attributes, some don't). reported by Phil Gregory
     <phil@mithrandir.aperiodic.net>
-[ ] over-zealous UTF-8 mangling (reported by Gea-Suan Lin
+[*] over-zealous UTF-8 mangling (reported by Gea-Suan Lin
     <gslin@ccca.nctu.edu.tw>). see
     http://raggle.org/pipermail/raggle-dev/2003-September/000146.html.
 [*] some URLs don't load properly in ncurses interface (bug in command-
     line handling?) there was a post demonstrating this repeatedly on
     the mailing list on October, but I don't have the URL handy at the
     moment)
-[ ] outstanding terminal resize / redraw bug
+[*] outstanding terminal resize / redraw bug
 [*] parallel feed grabbing kills main feed grabbing thread, and
     sometimes Raggle along with it
 [*] regex range warnings (reported by Brian Almeida)

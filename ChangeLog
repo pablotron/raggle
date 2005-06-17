@@ -2503,3 +2503,13 @@ _Cvs
 		in)
   * raggle: increment version to 0.4.1-test
   * raggle: add unicode and html entity lookup tables
+
+* Fri Jun 17 02:29:20 2005, pabs <pabs@pablotron.org>
+  * AUTHORS: add Narayanan and Michael
+  * README: add Reporting Bugs section
+  * README: minor updates to my URLs
+  * README: increment version number to 0.4.1
+  * BUGS: mark off old bugs
+  * COPYING: add 2005 to copyright notice
+  * raggle: ditto
+  * TODO: mark some old stuff off

@@ -33,7 +33,7 @@ Ville Aine <vaine@cs.helsinki.fi>
 * HTML rendering
 
 Brian Almeida <bma@tynian.net>
-* Debian package maintainer
+* former Debian package maintainer
 
 Richard Zidlicky <rz@linux-m68k.org>
 * preliminary HTTP proxy support
@@ -74,3 +74,10 @@ Thomas Kirchner <redshift@halffull.org>
 * rewrote man page for clarity/new features
 * many continuity fixes for window switching
 * lots of miscellaneous cleanup/bug fixes
+
+Narayanan R S <nars@poboxes.com>
+* patch to fix illegal Iconv sequences
+
+Michael Ablassmeier <abi@grinser.de>
+* current Debian maintainer
+

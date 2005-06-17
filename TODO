@@ -3,7 +3,7 @@ Raggle TODO
 [*] scrolling
 [*] sanitize window modes (remove text reflow from draw())
 [*] clean up code (move methods to modules, eliminate globals, etc)
-[-] modularize code to make it suitable for reuse
+[*] modularize code to make it suitable for reuse
 [*] finish inline documentation
 [*] command-line options
 [*] feed grab save existing items
@@ -119,5 +119,5 @@ Raggle TODO
     <junkblocker@yahoo.com>)
 [*] implement feed adding directly from find window
 [ ] update Net::HTTP calls to 1.2 (ruby 1.8-style)
-[ ] add :exec-style bookmarks
+[*] add :exec-style bookmarks
 [ ] add time field/format string for db bookmarks

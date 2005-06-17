@@ -38,7 +38,7 @@
 #######################################################################
 
 # Raggle version
-$VERSION = '0.4.0'
+$VERSION = '0.4.1-pre'
 
 # installed data directory
 # (note: don't touch this line, it's automatically converted by 
@@ -96,7 +96,6 @@ require 'time'
   'iconv'       => ['iconv',          'Iconv',        false],
   'gettext'     => ['gettext',        'GetText',      false],
   'fileutils'   => ['fileutils',      'FileUtils',    false],
-  'rubilicious' => ['rubilicious',    'Rubilicious',  false],
   'sqlite'      => ['sqlite',         'SQLite' ,      false],
   'mysql'       => ['mysql',          'MySQL',        false],
 }.each { |key, info|
@@ -286,6 +285,153 @@ class String
     self
   end
 
+  # 
+  # HTML Entity Lookup Table
+  #
+  # source of this LUT: 
+  #   http://www.htmlcodetutorial.com/characterentities_famsupp_69.html
+  #
+  HTML_ENTITY_LUT = {
+    'quot'    => '"', # quote
+    'amp'     => '&', # amperstand
+    'lt'      => '<', # less-than
+    'gt'      => '>', # greater-than
+    'nbsp'    => ' ', # nonbreaking space
+    'cent'    => '[cent]', # cent
+    'pound'   => '[pound]', # pound
+    'yen'     => '[yen]', # yen
+    'brvbar'  => '|', # broken vertical bar
+    'copy'    => '(c)', # copyright
+    'laquo'   => '<<', # left-pointing double angle quotation mark
+    'not'     => '[not]', # not
+    'reg'     => '(r)', # registered trademark
+    'deg'     => '[degree]', # degree
+    'plusmn'  => '[plus or minus]', # plus or minus
+    'sup2'    => '[squared]', # superscript 2, squared
+    'sup3'    => '[cubed]', # superscript 3, cubed
+    'acute'   => "'", # accute accent
+    'micro'   => "[mu]", # micro (aka mu)
+    'raquo'   => ">>", # right-pointing double angle quotation mark
+    'frac14'  => '[1/4]', # vulgar fraction one quarter
+    'frac34'  => '[3/4]', # vulgar fraction three quarters
+    'times'   => 'x', # times
+    'aelig'   => '[ae]', # latin small ligature ae
+    'divide'  => '/', # divide
+    'OElig'   => '[OE]', # latin capital ligature OE
+    'oelig'   => '[oe]', # latin small ligature OE
+    'fnof'    => '[f()]', # latin small f with hook = function = florin
+    'circ'    => '^', # circumflex
+    'tilde'   => '~', # small tilde
+    'trade'   => '[tm]', # trademark
+    'ndash'   => '-', # en dash
+    'mdash'   => '--', # em dash
+  }
+
+  # 
+  # Unicode Entity Lookup Table
+  #
+  # source of this LUT:
+  #   http://www.pemberley.com/janeinfo/latin1.html
+  #
+  UNICODE_LUT = {
+    732  => '~', # small tilde
+    733  => '~', # double-small acute tilde
+    913  => '[ALPHA]', # capital alpha
+    914  => '[BETA]', # capital beta
+    915  => '[GAMMA]', # capital gamma
+    916  => '[DELTA]', # capital delta
+    917  => '[EPSILON]', # capital epsilon
+    918  => '[ZETA]', # capital zeta
+    919  => '[ETA]', # capital eta
+    920  => '[THETA]', # capital theta
+    921  => '[IOTA]', # capital iota
+    922  => '[KAPPA]', # capital kappa
+    923  => '[LAMDA]', # capital lamda
+    924  => '[MU]', # capital mu
+    925  => '[NU]', # capital nu
+    926  => '[XI]', # capital xi
+    927  => '[OMICRON]', # capital omicron
+    928  => '[PI]', # capital pi
+    929  => '[RHO]', # capital rho
+    931  => '[SIGMA]', # capital sigma
+    932  => '[TAU]', # capital tau
+    933  => '[UPSILON]', # capital upsilon
+    934  => '[PHI]', # capital phi
+    935  => '[CHI]', # capital chi
+    936  => '[PSI]', # capital psi
+    937  => '[OMEGA]', # capital omega
+    945  => '[alpha]', # small alpha
+    946  => '[beta]', # small beta
+    947  => '[gamma]', # small gamma
+    948  => '[delta]', # small delta
+    949  => '[epsilon]', # small epsilon
+    950  => '[zeta]', # small zeta
+    951  => '[eta]', # small eta
+    952  => '[theta]', # small theta
+    953  => '[iota]', # small iota
+    954  => '[kappa]', # small kappa
+    955  => '[lamda]', # small lamda
+    956  => '[mu]', # small mu
+    957  => '[nu]', # small nu
+    958  => '[xi]', # small xi
+    959  => '[omicron]', # small omicron
+    960  => '[pi]', # small pi
+    961  => '[rho]', # small rho
+    962  => '[final]', # small final
+    963  => '[sigma]', # small sigma
+    964  => '[tau]', # small tau
+    965  => '[upsilon]', # small upsilon
+    966  => '[phi]', # small phi
+    967  => '[chi]', # small chi
+    968  => '[psi]', # small psi
+    969  => '[omega]', # small omega
+    8208 => '-', # hyphen
+    8211 => '--', # en dash
+    8212 => '--', # em dash
+    8213 => '-', # horizontal bar
+    8216 => "`", # left single quotation mark
+    8217 => "'", # right single quotation mark
+    8218 => ',', #  single low-9 quotation mark
+    8219 => '`', # single high-reversed-9 quotation mark
+    8220 => '``', # left double quotation mark
+    8221 => '"', # right double quotation mark
+    8222 => ',,', # double low-9 quotation mark
+    8226 => '*', # bullet
+    8242 => "'", # prime
+    8243 => "''", # double prime
+    8249 => '<', # single left-pointing angle quotation mark
+    8250 => '>', # single right-pointing angle quotation mark
+    8252 => '!!', # double exclamation point
+    8250 => '/', # fraction slash
+    8355 => '[franc]', # french franc sign
+    8356 => '[lira]', # lira sign
+    8359 => '[peseta]', # peseta sign
+    8453 => '[c/o]', # care of
+    8364 => '[euro]', # euro sign
+    8470 => '[numero]', # numero sign
+    8482 => '[tm]', # trademark sign
+    8486 => '[ohm]', # ohm sign
+    8494 => '[est.]', # estimated symbol
+    8539 => '[1/8]', # vulgar fraction one eighth
+    8540 => '[3/8]', # vulgar fraction three eighths
+    8541 => '[5/8]', # vulgar fraction five eighths
+    8542 => '[7/8]', # vulgar fraction seven eighths
+    8722 => '-', # minus sign
+    8729 => '*', # bullet operator
+    8730 => '[sqrt]', # square root
+    8734 => '[inf]', # infinity
+    8735 => '[right angle]', # right angle
+    8745 => '[intersection]', # intersection
+    8747 => '[integral]', # integal
+    8776 => '[almost equal to]', # almost equal to
+    8800 => '[not equal to]', # not equal to
+    8801 => '[identical to]', # identical to
+    8804 => '[< or =]', # less-than or equal to
+    8805 => '[> or =]', # greater-than or equal to
+    64257 => '[fl]', # latin small ligature fi
+    64258 => '[FL]', # latin small ligature fi
+  }
+
   #
   # Return copy of string with HTML entities converted into ASCII
   # characters.
@@ -297,27 +443,44 @@ class String
   #   '&amp;&lt;br /&gt;'.unescape_html #=> '&<br />'
   #
   def unescape_html
-    munge_uni = !($HAVE_LIB['iconv'] && $config['use_iconv']) || $config['use_iconv_munge']
+    # if we're uing iconv, disable unicode munging unless the override
+    # use_iconv_munge is set
+    munge_uni = !($HAVE_LIB['iconv'] && $config['use_iconv']) || 
+                 $config['use_iconv_munge']
+    munge_str = $config['unicode_munge_str']
 
     str = self.dup
     str.gsub!(/&(.*?);/n) {
-      m = $1.dup
-      case m
-      when /^amp$/ni:   '&'
-      when /^nbsp$/ni:  ' '
-      when /^quot$/ni:  '"'
-      when /^lt$/ni:    '<'
-      when /^gt$/ni:    '>'
-      when /^copy/:     '(c)'
-      when /^trade/:    '(tm)'
-      when /^#8212$/n:  ","
-      when /^#8217$/n:  "'"
-      when /^#(\d+)$/n
-        r = $1.to_i # Integer() interprets leading zeros as octal
-        (!munge_uni || r.between?(0, 255)) ? r.chr : $config['unicode_munge_str']
-      when /^#x([0-9a-f]+)$/ni
-        r = $1.hex
-        (!munge_uni || r.between?(0, 255)) ? r.chr : $config['unicode_munge_str']
+      m = $1.dup.downcase
+      if HTML_ENTITY_LUT.key?(m)
+        HTML_ENTITY_LUT[m]
+      else
+        case m
+        when 'amp':   '&'
+        when 'nbsp'   ' '
+        when /^quot$/ni:  '"'
+        when /^lt$/ni:    '<'
+        when /^gt$/ni:    '>'
+        when /^copy/:     '(c)'
+        when /^trade/:    '(tm)'
+        when /^#8212$/n:  ","
+        when /^#8217$/n:  "'"
+        when /^#8218$/n:  ","
+        when /^#(\d+)$/n
+          r = $1.to_i # Integer() interprets leading zeros as octal
+          if !r.between?(0, 255) && munge_uni
+            UNICODE_LUT[r] ? UNICODE_LUT[r] : munge_str
+          else
+            r.chr
+          end
+        when /^#x([0-9a-f]+)$/ni
+          r = $1.hex
+          if !r.between?(0, 255) && munge_uni
+            UNICODE_LUT[r] ? UNICODE_LUT[r] : munge_str
+          else
+            r.chr
+          end
+        end
       end
     }
     str
@@ -1545,7 +1708,29 @@ ENDWARNING
           end
 
           # decode element using iconv
-          ret = $iconv.iconv(element.text.to_s) << $iconv.iconv(nil)
+          element_text = element.text.to_s
+          begin
+            ret = $iconv.iconv(element_text) << $iconv.iconv(nil)
+          rescue Iconv::IllegalSequence => e
+            success_str = e.success
+            ch, pending_str = e.failed.split(//, 2)
+            ch_int = ch.to_i
+
+            if String::UNICODE_LUT.has_key?(ch_int)
+              $log.puts "[#{Time.now}] WARNING: converting unicode ##{ch_int}"
+              element_text = success_str + UNICODE_LUT[ch_int] + pending_str
+            else
+              if $config['iconv_munge_illegal']
+                $log.puts "[#{Time.now}] WARNING: munging unicode ##{ch_int}"
+                munge_str = $config['unicode_munge_str']
+                element_text = success_str + munge_str + pending_str
+              else
+                $log.puts "[#{Time.now}] WARNING: dropping unicode ##{ch_int}"
+                element_text = success_str + pending_str
+              end
+            end
+            retry
+          end                                                                 
         else
           # iconv isn't installed, or it's disabled; fall back to
           # the old (oogly) encoding behavior
@@ -3625,32 +3810,10 @@ ENDUSAGE
               status = $config['msg_bm_file_err'] % [path, err.to_s]
               NcursesInterface::set_status(status)
             end
-          when :delicious
-            if $HAVE_LIB['rubilicious']
-              status = $config['msg_bm_del_saving']
-              NcursesInterface::set_status(status)
-
-              tags += ' raggle_bookmarks' unless bmb[:no_raggle_tag]
-
-              # connect to del, add URL to del
-              begin
-                # connect to delicious
-                r = Rubilicious.new(bmb[:user], bmb[:pass])
-
-                r.add(url, title, ext, tags)
-              rescue Exception => err
-                # ignore rubilicious error
-                was_saved = false
-                status = $config['msg_bm_del_err'] % [err.to_s]
-                NcursesInterface::set_status(status)
-                $log.puts "#{Time.now}: #{status}"
-              end
-            else
-              # no rubilicious, ignore delicious 
-              was_saved = false
-              status = $config['msg_bm_del_missing']
-              NcursesInterface::set_status(status)
-            end
+          when :exec
+            fork {
+              system(bmb[:path], title, url, tags, ext)
+            }
           when :db
             # build query
             cols, args = [], []
@@ -5000,7 +5163,8 @@ ENDUSAGE
       # (assuming it still exists)
       if !$config['run_http_server'] && !$config['run_drb_server'] &&
          $config['feeds'].get($a_feed)['url'] == feed['url']
-        $wins[NcursesInterface::get_win_id('feed')].select_win_item
+         feed_win_id = Raggle::Interfaces::NcursesInterface::get_win_id('feed')
+        $wins[feed_win_id].select_win_item
       end
     
       # redraw feed / item windows
@@ -5525,7 +5689,8 @@ $config = {
   # 
   'use_iconv'             => true,
   'use_iconv_translit'    => true,
-  'use_iconv_munge'       => false,
+  'use_iconv_munge'       => true,
+  'iconv_munge_illegal'   => true,
 
   # warn if feed refresh is set to less than this
   'feed_refresh_warn'     => 60,
@@ -5819,28 +5984,25 @@ $config = {
       # :inherit_tags => true,
     },
 
-    # save bookmarks to delicious
-    # note: requires rubilicious library, and account on
-    # delicious (see http:/del.icio.us/)
+    # pass bookmark to an arbitrary file
+    # note: doesn't check for success on exit just yet
 # 
-#     { :type => :delicious,
-#        
-#       # required settings
-#       :user => 'USERNAME', # delicious username
-#       :pass => 'PASSWORD', # delicious password
-#       
+#     { :type => :exec,
+#       # path to file to execute
+#       # arguments are passed in the following order:
+#       #   title, url, tags, desc
+#       :path => File::join(ENV['HOME'], 'bin', 'raggle_delicious.rb'),
+# 
 #       # optional settings
-#       # don't prompt for tag (default: false)
-#       # :no_tags         => false,
-#       # don't prompt for description (default: false)
-#       # :no_desc        => false,
-#       # don't add 'raggle_bookmark' to tags (default: false)
-#       # :no_raggle_tag  => false,
+#       # don't prompt for item description (default: false)
+#       :no_desc => true,
+#       # don't prompt for tags (default: false)
+#       # :no_tags => false,
 #       # inherit tags from parent feed? (default: true)
 #       # :inherit_tags => true,
 #     },
 # 
-  
+
     # save bookmarks to sqlite
     # note: requires the sqlite-ruby library, and the bookmark
     # database must exist, with the appropriate table

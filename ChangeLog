@@ -2494,3 +2494,12 @@ _Cvs
 
 * Mon May 16 15:15:00 2005, redshift <redshift@halffull.org>
   * raggle: add patch to fix empty feed lists
+
+* Fri Jun 17 02:03:26 2005, pabs <pabs@pablotron.org>
+  * raggle: add support for :exec bookmarks (pass bookmark off to an
+	  arbitrary applicatoin or script)
+  * raggle: remove delicious support (won't work because of raggle's
+	  old Net::HTTP semantics.  once we fix that then we can add it back
+		in)
+  * raggle: increment version to 0.4.1-test
+  * raggle: add unicode and html entity lookup tables

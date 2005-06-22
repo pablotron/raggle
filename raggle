@@ -2346,7 +2346,7 @@ ENDUSAGE
         #
         def Key::raise_feed_priority
           feed = $config['feeds'].get($a_feed) rescue return
-          feed['priority'] += 1
+          feed['priority'] += 1 rescue feed['priority'] = 1
         end
 
         #
@@ -2354,7 +2354,7 @@ ENDUSAGE
         #
         def Key::lower_feed_priority
           feed = $config['feeds'].get($a_feed) rescue return
-          feed['priority'] -= 1
+          feed['priority'] -= 1 rescue feed['priority'] = -1
         end
 
         #

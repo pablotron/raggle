@@ -2520,3 +2520,6 @@ _Cvs
 * Fri Jun 17 03:53:57 2005, pabs <pabs@pablotron.org>
   * raggle: don't require a browser, but disable opening links if
     one doesn't exist (Fixes: #14)
+
+* Wed Jun 22 15:08:00 2005, redshift <redshift@halffull.org>
+  * raggle: fix r/R for feeds without a priority

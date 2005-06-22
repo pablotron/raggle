@@ -6123,7 +6123,7 @@ $config = {
       'category'  => 'Tech',
       'items'     => [ ],
     },
-    { 'title'     => 'Half Full.org',
+    { 'title'     => 'Halffull.org',
       'url'       => 'http://halffull.org/feed/',
       'site'      => 'http://halffull.org/',
       'desc'      => 'Thomas Kirchner\'s personal site.',

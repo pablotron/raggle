@@ -143,44 +143,58 @@ $config = {
   },
 
   # messages
-  'msg_welcome'           => " Welcome to Raggle #{$VERSION}.",
-  'msg_exit'              => "| Press Q to exit ",
-  'msg_close'             => '[X] ',
-  'msg_grab_done'         => " Raggle #{$VERSION}",
-  'msg_load_config'       => 'Raggle: Loading config...',
-  'msg_load_list'         => 'Raggle: Loading feed list...',
-  'msg_save_list'         => 'Raggle: Saving feed list...',
-  'msg_load_cache'        => 'Raggle: Loading feed cache...',
-  'msg_save_cache'        => 'Raggle: Saving feed cache...',
-  'msg_load_theme'        => 'Raggle: Loading theme...',
-  'msg_save_theme'        => 'Raggle: Saving theme...',
-  'msg_thanks'            => 'Thanks for using Raggle!',
-  'msg_default_input'     => 'Input:',
-  'msg_new_value'         => 'New value:',
-  'msg_term_resize'       => 'Terminal Resize: ',
-  'msg_links'             => 'Links:',
-  'msg_images'            => 'Images:',
-  'msg_add_feed'          => 'Enter URL:',
-  'msg_feed_added'        => 'Feed added',
-  'msg_confirm_delete'    => 'Delete current feed? (y/n)',
-  'msg_find_entry'        => 'Find:',
-  'msg_cat_title'         => 'Display Category',
-  'msg_find_feed'         => 'Find Feeds:',
-  'msg_searching'         => ' Searching...',
-  'msg_find_title'        => 'Search Results for "%s" - %s matching feeds',
-  'msg_find_desc'         => 'Please select a feed...',
-  'msg_find_nomatches'    => 'No results found',
-  'msg_keys_title'        => 'Current Key Bindings',
-  'msg_added_existing'    => 'Warning: Added existing feed',
-  'msg_edit_title'        => 'Edit Feed Options',
-  'msg_bad_option'        => 'Warning: Bad option for %s',
-  'msg_edit_success'      => 'New option saved',
-  'msg_save_done'         => 'Configuration saved',
-  'msg_opml_input'        => 'OPML file or URI:',
-  'msg_opml_exported'     => 'OPML exported',
-  'msg_opml_imported'     => 'OPML imported',
-  'msg_bad_uri'           => 'Error: bad or empty URI',
-  'msg_exec_url'          => 'WARNING: exec url found!',
+  'msg_welcome'           => _(' Welcome to Raggle %s.'),
+  'msg_exit'              => _('| Press Q to exit '),
+  'msg_close'             => _('[X] '),
+  'msg_grab_done'         => _(' Raggle %s'),
+  'msg_load_config'       => _('Raggle: Loading config...'),
+  'msg_load_list'         => _('Raggle: Loading feed list...'),
+  'msg_save_list'         => _('Raggle: Saving feed list...'),
+  'msg_load_cache'        => _('Raggle: Loading feed cache...'),
+  'msg_save_cache'        => _('Raggle: Saving feed cache...'),
+  'msg_load_theme'        => _('Raggle: Loading theme...'),
+  'msg_save_theme'        => _('Raggle: Saving theme...'),
+  'msg_thanks'            => _('Thanks for using Raggle!'),
+  'msg_default_input'     => _('Input:'),
+  'msg_new_value'         => _('New value:'),
+  'msg_term_resize'       => _('Terminal Resize: '),
+  'msg_links'             => _('Links:'),
+  'msg_images'            => _('Images:'),
+  'msg_add_feed'          => _('Enter URL:'),
+  'msg_feed_added'        => _('Feed added'),
+  'msg_confirm_delete'    => _('Delete current feed? (y/n)'),
+  'msg_find_entry'        => _('Find:'),
+  'msg_cat_title'         => _('Display Category'),
+  'msg_find_feed'         => _('Find Feeds:'),
+  'msg_searching'         => _(' Searching...'),
+  'msg_find_title'        => _('Search Results for "%s" - %s matching feeds'),
+  'msg_find_desc'         => _('Please select a feed...'),
+  'msg_find_nomatches'    => _('No results found'),
+  'msg_keys_title'        => _('Current Key Bindings'),
+  'msg_added_existing'    => _('Warning: Added existing feed'),
+  'msg_edit_title'        => _('Edit Feed Options'),
+  'msg_bad_option'        => _('Warning: Bad option for %s'),
+  'msg_edit_success'      => _('New option saved'),
+  'msg_save_done'         => _('Configuration saved'),
+  'msg_opml_input'        => _('OPML file or URI:'),
+  'msg_opml_exported'     => _('OPML exported'),
+  'msg_opml_imported'     => _('OPML imported'),
+  'msg_bad_uri'           => _('Error: bad or empty URI'),
+  'msg_exec_url'          => _('WARNING: exec url found!'),
+
+  # bookmark messages
+  'msg_bm_saving'         => _('Saving bookmark for "%s"'),
+  'msg_bm_saved'          => _('Bookmark saved for "%s".'),
+  'msg_bm_desc'           => _('Bookmark Description:'),
+  'msg_bm_tag'            => _('Bookmark Tags (space-separated):'),
+  'msg_bm_bad_type'       => _('Bad bookmark type: %s'),
+  'msg_bm_bad_db_type'    => _('Unknown database type: %s'),
+  'msg_bm_db_err'         => _('Database Error: %s'),
+  'msg_bm_db_missing'     => _('Missing Database Engine: %s'),
+  'msg_bm_del_err'        => _('Delicious Error: %s'),
+  'msg_bm_del_saving'     => _('Saving Bookmark to Delicious...'),
+  'msg_bm_del_missing'    => _('Error: Rubilicious not installed.'),
+  'msg_bm_file_err'       => _('Error saving to \"%s\": %s'),
 
   # menu bar color
   'menu_bar_cols'         => 24,
@@ -274,13 +288,14 @@ $config = {
   # 
   'use_iconv'             => true,
   'use_iconv_translit'    => true,
-  'use_iconv_munge'       => false,
+  'use_iconv_munge'       => true,
+  'iconv_munge_illegal'   => true,
 
   # warn if feed refresh is set to less than this
   'feed_refresh_warn'     => 60,
 
   # default feed name and refresh rate
-  'default_feed_title'    => 'Untitled Feed',
+  'default_feed_title'    => _('Untitled Feed'),
   'default_feed_refresh'  => 120,
   'default_feed_priority' => 0,
 
@@ -413,6 +428,7 @@ $config = {
     ?                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::close_window} ),
 
     ??                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::show_key_bindings} ),
+    ?B                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::save_bookmark} ),
 
     ?1                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::open_link(1)} ),
     ?2                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::open_link(2)} ),
@@ -488,7 +504,7 @@ $config = {
     # feed window attributes
     'win_feed'      => {
       'key'         => 'feed',
-      'title'       => 'Feeds',
+      'title'       => _('Feeds'),
       'coords'      => [0, 0, 25, -1],
       'type'        => 'list',
       'colors'      => { 
@@ -509,7 +525,7 @@ $config = {
     # item window attributes
     'win_item'      => {
       'key'         => 'item',
-      'title'       => 'Items',
+      'title'       => _('Items'),
       'coords'      => [25, 0, -1, 15],
       'type'        => 'list',
       'colors'      => {
@@ -527,7 +543,7 @@ $config = {
     # desc window attributes
     'win_desc'      => {
       'key'         => 'desc',
-      'title'       => 'Description',
+      'title'       => _('Description'),
       'coords'      => [25, 15, -1, -1],
       'type'        => 'text',
       'colors'      => {
@@ -550,6 +566,111 @@ $config = {
     },
   },
 
+  # bookmark settings
+  # how bookmarks are saved when you press 'B' in the
+  # Ncurses interface
+  'bookmark' => [
+    # basic CSV bookmark file
+    { :type => :csv_file,
+      :path => '${config_dir}/bookmarks.csv', 
+
+      # optional settings
+      # don't prompt for item description (default: false)
+      :no_desc => true,
+      # don't prompt for tags (default: false)
+      # :no_tags => false,
+      # inherit tags from parent feed? (default: true)
+      # :inherit_tags => true,
+    },
+
+    # pass bookmark to an arbitrary file
+    # note: doesn't check for success on exit just yet
+# 
+#     { :type => :exec,
+#       # path to file to execute
+#       # arguments are passed in the following order:
+#       #   title, url, tags, desc
+#       :path => File::join(ENV['HOME'], 'bin', 'raggle_delicious.rb'),
+# 
+#       # optional settings
+#       # don't prompt for item description (default: false)
+#       :no_desc => true,
+#       # don't prompt for tags (default: false)
+#       # :no_tags => false,
+#       # inherit tags from parent feed? (default: true)
+#       # :inherit_tags => true,
+#     },
+# 
+
+    # save bookmarks to sqlite
+    # note: requires the sqlite-ruby library, and the bookmark
+    # database must exist, with the appropriate table
+# 
+#     { :type   => :db,
+#       :dbtype => :sqlite,
+#     
+#       # path to database file
+#       # note: database file MUST already exist!
+#       :path   => '${config_dir}/bookmarks.db',
+# 
+#       # name of table to save bookmarks into
+#       # note: this table MUST already exist!
+#       :table  => 'raggle_bookmarks',
+# 
+#       # list of fields (note: you can omit any of these)
+#       :fields => {
+#         :title  => 'title',
+#         :desc   => 'description',
+#         :url    => 'url',
+#         :tags   => 'tags',
+#       },
+# 
+#       # optional settings
+#       # don't prompt for descriptions (default: false)
+#       # :no_desc => false,
+#       # don't prompt for tags (default: false)
+#       # :no_tags => false,
+#       # inherit tags from parent feed? (default: true)
+#       # :inherit_tags => true,
+#     },
+# 
+
+    # save bookmarks to mysql
+    # note: requires the sqlite-ruby library, and the bookmark
+    # database must exist, with the appropriate table
+# 
+#     { :type   => :db,
+#       :dbtype => :mysql,
+#     
+#       # db server, username, password, and name of database to use
+#       :host   => 'HOSTNAME', # (use 'localhost' if it's on this machine)
+#       :user   => 'USERNAME',
+#       :pass   => 'PASSWORD',
+#       :dbname => 'raggle_database',
+# 
+#       # name of table to save bookmarks into
+#       # note: this table MUST already exist!
+#       :table  => 'raggle_bookmarks',
+# 
+#       # list of fields (note: you can omit any of these)
+#       :fields => {
+#         :title  => 'title',
+#         :desc   => 'description',
+#         :url    => 'url',
+#         :tags   => 'tags',
+#       },
+# 
+#       # optional settings
+#       # don't prompt for descriptions (default: false)
+#       # :no_desc => false,
+#       # don't prompt for tags (default: false)
+#       # :no_tags => false,
+#       # inherit tags from parent feed? (default: true)
+#       # :inherit_tags => true,
+#     },
+# 
+  ],
+
   # live feeds
   'feeds'    => Raggle::Feed::List.new,
 
@@ -559,18 +680,18 @@ $config = {
 
   'default_feeds' => [
     { 'title'     => 'Raggle Help',
-      'url'       => "http://www.raggle.org/rss/help/",
-      'site'      => 'http://www.raggle.org/',
+      'url'       => "http://raggle.org/rss/help/",
+      'site'      => 'http://raggle.org/',
       'refresh'   => 240,
-      'updated'   => -1,
+      'updated'   => 0,
       'desc'      => '',
       'category'  => 'Raggle',
       'items'     => [ ],
       'priority'  => 2,
     },
     { 'title'     => 'Alternet',
-      'url'       => 'http://www.alternet.org/rss/rss.xml',
-      'site'      => 'http://www.alternet.org/',
+      'url'       => 'http://alternet.org/module/feed/rss/',
+      'site'      => 'http://alternet.org/',
       'desc'      => 'Alternative News and Information.',
       'refresh'   => 120,
       'updated'   => 0,
@@ -587,15 +708,15 @@ $config = {
       'items'     => [ ],
     },
     { 'title'     => 'FreshMeat',
-      'url'       => 'http://download.freshmeat.net/backend/fm-newsletter.rdf',
-      'site'      => 'http://www.freshmeat.net/',
+      'url'       => 'http://freshmeat.net/backend/fm-releases-global.xml',
+      'site'      => 'http://freshmeat.net/',
       'desc'      => 'FreshMeat.',
       'refresh'   => 120,
       'updated'   => 0,
       'category'  => 'Tech',
       'items'     => [ ],
     },
-    { 'title'     => 'Half Full.org',
+    { 'title'     => 'Halffull.org',
       'url'       => 'http://halffull.org/feed/',
       'site'      => 'http://halffull.org/',
       'desc'      => 'Thomas Kirchner\'s personal site.',
@@ -606,7 +727,7 @@ $config = {
     },
     { 'title'     => 'KernelTrap',
       'url'       => 'http://kerneltrap.org/node/feed',
-      'site'      => 'http://www.kerneltrap.org/',
+      'site'      => 'http://kerneltrap.org/',
       'desc'      => 'KernelTrap',
       'refresh'   => 120,
       'updated'   => 0,
@@ -614,12 +735,12 @@ $config = {
       'items'     => [ ],
     },
     { 'title'     => 'Kuro5hin',
-      'url'       => 'http://www.kuro5hin.org/backend.rdf',
-      'site'      => 'http://www.kuro5hin.org/',
+      'url'       => 'http://kuro5hin.org/backend.rdf',
+      'site'      => 'http://kuro5hin.org/',
       'desc'      => 'Kuro5hin',
       'refresh'   => 120,
       'updated'   => 0,
-      'category'  => 'Tech',
+      'category'  => 'Tech Politics',
       'items'     => [ ],
     },
     { 'title'     => 'Linux Weekly News',
@@ -632,8 +753,8 @@ $config = {
       'items'     => [ ],
     },
     { 'title'     => 'Linuxbrit',
-      'url'       => 'http://www.linuxbrit.co.uk/feed/rss2/',
-      'site'      => 'http://www.linuxbrit.co.uk/',
+      'url'       => 'http://linuxbrit.co.uk/feed/rss2/',
+      'site'      => 'http://linuxbrit.co.uk/',
       'desc'      => 'Tom Gilbert\'s personal site.',
       'refresh'   => 120,
       'updated'   => 0,
@@ -646,12 +767,12 @@ $config = {
       'desc'      => 'Paul Duncan\'s personal site.',
       'refresh'   => 120,
       'updated'   => 0,
-      'category'  => 'Blogs',
+      'category'  => 'Blogs Tech',
       'items'     => [ ],
     },
     { 'title'     => 'Paul Duncan.org',
-      'url'       => 'http://www.paulduncan.org/rss/',
-      'site'      => 'http://www.paulduncan.org/',
+      'url'       => 'http://paulduncan.org/rss/',
+      'site'      => 'http://paulduncan.org/',
       'desc'      => 'Paul Duncan\'s other personal site.',
       'refresh'   => 120,
       'updated'   => 0,
@@ -670,11 +791,20 @@ $config = {
     },
     { 'title'     => 'Slashdot',
       'url'       => 'http://slashdot.org/slashdot.rss',
-      'site'      => 'http://www.slashdot.org/',
+      'site'      => 'http://slashdot.org/',
       'desc'      => 'Slashdot',
       'refresh'   => 120,
       'updated'   => 0,
       'category'  => 'Tech News',
+      'items'     => [ ],
+    },
+    { 'title'     => 'Reuters: Oddly Enough',
+      'url'       => 'http://www.microsite.reuters.com/rss/oddlyEnoughNews',
+      'site'      => 'http://reuters.com/',
+      'desc'      => 'Reuters oddly enough.',
+      'refresh'   => 120,
+      'updated'   => 0,
+      'category'  => 'Funny News',
       'items'     => [ ],
     },
     { 'title'     => 'This Modern World',

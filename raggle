@@ -38,7 +38,7 @@
 #######################################################################
 
 # Raggle version
-$VERSION = '0.4.1-pre'
+$VERSION = '0.4.1'
 
 # installed data directory
 # (note: don't touch this line, it's automatically converted by 

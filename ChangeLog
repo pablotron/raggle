@@ -2526,3 +2526,9 @@ _Cvs
 
 * Mon Jun 27 16:31:20 2005, pabs <pabs@pablotron.org>
   * raggle.pod: 0.3 => 0.4 (oops!)
+
+* Mon Jun 27 16:38:54 2005, pabs <pabs@pablotron.org>
+  * README: remove rubilicious from list of optional dependencies
+  * raggle: change version to 0.4.1
+  * doc/default_config.rb: regenerated
+  * po/en_US.po: updated version, mod date

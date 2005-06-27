@@ -64,7 +64,6 @@ it can:
   OpenSSL-Ruby      https support.
   WEBrick           Required for Web interface.
   xmlrpc4r          Syndic8 integration (Searching for feeds).
-  Rubilicious [*]   Saving bookmarks to Delicious.
   Mysql-Ruby [*]    Saving bookmarks to MySQL table.
   SQLite-Ruby [*]   Saving bookmarks to SQLite database.
 

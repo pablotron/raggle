@@ -455,7 +455,7 @@ B<raggle> 0.2 was released on 17 Aug, 2003
 B<raggle> 0.3 was released on 20 Feb, 2004
 
 =item
-B<raggle> 0.3 was released on 15 Mar, 2005
+B<raggle> 0.4 was released on 15 Mar, 2005
 
 =head1 AUTHORS
 

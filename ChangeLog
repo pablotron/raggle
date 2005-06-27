@@ -2523,3 +2523,6 @@ _Cvs
 
 * Wed Jun 22 15:08:00 2005, redshift <redshift@halffull.org>
   * raggle: fix r/R for feeds without a priority
+
+* Mon Jun 27 16:31:20 2005, pabs <pabs@pablotron.org>
+  * raggle.pod: 0.3 => 0.4 (oops!)

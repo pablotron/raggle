@@ -3396,7 +3396,7 @@ ENDUSAGE
           item_url = feed['items'][id]['url'].dup
           item_url = case item_url
             when (/(\w+):\/\//):  item_url
-            else [host_url, item_url].join('/')
+            else [host_uri, item_url].join('/')
           end
         end
         

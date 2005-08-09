@@ -2549,3 +2549,14 @@ _Cvs
 * Tue Aug 09 01:48:34 2005, pabs <pabs@pablotron.org>
   * ChangeLog: add references to bug tracker IDs
   * BUGS: add note about bug tracking interface
+
+* Tue Aug 09 02:27:57 2005, pabs <pabs@pablotron.org>
+  * raggle: added 'log_content' option (defaults to false, re-enables
+    excess logging in grab.log)
+  * raggle: added preliminary Atom support 
+  * raggle: added basic RSS enclosure support via a hook (basically 
+    Raggle just blindly passes RSS enclosures off to a user-defined
+    executable, specified by $config['enclosure_hook_url'])
+  * raggle: add copius documentation for RSS enclosure hook, including
+    little sample enclosure handler
+  * doc/default_config.rb: regenerate, so it includes all the new stuff

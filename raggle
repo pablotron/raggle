@@ -1626,6 +1626,76 @@ ENDWARNING
         parse_rss_url(url, last_modified)
       end
 
+      def handle_rss_enclosure(item_hash, enclosure_element) 
+        return unless $config['enclosure_hook_cmd']
+      
+        # create new child process
+        pid = Kernel.fork {
+          # close standard input, output, and error
+          $stdin.close; $stdout.close; $stderr.close
+
+          # build arguments for exec
+          args = [
+            $config['enclosure_hook_cmd'],
+            @title,
+            @link,
+            item_hash['title'],
+            item_hash['link'],
+            enclosure_element.attributes['url'],
+            enclosure_element.attributes['type'],
+            enclosure_element.attributes['length'],
+          ]
+
+          # call exec, and exit immediately if it failed
+          Kernel.exec(*args)
+          Kernel.exit!
+        }
+
+        # detach from child process
+        Process.detach(pid)
+
+        # return nil
+        nil
+      end
+      private :handle_rss_enclosure
+
+      def parse_atom_entry(entry_elem)
+        ret = {}
+
+        entry_elem.elements['title']
+        %w{title modified issued content}.each do |key|
+          ret[key] = ''
+          if elem = entry_elem.elements[key]
+            ret[key] = fix_character_encoding(elem)
+          end
+        end
+
+        # expand description element
+        ret['description'] = ret['content']
+
+        # expand link element
+        ret['link'] = ''
+        if elem = entry_elem.elements['link']
+          ret['link'] = elem.attributes['href']
+        end
+
+        # fix date element
+        ret['date'] = ''
+        str = ret['modified'] || ret['issued']
+        if str
+          # parse date string and convert it into an http date
+          # (which I like less than XML dates, but Raggle already
+          # handles them)
+          date_str = Time.parse(str).httpdate rescue ''
+          ret['date'] = date_str
+        end
+
+        # at this point we have the title, content, link, and date, so
+        # go ahead and return the converted item hash
+        ret
+      end
+      private :parse_atom_entry
+
       # 
       # Parse an RSS URL and populate this Raggle::Feed::Channel object.
       # The actual feed items are stored as Raggle::Feed::Item objects
@@ -1634,8 +1704,10 @@ ENDWARNING
       def parse_rss_url(url, last_modified = nil)
         begin
           content, modified = Engine::get_url(url, last_modified)
-          $log.puts "content: #{content[0,80]}",
-                    "modified: #{modified}" if content
+          if $config['log_content']
+            $log.puts "content: #{content[0,80]}",
+                      "modified: #{modified}" if content
+          end
         rescue
           raise "Couldn't get URL \"#{url}\": #$!."
         end
@@ -1648,31 +1720,58 @@ ENDWARNING
 
           # parse URL content
           doc = REXML::Document.new content
+          is_atom = (doc.root.name == 'feed')
 
+      
           # get channel info
           e = nil
-          @title = e.text if e = doc.root.elements['//channel/title']
-          @link = e.text if e = doc.root.elements['//channel/link']
-          @desc = e.text if e = doc.root.elements['//channel/description']
-          @image = e.text if e = doc.root.elements['//image/url']
-          @lang = e.text if e = doc.root.elements['//channel/language']
+
+          if is_atom
+            # atom channel elements
+            @title = e.text if e = doc.root.elements['//feed/title']
+            @link = e.attributes['href'] if e = doc.root.elements['//feed/link']
+            @desc = e.text if e = doc.root.elements['//feed/tagline']
+          else
+            # RSS support
+            @title = e.text if e = doc.root.elements['//channel/title']
+            @link = e.text if e = doc.root.elements['//channel/link']
+            @desc = e.text if e = doc.root.elements['//channel/description']
+            @image = e.text if e = doc.root.elements['//image/url']
+            @lang = e.text if e = doc.root.elements['//channel/language']
+          end
+      
       
           # build list of feed items
           @items = []
-          doc.root.elements.each('//item') { |e| 
+
+          item_element_path = is_atom ? '//feed/entry' : '//item'
+          doc.root.elements.each(item_element_path) { |e| 
             # get item attributes (the ones that are set, anyway... stupid
             # RSS)
             h = {}
 
-            # basic item attribute element check
-            ['title', 'link', 'date', 'description'].each { |val|
-              h[val] = (t_e = e.elements[val]) ? fix_character_encoding(t_e) : ''
-            }
+            if is_atom
+              # parse atom entry
+              h = parse_atom_entry(e)
+            else
+              # basic item attribute element check
+              ['title', 'link', 'date', 'description'].each { |val|
+                h[val] = (t_e = e.elements[val]) ? fix_character_encoding(t_e) : ''
+              }
 
-            # more elaborate xpath checks for item attribute elements
-            ['link', 'date', 'description'].each { |key|
-              h[key] = find_element(e, key)
-            }
+              # more elaborate xpath checks for item attribute elements
+              ['link', 'date', 'description'].each { |key|
+                h[key] = find_element(e, key)
+              }
+
+              # handle RSS enclosures for this element
+              if $config['enclosure_hook_cmd']
+                
+                e.elements.each('enclosure') do |enclosure_element|
+                  handle_rss_enclosure(h, enclosure_element)
+                end
+              end
+            end
 
             # insert new item
             @items << Feed::Item.new(h['title'], h['link'],
@@ -5473,6 +5572,9 @@ $config = {
   'no_desc_auto_focus'    => true,
   'scroll_wrapping'       => true,
 
+  # log exerpt of content from feed header? (useful for debugging)
+  'log_content'           => false,
+
   # grab in parallel (grab threads in parallel instead of serial)
   'grab_in_parallel'      => false,
 
@@ -5518,6 +5620,58 @@ $config = {
     'file'      => proc { |url, last_mod| Raggle::Engine::get_file_url(url, last_mod) },
     'exec'      => proc { |url, last_mod| Raggle::Engine::get_exec_url(url, last_mod) },
   },
+
+  # RSS Enclosure Hook
+  # 
+  # If enabled, this command is called for each RSS enclosure Raggle
+  # encounters.  Note that this command is responsible for maintaining
+  # it's own cache of downloaded enclosures; Raggle passes the enclosure
+  # every time it parses the feed, before it checks whether or not the
+  # element was cached.  The arguments passed to the command are as
+  # follows:
+  #
+  # * Feed Title
+  # * Feed Link
+  # * Item Title
+  # * Item Link
+  # * Enclosure URL
+  # * Enclosure MIME Type
+  # * Enclosure Length (in bytes)
+  #
+  # So, a blatantly naive implementation of an enclosure handler would 
+  # probably look something like this:
+  # 
+  #   require 'pstore'
+  #   
+  #   class PStore
+  #     def has_key?(key)
+  #       roots.include?(key)
+  #     end
+  #   end
+  #   
+  #   # load URL cache, parse arguments
+  #   cache = PStore.new('url_cache')
+  #   feed_title, feed_link, title, link, url, mime_type, len = ARGV
+  #   
+  #   # check cache for URL
+  #   exit 0 if cache.transaction { cache.has_key?(url) }
+  #
+  #   # generate safe filename for output file
+  #   # (you'd have to write this)
+  #   safe_name = gen_safe_name(url)
+  #   
+  #   # cache output name 
+  #   cache.transaction { cache[url] = safe_name }
+  #
+  #   # call wget (this could just as easily be a call to
+  #   # net/http, curl, or whatever else suites your fancy)
+  #   Kernel.exec('wget', '-q', '-O', safe_name, url)
+  #   Kernel.exit! # shouldn't ever get here
+  #
+  # So anyway, without any further ado, an example of the actual
+  # enclosure config directive:
+  #
+  # 'enclosure_hook_cmd' => '/home/pabs/bin/handle_enclosures.rb',
 
   # Raise an exception (which generally means crash) if the URL type is
   # unknown.  You probably DON'T want to enable this.  If disabled, then

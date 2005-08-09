@@ -44,6 +44,9 @@ $config = {
   'no_desc_auto_focus'    => true,
   'scroll_wrapping'       => true,
 
+  # log exerpt of content from feed header? (useful for debugging)
+  'log_content'           => false,
+
   # grab in parallel (grab threads in parallel instead of serial)
   'grab_in_parallel'      => false,
 
@@ -89,6 +92,58 @@ $config = {
     'file'      => proc { |url, last_mod| Raggle::Engine::get_file_url(url, last_mod) },
     'exec'      => proc { |url, last_mod| Raggle::Engine::get_exec_url(url, last_mod) },
   },
+
+  # RSS Enclosure Hook
+  # 
+  # If enabled, this command is called for each RSS enclosure Raggle
+  # encounters.  Note that this command is responsible for maintaining
+  # it's own cache of downloaded enclosures; Raggle passes the enclosure
+  # every time it parses the feed, before it checks whether or not the
+  # element was cached.  The arguments passed to the command are as
+  # follows:
+  #
+  # * Feed Title
+  # * Feed Link
+  # * Item Title
+  # * Item Link
+  # * Enclosure URL
+  # * Enclosure MIME Type
+  # * Enclosure Length (in bytes)
+  #
+  # So, a blatantly naive implementation of an enclosure handler would 
+  # probably look something like this:
+  # 
+  #   require 'pstore'
+  #   
+  #   class PStore
+  #     def has_key?(key)
+  #       roots.include?(key)
+  #     end
+  #   end
+  #   
+  #   # load URL cache, parse arguments
+  #   cache = PStore.new('url_cache')
+  #   feed_title, feed_link, title, link, url, mime_type, len = ARGV
+  #   
+  #   # check cache for URL
+  #   exit 0 if cache.transaction { cache.has_key?(url) }
+  #
+  #   # generate safe filename for output file
+  #   # (you'd have to write this)
+  #   safe_name = gen_safe_name(url)
+  #   
+  #   # cache output name 
+  #   cache.transaction { cache[url] = safe_name }
+  #
+  #   # call wget (this could just as easily be a call to
+  #   # net/http, curl, or whatever else suites your fancy)
+  #   Kernel.exec('wget', '-q', '-O', safe_name, url)
+  #   Kernel.exit! # shouldn't ever get here
+  #
+  # So anyway, without any further ado, an example of the actual
+  # enclosure config directive:
+  #
+  # 'enclosure_hook_cmd' => '/home/pabs/bin/handle_enclosures.rb',
 
   # Raise an exception (which generally means crash) if the URL type is
   # unknown.  You probably DON'T want to enable this.  If disabled, then

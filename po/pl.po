@@ -1,0 +1,187 @@
+# Raggle Polish language file.
+# Copyright (C) 2005 Paul Duncan <pabs@pablotron.org>
+# This file is distributed under the same license as the Raggle package.
+# Piotr Ozarowski <ozarow@gmail.com>, 2005
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Raggle 0.4.1\n"
+"POT-Creation-Date: 2005-03-16 17:51-0500\n"
+"PO-Revision-Date: 2005-06-27 17:51-0500\n"
+"Last-Translator: Piotr Ozarowski <ozarow@gmail.com>\n"
+"Language-Team: Polski\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: raggle:3105 raggle:5320
+msgid "Untitled Feed"
+msgstr "Nowy kanal"
+
+#: raggle:4831
+msgid "DEBUG: Waiting for threads"
+msgstr "DEBUG: Czekam na watki"
+
+#: raggle:5183
+msgid " Welcome to Raggle %s."
+msgstr " Witam w Raggle %s."
+
+#: raggle:5184
+msgid "| Press Q to exit "
+msgstr "| Nacisnij Q aby wyjsc "
+
+#: raggle:5185
+msgid "[X] "
+msgstr "[X] "
+
+#: raggle:5186
+msgid " Raggle %s"
+msgstr " Raggle %s"
+
+#: raggle:5187
+msgid "Raggle: Loading config..."
+msgstr "Raggle: Wczytuje konfiguracje..."
+
+#: raggle:5188
+msgid "Raggle: Loading feed list..."
+msgstr "Raggle: Wczytuje liste kanalow..."
+
+#: raggle:5189
+msgid "Raggle: Saving feed list..."
+msgstr "Raggle: Zachowuje liste kanalow..."
+
+#: raggle:5190
+msgid "Raggle: Loading feed cache..."
+msgstr "Raggle: Wczytuje cache kanalow..."
+
+#: raggle:5191
+msgid "Raggle: Saving feed cache..."
+msgstr "Raggle: Zachowuje cache kanalow..."
+
+#: raggle:5192
+msgid "Raggle: Loading theme..."
+msgstr "Raggle: Wczytuje temat..."
+
+#: raggle:5193
+msgid "Raggle: Saving theme..."
+msgstr "Raggle: Zachowuje temat..."
+
+#: raggle:5194
+msgid "Thanks for using Raggle!"
+msgstr "Dziekuje za uzywanie Raggle!"
+
+#: raggle:5195
+msgid "Input:"
+msgstr "Pozycja:"
+
+#: raggle:5196
+msgid "New value:"
+msgstr "Nowa wartosc:"
+
+#: raggle:5197
+msgid "Terminal Resize: "
+msgstr "Rozmiear terminala: "
+
+#: raggle:5198
+msgid "Links:"
+msgstr "Odnosniki:"
+
+#: raggle:5199
+msgid "Images:"
+msgstr "Obrazki:"
+
+#: raggle:5200
+msgid "Enter URL:"
+msgstr "Wprowadz URL:"
+
+#: raggle:5201
+msgid "Feed added"
+msgstr "Kanal dodany"
+
+#: raggle:5202
+msgid "Delete current feed? (y/n)"
+msgstr "Usunac aktyalny kanal? (y/n)"
+
+#: raggle:5203
+msgid "Find:"
+msgstr "Znajdz:"
+
+#: raggle:5204
+msgid "Display Category"
+msgstr "Wyswietl kategorie"
+
+#: raggle:5205
+msgid "Find Feeds:"
+msgstr "Znajdz kanaly:"
+
+#: raggle:5206
+msgid " Searching..."
+msgstr " Szukam..."
+
+#: raggle:5207
+msgid "Search Results for \"%s\" - %s matching feeds"
+msgstr "Rezultaty poszukiwan  \"%s\" - %s znalezionych"
+
+#: raggle:5208
+msgid "Please select a feed..."
+msgstr "Prosze zaznaczyc kanal..."
+
+#: raggle:5209
+msgid "No results found"
+msgstr "Brak rezultatu"
+
+#: raggle:5210
+msgid "Current Key Bindings"
+msgstr "Aktualne skroty klawiszowe"
+
+#: raggle:5211
+msgid "Warning: Added existing feed"
+msgstr "Uwaga: Dodano istniejacy kanal"
+
+#: raggle:5212
+msgid "Edit Feed Options"
+msgstr "Edycja opcji kanalu"
+
+#: raggle:5213
+msgid "Warning: Bad option for %s"
+msgstr "Uwaga: Bledna wartosc dla %s"
+
+#: raggle:5214
+msgid "New option saved"
+msgstr "Nowa wartosc zachowana"
+
+#: raggle:5215
+msgid "Configuration saved"
+msgstr "Konfiguracja zachowana"
+
+#: raggle:5216
+msgid "OPML file or URI:"
+msgstr "Plik OPML lub URI:"
+
+#: raggle:5217
+msgid "OPML exported"
+msgstr "Wyeksportowano OPML"
+
+#: raggle:5218
+msgid "OPML imported"
+msgstr "zaimportowano OPML"
+
+#: raggle:5219
+msgid "Error: bad or empty URI"
+msgstr "Blad: zly badz pusty URI"
+
+#: raggle:5220
+msgid "WARNING: exec url found!"
+msgstr "UWAGA: URL juz istnieje!"
+
+#: raggle:5528
+msgid "Feeds"
+msgstr "Kanaly"
+
+#: raggle:5549
+msgid "Items"
+msgstr "Wiadomosci"
+
+#: raggle:5567
+msgid "Description"
+msgstr "Opis"

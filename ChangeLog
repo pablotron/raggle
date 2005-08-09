@@ -2568,3 +2568,8 @@ _Cvs
 * Tue Aug 09 14:14:52 2005, pabs <pabs@pablotron.org>
   * raggle: fix for terminal transparency issue (Fixes: #34)
     (also fixes the 200 day old bug on bugs.debian.org/raggle)
+
+* Tue Aug 09 15:40:15 2005, pabs <pabs@pablotron.org>
+  * added po/pl.po (polish translation from Piotr Ozarowski 
+    <ozarow@gmail.com>)
+  * AUTHORS: updated

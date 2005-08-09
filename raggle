@@ -38,7 +38,7 @@
 #######################################################################
 
 # Raggle version
-$VERSION = '0.4.1'
+$VERSION = '0.5.0-pre'
 
 # installed data directory
 # (note: don't touch this line, it's automatically converted by 
@@ -3387,7 +3387,15 @@ ENDUSAGE
             m = $1.dup
             new_url = case m
               when (/^(\w+):\/\//): m
-              else host_uri.merge(m).to_s
+              else 
+                # attempt to merge URI with host_uri.  if that fails,
+                # log a warning, then fall back to the unmodified string
+                begin
+                  host_uri.merge(m).to_s 
+                rescue
+                  $log.puts "#{Time.now}: feed \"#{feed['title']}\": repairing relative url failed"                                                           
+                  m
+                end
             end
             "href='#{new_url}'"
           }

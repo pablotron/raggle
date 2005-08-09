@@ -2532,3 +2532,10 @@ _Cvs
   * raggle: change version to 0.4.1
   * doc/default_config.rb: regenerated
   * po/en_US.po: updated version, mod date
+
+* Tue Aug 09 01:11:47 2005, pabs <pabs@pablotron.org>
+  * raggle: incremented version to 0.5.0-pre
+  * README: ditto
+  * raggle: protect against merging invalid URL segments (based on patch
+    from Michael Ablassmeier
+  * BUGS: update information on Michael 

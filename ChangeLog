@@ -2537,7 +2537,7 @@ _Cvs
   * raggle: incremented version to 0.5.0-pre
   * README: ditto
   * raggle: protect against merging invalid URL segments (based on patch
-    from Michael Ablassmeier
+    from Michael Ablassmeier (Fixes: #36 and Fixes: #40)
   * BUGS: update information on Michael 
 
 * Tue Aug 09 01:45:46 2005, pabs <pabs@pablotron.org>
@@ -2546,3 +2546,6 @@ _Cvs
     going on)
   * TODO: add note about improving SSL support at some point
 
+* Tue Aug 09 01:48:34 2005, pabs <pabs@pablotron.org>
+  * ChangeLog: add references to bug tracker IDs
+  * BUGS: add note about bug tracking interface

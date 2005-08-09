@@ -1,5 +1,9 @@
-Bugs
-=====
+Raggle Bugs
+===========
+
+Note: There is now a bug-tracking interface for Raggle!  Check out
+http://bugs.pablotron.org/.  This file will 
+
 [*] Description doesn't scroll
 [*] Feed grabbing thread will block if the HTTP connection blocks 
     (work in progress) FIXED with parallel feed grabbing

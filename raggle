@@ -2712,6 +2712,7 @@ ENDUSAGE
         def clearrange(start, fini)
           w = dimensions[0]
           set_color('text')
+          # Ncurses::color_set 0, nil
           start.upto(fini) do |line|
             Ncurses::mvwprintw @win, line, 1, ' ' * (w - 2)
           end
@@ -2734,6 +2735,8 @@ ENDUSAGE
 
             text = reflow_string text if reflow
             text.each_line do |line|
+              line = line.chomp
+
               i += 1
               if i >= offset && y < (h - 1)
                 Ncurses::mvwprintw @win, y, x,
@@ -4120,6 +4123,7 @@ ENDUSAGE
 
         # initialize screen & keyboard
         Ncurses::initscr
+        Ncurses::use_default_colors if Ncurses.respond_to?(:use_default_colors)
         Ncurses::raw if $config['use_raw_mode']
         Ncurses::keypad Ncurses::stdscr, 1
         Ncurses::noecho if $config['use_noecho']

@@ -2564,3 +2564,7 @@ _Cvs
 * Tue Aug 09 04:18:34 2005, pabs <pabs@pablotron.org>
   * added po/ru_RU.po (Russian translation from "A@A" <linax@topol.dp.ua>)
   * AUTHORS: updated
+
+* Tue Aug 09 14:14:52 2005, pabs <pabs@pablotron.org>
+  * raggle: fix for terminal transparency issue (Fixes: #34)
+    (also fixes the 200 day old bug on bugs.debian.org/raggle)

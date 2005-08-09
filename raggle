@@ -4875,7 +4875,7 @@ ENDUSAGE
       # check for ssl
       if url =~ /^https:/
         raise 'HTTPS support requires OpenSSL-Ruby' unless $HAVE_LIB['ssl']
-        use_ssl = true
+        use_ssl, port = true, 443
       end
 
       # strip 'http://' prefix from URL
@@ -4903,12 +4903,26 @@ ENDUSAGE
       
       # initialize http connection
       http = Net::HTTP::new(host, port, proxy['host'], proxy['port'])
+
+      # if we have SSL support and this is an https connection, then
+      # enable SSL/TLS and disable peer verification (to turn off the
+      # warning that's printed to the console)
+      #
+      # (Note: if we were doing this correctly, we'd have a proper CA
+      # path)
       if $HAVE_LIB['ssl'] && use_ssl
         http.use_ssl = use_ssl
+        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
       end
+
+      # set http options
       http.open_timeout = $config['http_open_timeout'] || 30
       # http.read_timeout = $config['http_read_timeout'] || 120
+
+      # start HTTP session
       http.start
+
+      # raise an exception unless we could conenct
       raise "Couldn't connect to host \"#{host}:#{port}\"" unless http
 
       begin 

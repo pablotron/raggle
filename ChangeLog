@@ -2539,3 +2539,10 @@ _Cvs
   * raggle: protect against merging invalid URL segments (based on patch
     from Michael Ablassmeier
   * BUGS: update information on Michael 
+
+* Tue Aug 09 01:45:46 2005, pabs <pabs@pablotron.org>
+  * raggle: improve SSL support (turn off verify peer mode, make sure
+    port is set to 443 instead of 80, improve comments about what's
+    going on)
+  * TODO: add note about improving SSL support at some point
+

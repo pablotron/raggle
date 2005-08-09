@@ -2560,3 +2560,7 @@ _Cvs
   * raggle: add copius documentation for RSS enclosure hook, including
     little sample enclosure handler
   * doc/default_config.rb: regenerate, so it includes all the new stuff
+
+* Tue Aug 09 04:18:34 2005, pabs <pabs@pablotron.org>
+  * added po/ru_RU.po (Russian translation from "A@A" <linax@topol.dp.ua>)
+  * AUTHORS: updated

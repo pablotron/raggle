@@ -1,0 +1,189 @@
+# Raggle US English language file.
+# Copyright (C) 2005 Paul Duncan <pabs@pablotron.org>
+# This file is distributed under the same license as the Raggle package.
+# Paul Duncan <pabs@pablotron.org>, 2005.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Raggle 0.4.1\n"
+"POT-Creation-Date: 2005-03-16 17:51-0500\n"
+"PO-Revision-Date: 2005-06-27 17:51-0500\n"
+"Last-Translator: Paul Duncan <pabs@pablotron.org>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: raggle:3105 raggle:5320
+msgid "Untitled Feed"
+msgstr "Неназванная лента"
+
+#: raggle:4831
+msgid "DEBUG: Waiting for threads"
+msgstr "ДЕБАГ: Ожидаются потоки"
+
+#: raggle:5183
+msgid " Welcome to Raggle %s."
+msgstr " Добро пожаловать в Raggle %s."
+
+#: raggle:5184
+msgid "| Press Q to exit "
+msgstr "| Нажми Q для выхода"
+
+#: raggle:5185
+msgid "[X] "
+msgstr "[X] "
+
+#: raggle:5186
+msgid " Raggle %s"
+msgstr " Raggle %s"
+
+#: raggle:5187
+msgid "Raggle: Loading config..."
+msgstr "Raggle: грузится конфиг..."
+
+#: raggle:5188
+msgid "Raggle: Loading feed list..."
+msgstr "Raggle: Грузится список новостей..."
+
+#: raggle:5189
+msgid "Raggle: Saving feed list..."
+msgstr "Raggle: Сохраняется список новостей..."
+
+#: raggle:5190
+msgid "Raggle: Loading feed cache..."
+msgstr "Raggle: Грузятся новости из кэша..."
+
+#: raggle:5191
+msgid "Raggle: Saving feed cache..."
+msgstr "Raggle: Сохраняется новости в кэш..."
+
+#: raggle:5192
+msgid "Raggle: Loading theme..."
+msgstr "Raggle: Грузится тема..."
+
+#: raggle:5193
+msgid "Raggle: Saving theme..."
+msgstr "Raggle: Сохраняется тема"
+
+#: raggle:5194
+msgid "Thanks for using Raggle!"
+msgstr "Ну и куда вы уходите?"
+
+#: raggle:5195
+msgid "Input:"
+msgstr ""
+
+#: raggle:5196
+msgid "New value:"
+msgstr "Новое значение"
+
+#: raggle:5197
+msgid "Terminal Resize: "
+msgstr ""
+
+#: raggle:5198
+msgid "Links:"
+msgstr "Ссылки:"
+
+#: raggle:5199
+msgid "Images:"
+msgstr "Изображения:"
+
+#: raggle:5200
+msgid "Enter URL:"
+msgstr "Введите URL:"
+
+#: raggle:5201
+msgid "Feed added"
+msgstr "Лента добавлена"
+
+#: raggle:5202
+msgid "Delete current feed? (y/n)"
+msgstr "Удалить текущую новость? [y/n]"
+
+#: raggle:5203
+msgid "Find:"
+msgstr "Найти:"
+
+#: raggle:5204
+msgid "Display Category"
+msgstr "Показать категорию:"
+
+#: raggle:5205
+msgid "Find Feeds:"
+msgstr "Найти ленту:"
+
+#: raggle:5206
+msgid " Searching..."
+msgstr "Поиск..."
+
+#: raggle:5207
+msgid "Search Results for \"%s\" - %s matching feeds"
+msgstr "Результаты поиска по запросу \"%s\": %s штук найдено"
+
+#: raggle:5208
+msgid "Please select a feed..."
+msgstr "Выберите ленту"
+
+#: raggle:5209
+msgid "No results found"
+msgstr "Ничего не нашёл"
+
+#: raggle:5210
+msgid "Current Key Bindings"
+msgstr "Текущие клавиатурные сокращения:"
+
+#: raggle:5211
+msgid "Warning: Added existing feed"
+msgstr "Внимание: Добавлена уже существуюшая новость"
+
+#: raggle:5212
+msgid "Edit Feed Options"
+msgstr "Изменить свойства ленты"
+
+#: raggle:5213
+msgid "Warning: Bad option for %s"
+msgstr "Внимание: Плохой параметр %s"
+
+#: raggle:5214
+msgid "New option saved"
+msgstr "Новые параметры сохранены"
+
+#: raggle:5215
+msgid "Configuration saved"
+msgstr "Настройки сохранены"
+
+#: raggle:5216
+msgid "OPML file or URI:"
+msgstr "файл OPML или URI:"
+
+#: raggle:5217
+msgid "OPML exported"
+msgstr "OPML экспортирован"
+
+#: raggle:5218
+msgid "OPML imported"
+msgstr "OPML импортирован"
+
+#: raggle:5219
+msgid "Error: bad or empty URI"
+msgstr "Ошибка: неправильный URI"
+
+#: raggle:5220
+msgid "WARNING: exec url found!"
+msgstr ""
+
+#: raggle:5528
+msgid "Feeds"
+msgstr "Ленты"
+
+#: raggle:5549
+msgid "Items"
+msgstr "Новости"
+
+#: raggle:5567
+msgid "Description"
+msgstr "Описание"

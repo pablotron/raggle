@@ -2573,3 +2573,8 @@ _Cvs
   * added po/pl.po (polish translation from Piotr Ozarowski 
     <ozarow@gmail.com>)
   * AUTHORS: updated
+
+* Wed Aug 10 16:49:34 2005, pabs <pabs@pablotron.org>
+  * po/ru_RU.po: fix last-translator, and language-team
+  * po/ru_RU.po: change project-id-version to 0.4.3
+  * po/pl.po: ditto

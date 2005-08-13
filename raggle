@@ -3065,6 +3065,11 @@ ENDUSAGE
 
           # draw item content
           if item['content']
+          
+            # clear the description window before drawing the text
+            win = $wins[Raggle::Interfaces::NcursesInterface::get_win_id('desc')]
+            win.clearrange(y, h - 2)
+
             y += 1
             if !item['fmt_content']
               str = item['content'] || ''

@@ -2584,3 +2584,6 @@ _Cvs
 
 * Sat Aug 13 08:31:43 2005, pabs <pabs@pablotron.org>
   * raggle: apply modified version of clear desc fix from Michael
+
+* Fri Sep 23 17:42:01 2005, pabs <pabs@pablotron.org>
+  * raggle: don't die on invalid dc:date

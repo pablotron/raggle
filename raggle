@@ -3365,9 +3365,6 @@ ENDUSAGE
           # build title string
           if item['date'] && item['date'].size > 0
             d_str = item['date']
-            if item['date'] =~ /^\d+$/ && item['date'].to_i > 0
-              d_str = Time.at(d_str.to_i).strftime(fmt)
-            end
             title = item['title'] ? "#{item['title'].strip} (#{d_str})" : d_str
           elsif item['title'] !~ /^\s*$/ 
             title = item['title'] ? item['title'].strip : ''

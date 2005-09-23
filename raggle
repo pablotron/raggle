@@ -2389,6 +2389,28 @@ ENDUSAGE
         end
 
         #
+        # Undelete all items in the current feed
+        #
+        def Key::purge_deleted
+          item_win = NcursesInterface::get_win_id('item')
+
+          # grab feed, clear all deleted items
+          feed = $config['feeds'].get($a_feed) rescue return
+          feed['items'] = feed['items'].delete_if { |item| 
+            item['visible']  == false
+          }
+
+          # refresh item window
+          NcursesInterface::populate_item_win($a_feed)
+          NcursesInterface::populate_feed_win
+
+          # draw items in feed window
+          $wins[item_win].draw_items
+          $wins[item_win].select_win_item if $a_win != NcursesInterface::get_win_id('feed')
+        end
+
+
+        #
         # Invalidate the current feed, forcing it to refresh at next update
         #
         def Key::invalidate_feed
@@ -5977,6 +5999,7 @@ $config = {
 
     Ncurses::KEY_DC     => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::delete} ),
     ?y                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::undelete_all} ),
+    ?P                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::purge_deleted} ),
     ##
     # XXX: Meta can be dropped after spawned browser exits
     # So A, B, C or D should *not* be bound until this is fixed

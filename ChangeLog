@@ -2587,3 +2587,7 @@ _Cvs
 
 * Fri Sep 23 17:42:01 2005, pabs <pabs@pablotron.org>
   * raggle: don't die on invalid dc:date
+
+* Fri Sep 23 17:51:58 2005, pabs <pabs@pablotron.org>
+  * raggle: add Key::purge_deleted (purge all "deleted" items), bound to 
+    'P' (shift-P) by default

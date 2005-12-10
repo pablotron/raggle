@@ -3362,6 +3362,7 @@ ENDUSAGE
           $wins[NcursesInterface::get_win_id('edit')].close(true)
           NcursesInterface::populate_feed_win
           NcursesInterface::set_status($config['msg_edit_success'])
+          Key::edit_feed
         else  # if no change
           NcursesInterface::set_status('')
         end

@@ -80,7 +80,8 @@ Narayanan R S <nars@poboxes.com>
 
 Michael Ablassmeier <abi@grinser.de>
 * current Debian maintainer
-* fix for all sorts of small bugs...
+* fix for edit window closing after change
+* fix for all sorts of other small bugs...
 
 Kostenko Andrew <linax@topol.dp.ua>
 * Russian translation

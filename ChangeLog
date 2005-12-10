@@ -2591,3 +2591,8 @@ _Cvs
 * Fri Sep 23 17:51:58 2005, pabs <pabs@pablotron.org>
   * raggle: add Key::purge_deleted (purge all "deleted" items), bound to 
     'P' (shift-P) by default
+
+* Sat Dec 10 15:55:34 2005, pabs <pabs@pablotron.org>
+  * raggle: apply patch from Michael to fix closing edit window
+    annoyance
+  * AUTHORS: update to reflect above patch

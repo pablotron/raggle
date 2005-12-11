@@ -17,6 +17,24 @@ $config = {
   'load_feed_cache'       => true,
   'save_feed_cache'       => true,
 
+  # Log file rotation schedule.
+  #
+  # (valid values are 'daily', 'weekly', 'monthly', or an integer
+  # indecating the number of days).
+  'grab_log_age'          => 'weekly',
+
+  # Log file rotation size.
+  #
+  # If the log file exceeds this size, then it will be automatically
+  # rotated.
+  'grab_log_size'         => 1048576,
+
+  # Log file verbosity.
+  #
+  # Valid values are 'DEBUG', 'INFO', ''WARN', 'ERROR', and 'FATAL'.
+  # Defaults to 'INFO' if unspecified.
+  'grab_log_level'        => 'INFO',
+
   # save old feed items indefinitely?
   # Note: doing this with a lot of high-traffic feeds can make
   # your feed cache grow very large, very fast.  It's probably better
@@ -443,6 +461,7 @@ $config = {
 
     Ncurses::KEY_DC     => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::delete} ),
     ?y                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::undelete_all} ),
+    ?P                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::purge_deleted} ),
     ##
     # XXX: Meta can be dropped after spawned browser exits
     # So A, B, C or D should *not* be bound until this is fixed

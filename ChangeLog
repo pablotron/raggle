@@ -2596,3 +2596,10 @@ _Cvs
   * raggle: apply patch from Michael to fix closing edit window
     annoyance
   * AUTHORS: update to reflect above patch
+
+* Sat Dec 10 19:11:42 2005, pabs <pabs@pablotron.org>
+  * raggle: added support for --update (command-line updating).
+  * raggle: switched to Logger for logging (this adds a couple new
+    logging options, which are documented in the default config)
+  * doc/default_config.rb: regenerated
+

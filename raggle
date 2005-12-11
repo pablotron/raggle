@@ -89,6 +89,7 @@ require 'uri'
   'ncurses'     => ['ncurses',        'Ncurses-Ruby', false],
   'rexml'       => ['rexml/document', 'REXML',        true ],
   'yaml'        => ['yaml',           'YAML',         true ],
+  'logger'      => ['logger',         'Logger',       true ],
   'ssl'         => ['net/https',      'OpenSSL-Ruby', false],
   'webrick'     => ['webrick',        'WEBrick',      false],
   'drb'         => ['drb',            'DRb',          false],
@@ -1435,7 +1436,7 @@ module Raggle
       # Raises an exception if the ID is invalid.
       #
       def get(id)
-        raise "Invalid feed id: #{id}" unless id < @feeds.size
+        raise "Invalid feed id: #{id || '<nil>'}" unless id && id < @feeds.size
         @feeds[id]
       end
       
@@ -1705,8 +1706,11 @@ ENDWARNING
         begin
           content, modified = Engine::get_url(url, last_modified)
           if $config['log_content']
-            $log.puts "content: #{content[0,80]}",
-                      "modified: #{modified}" if content
+            meth = 'Raggle::Channel#parse_rss_url'
+            $log.debug(meth) {
+              content_str = content ? content[0, 80] : '<nil>'
+              "modified: #{modified}, content: #{content_str}"
+            }
           end
         rescue
           raise "Couldn't get URL \"#{url}\": #$!."
@@ -1800,6 +1804,8 @@ ENDWARNING
       # 'ISO-8859-1' if unset).
       #
       def fix_character_encoding(element)
+        meth = 'Channel#fix_character_encoding'
+
         # get character encoding
         enc = $config['character_encoding'] || 'ISO-8859-1'
 
@@ -1819,17 +1825,21 @@ ENDWARNING
             success_str = e.success
             ch, pending_str = e.failed.split(//, 2)
             ch_int = ch.to_i
+            t = Time.now
 
             if String::UNICODE_LUT.has_key?(ch_int)
-              $log.puts "[#{Time.now}] WARNING: converting unicode ##{ch_int}"
+              err_str = _('converting unicode')
+              $log.warn(meth) { "#{err_str} ##{ch_int}" }
               element_text = success_str + UNICODE_LUT[ch_int] + pending_str
             else
               if $config['iconv_munge_illegal']
-                $log.puts "[#{Time.now}] WARNING: munging unicode ##{ch_int}"
+                err_str = _('munging unicode')
+                $log.warn(meth) { "#{err_str} ##{ch_int}" }
                 munge_str = $config['unicode_munge_str']
                 element_text = success_str + munge_str + pending_str
               else
-                $log.puts "[#{Time.now}] WARNING: dropping unicode ##{ch_int}"
+                err_str = _('dropping unicode')
+                $log.warn(meth) { "#{err_str} ##{ch_int}" }
                 element_text = success_str + pending_str
               end
             end
@@ -1984,6 +1994,7 @@ ENDUSAGE
         ['--title', '-t',                           GetoptLong::REQUIRED_ARGUMENT],
         ['--unlock-title',                          GetoptLong::NO_ARGUMENT],
         ['--unsave-items',                          GetoptLong::NO_ARGUMENT],
+        ['--update', '-U',                          GetoptLong::OPTIONAL_ARGUMENT],
         ['--url', '-u',                             GetoptLong::REQUIRED_ARGUMENT],
         ['--verbose', '-v',                         GetoptLong::NO_ARGUMENT],
         ['--version', '-V',                         GetoptLong::NO_ARGUMENT]
@@ -2004,6 +2015,9 @@ ENDUSAGE
             when '--invalidate'
               ret['mode'] = 'invalidate'
               ret['id'] = arg.to_i
+            when '--update'
+              ret['mode'] = 'update'
+              ret['id'] = (arg && (arg != 'all')) ? arg.to_i : 'all'
             when '--config':  $config['config_path'] = arg
             when '--force':   ret['force'] = true
             when '--list':    ret['mode'] = 'list'
@@ -2095,7 +2109,7 @@ ENDUSAGE
       else 
         puts 'ID, Title'
         $config['feeds'].each { |feed|
-          title = feed['title'].escape_format
+          title = (feed['title'] || '').escape_format
           puts "%2d, #{title}" % (i += 1)
         }
       end
@@ -2154,6 +2168,23 @@ ENDUSAGE
       when 'sort'
         Engine::sort_feeds
         Engine::save_feed_list
+        exit(0)
+      when 'update'
+        # start grab log
+        Engine.start_grab_log
+
+        grab_meth = Engine.method(:grab_feed)
+        if opts['id'] == 'all'
+          $config['feeds'].each { |feed| grab_meth.call(feed) }
+        else
+          feed = $config['feeds'].get(opts['id'])
+          grab_meth.call(feed)
+          ids = [opts['id']]
+        end
+
+        # save changes to feed list
+        Engine::save_feed_list
+
         exit(0)
       when 'purge'
         Engine::purge_feed_cache
@@ -3520,7 +3551,14 @@ ENDUSAGE
                 begin
                   host_uri.merge(m).to_s 
                 rescue
-                  $log.puts "#{Time.now}: feed \"#{feed['title']}\": repairing relative url failed"                                                           
+                  meth = 'NcursesInterface.select_item'
+                  feed_title = feed['title']
+
+                  $log.warn(meth) {
+                    "feed \"#{feed_title}\": " + 
+                    _('repairing relative url failed')
+                  }
+
                   m
                 end
             end
@@ -5208,30 +5246,36 @@ ENDUSAGE
     # grab individual feed (called by feed grabbing thread)
     #
     def Engine::grab_feed(feed)
+      meth = 'Engine.grab_feed'
       t = Time.now
       
       # set the name and priority of the current thread
       Thread::current['feed'] = feed
       Thread::current.priority = $config['thread_priority_feed']
       
-      $new_status = " Checking feed \"#{feed['title']}\"..."
-      $log.puts "#{Time.now}: Checking feed \"#{feed['title']}\""
+      msg = _("Checking feed")
+      $new_status = " #{msg} \"#{feed['title']}\"..."
+      $log.info(meth) { "#{msg} \"#{feed['title']}\"" }
       return unless feed['refresh'] > 0 && 
         feed['updated'] + (feed['refresh'] * 60) < t.to_i
       
       # update statusbar and grab log
-      $new_status = " Updating feed \"#{feed['title']}\"..."
-      $log.puts "#{t}: Updating feed \"#{feed['title']}\" from " +
-                "\"#{feed['url']}\""
+      msg, src_msg = _("Updating feed"), _('from')
+      $new_status = " #{msg} \"#{feed['title']}\"..."
+      $log.info(meth) { "#{msg} \"#{feed['title']}\" #{src_msg} \"#{feed['url']}\"" }
       
       # get channel
       begin
         chan = Raggle::Feed::Channel.new(feed['url'], feed['last_modified'])
         feed.delete 'error'
       rescue
-        Raggle::Interfaces::NcursesInterface::set_status "Error updating \"#{feed['title']}\"."
-        $log.puts "#{t}: Error: #$!"
-        feed['error'] = "#$!"
+        err_msg = _('Error updating')
+        err = feed['error'] = "#$!"
+
+        if $config['mode'] == 'view'
+          Raggle::Interfaces::NcursesInterface::set_status "#{err_msg} \"#{feed['title']}\"."
+        end
+        $log.error(meth) { "#{err_msg}: #{err}" }
 
         # mark this feed as updated so it doesn't get constantly polled
         feed['updated'] = t.to_i 
@@ -5297,7 +5341,8 @@ ENDUSAGE
           max = $config['max_feed_items'] || feed['max_items']
           if max && max > 0
             old = (feed['items'].slice!(max .. -1) || []).size
-            $log.puts "#{t}: Removing #{old} old items."
+            rm_msg = _('Removing %d old items.')
+            $log.info(meth) { rm_msg % [old] }
           end
         else
           feed['items'] = new_items
@@ -5310,14 +5355,16 @@ ENDUSAGE
         Thread::critical = false
       else
         feed['updated'] = t.to_i
-        $log.puts "Feed \"#{feed['title']}\" hasn't changed."
+        same_msg = _("Feed \"%s\" hasn't changed.")
+        $log.info(meth) { same_msg % [feed['title']] }
       end
       
       # if this is the currently selected feed, then re-select it
       # so it's contents are updated
       # TODO: make this select the currently selected item again
       # (assuming it still exists)
-      if !$config['run_http_server'] && !$config['run_drb_server'] &&
+      if $config['mode'] == 'view' && 
+        !$config['run_http_server'] && !$config['run_drb_server'] &&
          $config['feeds'].get($a_feed)['url'] == feed['url']
          feed_win_id = Raggle::Interfaces::NcursesInterface::get_win_id('feed')
         $wins[feed_win_id].select_win_item
@@ -5327,69 +5374,87 @@ ENDUSAGE
       $update_wins = true
     end
 
+    def Engine::start_grab_log
+      meth = 'Engine.start_grab_log'
+
+      # create new log file
+      log = Logger.new($config['grab_log_path'], 
+                       $config['grab_log_age'] || 'weekly', 
+                       $config['grab_log_size'] || 1048576)
+      log.info(meth) { _('Starting grab log.') }
+
+      # set log level
+      level_msg = _('Setting log level to "%s".')
+      log_level_str = $config['grab_log_level'] || 'INFO'
+      log.info(meth) { level_msg % [log_level_str] }
+      log.level = Logger.const_get(log_level_str)
+      $log = log
+    end
+  
     #
     # Start and return the feed-grabbing thread
     #
     def Engine::start_feed_thread
+      meth = 'Engine.start_feed_thread'
+
       ret = Thread.new do
-        File.open($config['grab_log_path'], $config['grab_log_mode']) do |log|
-          log.sync = true
-          log.puts "#{Time.now}: Starting grab log."
-          $log = log
+        Engine::start_grab_log
 
-          first_iteration = true
-          loop do
-            if !first_iteration || $config['update_on_startup']
-              begin
-                threads = []
-                $config['feeds'].each do |the_feed|
-                  threads << Thread::new(the_feed) do |feed| 
-                    Raggle::Engine::grab_feed(feed)
-                  end
-
-                  until Thread::list.size < ($config['max_threads'] || 60)
-                    $log.puts _('DEBUG: Waiting for threads')
-                    sleep 5
-                  end
+        first_iteration = true
+        loop do
+          if !first_iteration || $config['update_on_startup']
+            begin
+              threads = []
+              $config['feeds'].each do |the_feed|
+                threads << Thread::new(the_feed) do |feed| 
+                  Raggle::Engine::grab_feed(feed)
                 end
 
-                # wait for outstanding feed grabbing threads to finish
-                threads.each do |th| 
-                  begin
-                    if th && th.status && th.alive?
-                      th_title = th['feed'] ? th['feed']['title'] : th
-                      $log.puts "#{Time.now}: Waiting on \"#{th_title}\""
-                      th.join($config['thread_reap_timeout'] || 2)
-                    end
-                  rescue Exception
-                    $log.puts "Feed Thread Reap Error: \"#$!\"."
-                    next
-                  end
-                end
-              rescue
-                log.puts 'Feed Error: ' << $!.to_s
-              end
-            end
-
-            first_iteration = false
-            
-            # finish log entries
-            interval = $config['feed_sleep_interval']
-            $new_status = $config['msg_grab_done'] % [ $VERSION ]
-            if $config['use_manual_update']
-              log.puts "#{Time.now}: Done checking."
-              Thread::stop
-            else
-              Thread::list.each do |th|
-                if th && th.status && th.alive? && th['feed']
-                  $log.puts "DEBUG: thread list: #{th['feed']['title']}"
+                until Thread::list.size < ($config['max_threads'] || 60)
+                  $log.debug(meth) { _('DEBUG: Waiting for threads') }
+                  sleep 5
                 end
               end
-              log.puts "#{Time.now}: Done checking.  Sleeping for #{interval}s."
-              sleep interval
+
+              # wait for outstanding feed grabbing threads to finish
+              threads.each do |th| 
+                begin
+                  if th && th.status && th.alive?
+                    th_title = th['feed'] ? th['feed']['title'] : th
+                    th_msg = _('Waiting on "%s"')
+                    $log.debug(meth) { th_msg % [th_title] }
+                    th.join($config['thread_reap_timeout'] || 2)
+                  end
+                rescue Exception
+                  err_msg = _('Feed Thread Reap Error:')
+                  $log.error(meth) { "#{err_msg} \"#$!\"." }
+                  next
+                end
+              end
+            rescue
+              log.error(meth) { _('Feed Error: ') << $!.to_s }
             end
-          end  # loop do
-        end  # File.open
+          end
+
+          first_iteration = false
+          
+          # finish log entries
+          interval = $config['feed_sleep_interval']
+          $new_status = $config['msg_grab_done'] % [ $VERSION ]
+          if $config['use_manual_update']
+            log.info(meth) { _('Done checking.') }
+            Thread::stop
+          else
+            Thread::list.each do |th|
+              if th && th.status && th.alive? && th['feed']
+                $log.debug(meth) { "threads: #{th['feed']['title']}" }
+              end
+            end
+            done_msg = _('Done checking.  Sleeping for %d seconds.')
+            log.info(meth) { done_msg % [interval] }
+            sleep interval
+          end
+        end  # loop do
       end  # Thread.new
 
       # return thread
@@ -5573,6 +5638,24 @@ $config = {
   # feed cache handling
   'load_feed_cache'       => true,
   'save_feed_cache'       => true,
+
+  # Log file rotation schedule.
+  #
+  # (valid values are 'daily', 'weekly', 'monthly', or an integer
+  # indecating the number of days).
+  'grab_log_age'          => 'weekly',
+
+  # Log file rotation size.
+  #
+  # If the log file exceeds this size, then it will be automatically
+  # rotated.
+  'grab_log_size'         => 1048576,
+
+  # Log file verbosity.
+  #
+  # Valid values are 'DEBUG', 'INFO', ''WARN', 'ERROR', and 'FATAL'.
+  # Defaults to 'INFO' if unspecified.
+  'grab_log_level'        => 'INFO',
 
   # save old feed items indefinitely?
   # Note: doing this with a lot of high-traffic feeds can make

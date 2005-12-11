@@ -2605,3 +2605,9 @@ _Cvs
 
 * Sat Dec 10 19:47:22 2005, pabs <pabs@pablotron.org>
   * README: added FAQ about broken feeds
+
+* Sat Dec 10 19:55:26 2005, pabs <pabs@pablotron.org>
+  * raggle: add documentation for -U/--update
+  * raggle.pod: add documentation for -U/--update
+  * raggle.pod: update my feed URLs to be less annoying (s/\.www//)
+

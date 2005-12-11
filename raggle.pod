@@ -44,6 +44,8 @@ B<raggle>
 [B<--title> I<title>]
 [B<-u> I<url>]
 [B<--url> I<url>]
+[B<--U> I<feed>]
+[B<--update> I<feed>]
 
 =head1 DESCRIPTION
 
@@ -164,6 +166,10 @@ B<--edit>.
 
 Reverse the actions of B<--save-items>, cause old items to be
 removed from the feed cache; used with B<--add> or B<--edit>.
+
+=item B<-U> I<feed>  B<--update> I<feed>
+
+Update the specified feed (or I<all> for all feeds).
 
 =item B<-u> I<url>  B<--url> I<url>
 

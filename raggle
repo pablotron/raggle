@@ -1913,6 +1913,7 @@ Options:
                                 and '--edit').
   --unsave-items                Don't save old items of feed (for '--add'
                                 and '--edit').
+  --update                      Update feed (or all feeds, if unspecified).
   -u, --url                     URL attribute of feed (for '--add' and
                                 '--edit').
   -v, --verbose                 Turn on verbose output.
@@ -1943,10 +1944,16 @@ Examples:
   # run as HTTP server on port 2345
   #$0 --server 2345
   
+  # update all feeds, then exit
+  #$0 --update all
+  
+  # update feed 10, then exit
+  #$0 --update 10
+   
 About the Authors:
   Paul Duncan <pabs@pablotron.org>
-  http://www.pablotron.org/  (RSS: http://www.pablotron.org/rss/)
-  http://www.paulduncan.org/ (RSS: http://www.paulduncan.org/rss/)
+  http://pablotron.org/  (RSS: http://pablotron.org/rss/)
+  http://paulduncan.org/ (RSS: http://paulduncan.org/rss/)
 
   Richard Lowe <richlowe@richlowe.net>
   http://www.richlowe.net/

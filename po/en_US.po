@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Raggle 0.4.1\n"
+"Project-Id-Version: Raggle 0.4.4\n"
 "POT-Creation-Date: 2005-03-16 17:51-0500\n"
-"PO-Revision-Date: 2005-06-27 17:51-0500\n"
+"PO-Revision-Date: 2005-12-10 19:59-0500\n"
 "Last-Translator: Paul Duncan <pabs@pablotron.org>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -16,174 +16,294 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: raggle:3105 raggle:5320
+#: ./raggle:1831
+msgid "converting unicode"
+msgstr ""
+
+#: ./raggle:1836
+msgid "munging unicode"
+msgstr ""
+
+#: ./raggle:1841
+msgid "dropping unicode"
+msgstr ""
+
+#: ./raggle:2650
+msgid "Feed searching requires the ruby xmlrpc library."
+msgstr ""
+
+#: ./raggle:3483 ./raggle:6000
 msgid "Untitled Feed"
 msgstr ""
 
-#: raggle:4831
+#: ./raggle:3566
+msgid "repairing relative url failed"
+msgstr ""
+
+#: ./raggle:5263
+msgid "Checking feed"
+msgstr ""
+
+#: ./raggle:5270
+msgid "Updating feed"
+msgstr ""
+
+#: ./raggle:5270
+msgid "from"
+msgstr ""
+
+#: ./raggle:5279
+msgid "Error updating"
+msgstr ""
+
+#: ./raggle:5351
+msgid "Removing %d old items."
+msgstr ""
+
+#: ./raggle:5365
+msgid "Feed %s hasn't changed."
+msgstr ""
+
+#: ./raggle:5391
+msgid "Starting grab log."
+msgstr ""
+
+#: ./raggle:5394
+msgid "Setting log level to \"%s\"."
+msgstr ""
+
+#: ./raggle:5421
 msgid "DEBUG: Waiting for threads"
 msgstr ""
 
-#: raggle:5183
+#: ./raggle:5431
+msgid "Waiting on \"%s\""
+msgstr ""
+
+#: ./raggle:5436
+msgid "Feed Thread Reap Error:"
+msgstr ""
+
+#: ./raggle:5442
+msgid "Feed Error: "
+msgstr ""
+
+#: ./raggle:5452
+msgid "Done checking."
+msgstr ""
+
+#: ./raggle:5460
+msgid "Done checking.  Sleeping for %d seconds."
+msgstr ""
+
+#: ./raggle:5848
 msgid " Welcome to Raggle %s."
 msgstr ""
 
-#: raggle:5184
+#: ./raggle:5849
 msgid "| Press Q to exit "
 msgstr ""
 
-#: raggle:5185
+#: ./raggle:5850
 msgid "[X] "
 msgstr ""
 
-#: raggle:5186
+#: ./raggle:5851
 msgid " Raggle %s"
 msgstr ""
 
-#: raggle:5187
+#: ./raggle:5852
 msgid "Raggle: Loading config..."
 msgstr ""
 
-#: raggle:5188
+#: ./raggle:5853
 msgid "Raggle: Loading feed list..."
 msgstr ""
 
-#: raggle:5189
+#: ./raggle:5854
 msgid "Raggle: Saving feed list..."
 msgstr ""
 
-#: raggle:5190
+#: ./raggle:5855
 msgid "Raggle: Loading feed cache..."
 msgstr ""
 
-#: raggle:5191
+#: ./raggle:5856
 msgid "Raggle: Saving feed cache..."
 msgstr ""
 
-#: raggle:5192
+#: ./raggle:5857
 msgid "Raggle: Loading theme..."
 msgstr ""
 
-#: raggle:5193
+#: ./raggle:5858
 msgid "Raggle: Saving theme..."
 msgstr ""
 
-#: raggle:5194
+#: ./raggle:5859
 msgid "Thanks for using Raggle!"
 msgstr ""
 
-#: raggle:5195
+#: ./raggle:5860
 msgid "Input:"
 msgstr ""
 
-#: raggle:5196
+#: ./raggle:5861
 msgid "New value:"
 msgstr ""
 
-#: raggle:5197
+#: ./raggle:5862
 msgid "Terminal Resize: "
 msgstr ""
 
-#: raggle:5198
+#: ./raggle:5863
 msgid "Links:"
 msgstr ""
 
-#: raggle:5199
+#: ./raggle:5864
 msgid "Images:"
 msgstr ""
 
-#: raggle:5200
+#: ./raggle:5865
 msgid "Enter URL:"
 msgstr ""
 
-#: raggle:5201
+#: ./raggle:5866
 msgid "Feed added"
 msgstr ""
 
-#: raggle:5202
+#: ./raggle:5867
 msgid "Delete current feed? (y/n)"
 msgstr ""
 
-#: raggle:5203
+#: ./raggle:5868
 msgid "Find:"
 msgstr ""
 
-#: raggle:5204
+#: ./raggle:5869
 msgid "Display Category"
 msgstr ""
 
-#: raggle:5205
+#: ./raggle:5870
 msgid "Find Feeds:"
 msgstr ""
 
-#: raggle:5206
+#: ./raggle:5871
 msgid " Searching..."
 msgstr ""
 
-#: raggle:5207
+#: ./raggle:5872
 msgid "Search Results for \"%s\" - %s matching feeds"
 msgstr ""
 
-#: raggle:5208
+#: ./raggle:5873
 msgid "Please select a feed..."
 msgstr ""
 
-#: raggle:5209
+#: ./raggle:5874
 msgid "No results found"
 msgstr ""
 
-#: raggle:5210
+#: ./raggle:5875
 msgid "Current Key Bindings"
 msgstr ""
 
-#: raggle:5211
+#: ./raggle:5876
 msgid "Warning: Added existing feed"
 msgstr ""
 
-#: raggle:5212
+#: ./raggle:5877
 msgid "Edit Feed Options"
 msgstr ""
 
-#: raggle:5213
+#: ./raggle:5878
 msgid "Warning: Bad option for %s"
 msgstr ""
 
-#: raggle:5214
+#: ./raggle:5879
 msgid "New option saved"
 msgstr ""
 
-#: raggle:5215
+#: ./raggle:5880
 msgid "Configuration saved"
 msgstr ""
 
-#: raggle:5216
+#: ./raggle:5881
 msgid "OPML file or URI:"
 msgstr ""
 
-#: raggle:5217
+#: ./raggle:5882
 msgid "OPML exported"
 msgstr ""
 
-#: raggle:5218
+#: ./raggle:5883
 msgid "OPML imported"
 msgstr ""
 
-#: raggle:5219
+#: ./raggle:5884
 msgid "Error: bad or empty URI"
 msgstr ""
 
-#: raggle:5220
+#: ./raggle:5885
 msgid "WARNING: exec url found!"
 msgstr ""
 
-#: raggle:5528
+#: ./raggle:5888
+msgid "Saving bookmark for \"%s\""
+msgstr ""
+
+#: ./raggle:5889
+msgid "Bookmark saved for \"%s\"."
+msgstr ""
+
+#: ./raggle:5890
+msgid "Bookmark Description:"
+msgstr ""
+
+#: ./raggle:5891
+msgid "Bookmark Tags (space-separated):"
+msgstr ""
+
+#: ./raggle:5892
+msgid "Bad bookmark type: %s"
+msgstr ""
+
+#: ./raggle:5893
+msgid "Unknown database type: %s"
+msgstr ""
+
+#: ./raggle:5894
+msgid "Database Error: %s"
+msgstr ""
+
+#: ./raggle:5895
+msgid "Missing Database Engine: %s"
+msgstr ""
+
+#: ./raggle:5896
+msgid "Delicious Error: %s"
+msgstr ""
+
+#: ./raggle:5897
+msgid "Saving Bookmark to Delicious..."
+msgstr ""
+
+#: ./raggle:5898
+msgid "Error: Rubilicious not installed."
+msgstr ""
+
+#: ./raggle:5899
+msgid "Error saving to %s: %s"
+msgstr ""
+
+#: ./raggle:6210
 msgid "Feeds"
 msgstr ""
 
-#: raggle:5549
+#: ./raggle:6231
 msgid "Items"
 msgstr ""
 
-#: raggle:5567
+#: ./raggle:6249
 msgid "Description"
 msgstr ""

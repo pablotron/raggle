@@ -2616,3 +2616,6 @@ _Cvs
 
 * Sat Dec 10 20:05:51 2005, pabs <pabs@pablotron.org>
   * raggle.1: regenerated from POD
+
+* Sat Dec 10 20:09:51 2005, pabs <pabs@pablotron.org>
+  * TODO: mark off small things

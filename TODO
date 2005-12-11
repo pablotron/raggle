@@ -111,7 +111,7 @@ Raggle TODO
     (see libfeed and squaggle or C rewrite)
 [-] backend abstraction (be able to save to MySQL, LDAP, etc)
     (not doing this, next version using sqlite though)
-[-] use URI lib for url handling
+[*] use URI lib for url handling
     (not doing this, comment about it though)
 [-] del.icio.us integration
     (not doing this, could be added as a keybinding though)

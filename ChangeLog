@@ -2603,3 +2603,5 @@ _Cvs
     logging options, which are documented in the default config)
   * doc/default_config.rb: regenerated
 
+* Sat Dec 10 19:47:22 2005, pabs <pabs@pablotron.org>
+  * README: added FAQ about broken feeds

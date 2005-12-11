@@ -1,7 +1,7 @@
 Raggle 0.5.0-pre README
 =======================
 
-This document was last updated on Tue Aug 09 01:13:59 2005.
+This document was last updated on Sat Dec 10 19:46:03 2005.
 Please see the file COPYING for licensing and warranty information.  The
 latest version of this software is available at the following URL:
 http://www.raggle.org/.
@@ -274,6 +274,43 @@ Q.  I get funny characters instead of lines for my window borders.  How
 A.  Your terminal font doesn't contain the ANSI characters Ncurses uses to 
     draw lines.  Either switch fonts or run Raggle with the --ascii (-A)
     command-line flag.
+
+Q.  This feed doesn't work with Raggle.  What gives?
+A.  A lot of feeds either aren't well-formed XML or specify an  invalid 
+    character encoding.  REXML, the XML parser used by Raggle, is a
+    strict, non-validating XML parser, which means it's picky about
+    both.  Raggle will refuse to parse feeds that aren't well-formed
+    XML, and it may or may not work correctly on feeds with an incorrect
+    character encoding.  If you're on a Unix machine, you can use
+    XMLLint (http://xmlsoft.org/xmllint.html) to check both, like so:
+
+      # replace $url with the feed URL
+      wget -qO- "$url" | xmllint --output /dev/null -
+
+    Any output from xmllint means the feed isn't valid XML, and may not
+    work correctly with Raggle.  It fact, it probably won't work
+    correctly in other RSS aggregators either.  Errors like this should
+    probably be passed on to the feed author.
+    
+    If the feed parses correctly in XMLLint, try passing it through Feed
+    Validator (http://feedvalidator.org/).  If there are errors here,
+    these should be forwarded on to the feed author.
+
+    If the feed passes Feed Validator, then it's probably a bug in
+    Raggle.  See the "Reporting Bugs" section below for instructions on
+    submitting a bug report.
+
+Q.  Can I update Raggle from the command-line or from a cron job?
+A.  Yes, as of version 0.4.4.  See the documentation on the --update
+    command-line option.
+
+Q.  Can I use more than one browser with Raggle?
+A.  Yes, with a little bit of config file magic.  Out of the box, Raggle
+    only supports one browser.  However, the instructions at the 
+    following URL will allow you to select a browser when opening a
+    URL, or bind an alternate browser to a different URL:
+
+      http://raggle.org/files/alternate_browser/alternate_browser_email.txt
 
 
 Reporting Bugs

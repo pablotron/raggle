@@ -2619,3 +2619,6 @@ _Cvs
 
 * Sat Dec 10 20:09:51 2005, pabs <pabs@pablotron.org>
   * TODO: mark off small things
+
+* Tue Dec 13 13:29:18 2005, pabs <pabs@pablotron.org>
+  * raggle: add XML declaration to OPML export, fix typo

@@ -1207,7 +1207,7 @@ module Raggle
         end
 
         doc = REXML::Document.new
-        doc << REXML::Document::DECLARATION
+        doc << REXML::XMLDecl.new
         doc.add(opml)
 
         file = (file_name == '-') ? $stdout : File::open(file_name, 'w')

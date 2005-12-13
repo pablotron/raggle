@@ -2628,3 +2628,6 @@ _Cvs
     got a feed item with a truncated or empty description, you
     can fetch the URL in question and render it directly in the
     item description window.
+
+* Tue Dec 13 14:32:04 2005, pabs <pabs@pablotron.org>
+  * raggle: better comments for yank options

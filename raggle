@@ -6055,8 +6055,18 @@ $config = {
   'desc_show_divider'     => false,
 
   # yank settings
+
+  # command to use for yank (should probably be curl or wget, but
+  # you could use links or something else as well)
   'yank_cmd_fmt'          => "wget -qO- '%s'",
+
+  # filter to pass content through before appending.  the default
+  # strips out the HTML header junk, and usually gets us much closer to
+  # the actual content
   'yank_filter'           => [/^.*?<body[^>]*>/mi, ''],
+
+  # prefix to append before content (passed through strftime so you can
+  # timestamp it)
   'yank_prefix'           => "<br/>----<p>Yanked by Raggle on %Y-%m-%d </p>----<br/>",
   
   # xpaths to item elements

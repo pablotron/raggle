@@ -2622,3 +2622,9 @@ _Cvs
 
 * Tue Dec 13 13:29:18 2005, pabs <pabs@pablotron.org>
   * raggle: add XML declaration to OPML export, fix typo
+
+* Tue Dec 13 14:22:22 2005, pabs <pabs@pablotron.org>
+  * raggle: added Key.yank_link (bound to Y by default).  If you've 
+    got a feed item with a truncated or empty description, you
+    can fetch the URL in question and render it directly in the
+    item description window.

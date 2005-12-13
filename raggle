@@ -2538,6 +2538,29 @@ ENDUSAGE
         end
         
         #
+        # Yank the contents of the item link into the description
+        # (for items with truncated or empty descriptions).
+        #
+        def Key::yank_link
+          return unless feed = $config['feeds'].get($a_feed)
+          return unless item = feed['items'][$a_item]
+
+          yank_cmd = $config['yank_cmd_fmt'] % item['url']
+
+          if data = IO.popen(yank_cmd, 'r') { |ph| ph.read }
+            yank_filter = $config['yank_filter']
+            data = data.gsub(*yank_filter) if yank_filter
+
+            yank_prefix = Time.now.strftime($config['yank_prefix'] || '')
+            item['desc'] ||= ''
+            item['desc'] +=  yank_prefix + data
+
+            # select current item (to display new contents)
+            NcursesInterface.select_item($a_item)
+          end
+        end
+
+        #
         # opens a story link by number, or item link by default
         #
         def Key::open_link(num = 0)
@@ -6031,6 +6054,10 @@ $config = {
   'desc_show_url'         => false,
   'desc_show_divider'     => false,
 
+  # yank settings
+  'yank_cmd_fmt'          => "wget -qO- '%s'",
+  'yank_filter'           => [/^.*?<body[^>]*>/mi, ''],
+  'yank_prefix'           => "<br/>----<p>Yanked by Raggle on %Y-%m-%d </p>----<br/>",
   
   # xpaths to item elements
   'item_element_xpaths'  => {
@@ -6142,6 +6169,7 @@ $config = {
     ?7                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::open_link(7)} ),
     ?8                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::open_link(8)} ),
     ?9                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::open_link(9)} ),
+    ?Y                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::yank_link } ),
   } : {}),
 
   # color palette (referenced by themes)

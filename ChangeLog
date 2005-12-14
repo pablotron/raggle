@@ -2638,3 +2638,13 @@ _Cvs
   * raggle: don't crash at end of grab loop (log => $log)
   * raggle: include error backtrace when log is set to debug
   * raggle: note that refresh intervals are in minutes in config
+
+* Wed Dec 14 17:51:26 2005, pabs <pabs@pablotron.org>
+  * raggle: cleanup of yank command
+  * raggle: switch from yank_cmd/wget to Engine.get_url (faster)
+  * raggle: better yank error handling (don't die if URL is bad)
+  * raggle: added $config['yank_filter_proc'], which iterates over
+    $config['yank_filters'] and filters out each block (users
+    can define their own version of each if they want)
+  * doc/default_config.rb: regenerated
+

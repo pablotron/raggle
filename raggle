@@ -2544,20 +2544,21 @@ ENDUSAGE
         def Key::yank_link
           return unless feed = $config['feeds'].get($a_feed)
           return unless item = feed['items'][$a_item]
+          return unless url = item['url']
+          return unless data = (Engine.get_url(url) rescue [])
+          return unless ((data = data[0]) && data)
 
-          yank_cmd = $config['yank_cmd_fmt'] % item['url']
+          # filter source HTML
+          filter = $config['yank_filter_proc']
+          data = filter.call(data)
 
-          if data = IO.popen(yank_cmd, 'r') { |ph| ph.read }
-            yank_filter = $config['yank_filter']
-            data = data.gsub(*yank_filter) if yank_filter
+          # build yank prefix, add text to item description
+          yank_prefix = Time.now.strftime($config['yank_prefix'] || '')
+          item['desc'] ||= ''
+          item['desc'] +=  yank_prefix + data
 
-            yank_prefix = Time.now.strftime($config['yank_prefix'] || '')
-            item['desc'] ||= ''
-            item['desc'] +=  yank_prefix + data
-
-            # select current item (to display new contents)
-            NcursesInterface.select_item($a_item)
-          end
+          # select current item (to display new contents)
+          NcursesInterface.select_item($a_item)
         end
 
         #
@@ -6084,16 +6085,29 @@ $config = {
   'desc_show_url'         => false,
   'desc_show_divider'     => false,
 
-  # yank settings
 
-  # command to use for yank (should probably be curl or wget, but
-  # you could use links or something else as well)
-  'yank_cmd_fmt'          => "wget -qO- '%s'",
+  #################
+  # yank settings #
+  #################
 
-  # filter to pass content through before appending.  the default
-  # strips out the HTML header junk, and usually gets us much closer to
+  # a list of stuff to filter out of text that's yanked
+  # you can either expand this list, or define a whole new filter
+  # method with $config['yank_filter_proc'] below
+  'yank_filters'          => [
+    /<!--.*?-->/mi, 
+    /.*<body[^>]*>/mi, 
+    /<script.*?<\/script.*?>/mi,
+    /<style.*?<\/style.*?>/mi,
+  ],
+
+  # filter to pass content through before appending.  the default strips
+  # out the HTML header junk and comments (using the contents of
+  # $config['yank_filters'] above),, hopefully getting us much closer to
   # the actual content
-  'yank_filter'           => [/^.*?<body[^>]*>/mi, ''],
+  'yank_filter_proc'      => proc { |html|
+    filters = $config['yank_filters']
+    filters.inject(html) { |ret, re| ret.gsub(re, '') }
+  },
 
   # prefix to append before content (passed through strftime so you can
   # timestamp it)

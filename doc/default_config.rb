@@ -364,10 +364,10 @@ $config = {
   'use_iconv_munge'       => true,
   'iconv_munge_illegal'   => true,
 
-  # warn if feed refresh is set to less than this
+  # warn if feed refresh is set to less than this (in minutes)
   'feed_refresh_warn'     => 60,
 
-  # default feed name and refresh rate
+  # default feed name and refresh rate (in minutes)
   'default_feed_title'    => _('Untitled Feed'),
   'default_feed_refresh'  => 120,
   'default_feed_priority' => 0,
@@ -402,6 +402,33 @@ $config = {
   'desc_show_url'         => false,
   'desc_show_divider'     => false,
 
+
+  #################
+  # yank settings #
+  #################
+
+  # a list of stuff to filter out of text that's yanked
+  # you can either expand this list, or define a whole new filter
+  # method with $config['yank_filter_proc'] below
+  'yank_filters'          => [
+    /<!--.*?-->/mi, 
+    /.*<body[^>]*>/mi, 
+    /<script.*?<\/script.*?>/mi,
+    /<style.*?<\/style.*?>/mi,
+  ],
+
+  # filter to pass content through before appending.  the default strips
+  # out the HTML header junk and comments (using the contents of
+  # $config['yank_filters'] above),, hopefully getting us much closer to
+  # the actual content
+  'yank_filter_proc'      => proc { |html|
+    filters = $config['yank_filters']
+    filters.inject(html) { |ret, re| ret.gsub(re, '') }
+  },
+
+  # prefix to append before content (passed through strftime so you can
+  # timestamp it)
+  'yank_prefix'           => "<br/>----<p>Yanked by Raggle on %Y-%m-%d </p>----<br/>",
   
   # xpaths to item elements
   'item_element_xpaths'  => {
@@ -513,6 +540,7 @@ $config = {
     ?7                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::open_link(7)} ),
     ?8                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::open_link(8)} ),
     ?9                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::open_link(9)} ),
+    ?Y                  => proc( %{|win, key| Raggle::Interfaces::NcursesInterface::Key::yank_link } ),
   } : {}),
 
   # color palette (referenced by themes)

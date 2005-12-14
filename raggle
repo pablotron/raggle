@@ -4221,7 +4221,7 @@ ENDUSAGE
         Ncurses::keypad Ncurses::stdscr, 1
         Ncurses::noecho if $config['use_noecho']
         Ncurses::start_color
-        # Ncurses::mousemask(Ncurses::ALL_MOUSE_EVENTS, [])
+        # Ncurses::mousemask(Ncurses::ALL_MOUSE_EVENTS | Ncurses::REPORT_MOUSE_POSITION, [])
         
         # exit(-1) unless Ncurses::has_colors?
         
@@ -4274,15 +4274,30 @@ ENDUSAGE
       # main input loop for Ncurses interface
       #
       def NcursesInterface::main_loop
+        meth = 'NcursesInterface::main_loop'
         timeout = $config['input_select_timeout']
         $done = false
+
         until $done
           # handle keyboard input
           r = select [$stdin], nil, nil, timeout
           if r && r.size > 0
             c = Ncurses::getch
-            $config['keys'][c].call($wins[$a_win],c) \
-              if c != Ncurses::KEY_RESIZE && $config['keys'].has_key?(c) 
+            case c
+            when Ncurses::KEY_MOUSE
+              mev = Ncurses::MEVENT.new
+              Ncurses.getmouse(mev)
+
+              # build event string
+              ev_str = Ncurses.constants.grep(/^BUTTON._/).find_all { |c_str|
+                mev.bstate & Ncurses.const_get(c_str)
+              }.map { |str| str.downcase }.join(',') || ''
+
+              $log.warn(meth) { "mouse event: #{mev.x}x#{mev.y}: #{ev_str}" }
+            else
+              $config['keys'][c].call($wins[$a_win],c) \
+                if c != Ncurses::KEY_RESIZE && $config['keys'].has_key?(c) 
+            end
           end
           
           # refresh window contents if there's been a feed update
@@ -5456,13 +5471,28 @@ ENDUSAGE
                     th.join($config['thread_reap_timeout'] || 2)
                   end
                 rescue Exception
+                  # log error message
                   err_msg = _('Feed Thread Reap Error:')
-                  $log.error(meth) { "#{err_msg} \"#$!\"." }
+                  $log.error(meth) { "#{err_msg} #$!" }
+
+                  # if debugging is enabled, then log a backtrace too
+                  $log.debug(meth) { 
+                    bt = ($!.backtrace || []).join rescue ''
+                    "#{err_msg} #$!: (backtrace): #{bt}" 
+                  }
                   next
                 end
               end
-            rescue
-              log.error(meth) { _('Feed Error: ') << $!.to_s }
+            rescue 
+              # log error message
+              err_msg = _('Feed Error: ')
+              $log.error(meth) { "#{err_msg} #$!" }
+
+              # if debugging is enabled, then log a backtrace too
+              $log.debug(meth) { 
+                bt = $!.backtrace.join rescue ''
+                "#{err_msg} #{$!} backtrace:  #{bt}" 
+              }
             end
           end
 
@@ -5472,7 +5502,7 @@ ENDUSAGE
           interval = $config['feed_sleep_interval']
           $new_status = $config['msg_grab_done'] % [ $VERSION ]
           if $config['use_manual_update']
-            log.info(meth) { _('Done checking.') }
+            $log.info(meth) { _('Done checking.') }
             Thread::stop
           else
             Thread::list.each do |th|
@@ -5481,7 +5511,7 @@ ENDUSAGE
               end
             end
             done_msg = _('Done checking.  Sleeping for %d seconds.')
-            log.info(meth) { done_msg % [interval] }
+            $log.info(meth) { done_msg % [interval] }
             sleep interval
           end
         end  # loop do
@@ -6016,10 +6046,10 @@ $config = {
   'use_iconv_munge'       => true,
   'iconv_munge_illegal'   => true,
 
-  # warn if feed refresh is set to less than this
+  # warn if feed refresh is set to less than this (in minutes)
   'feed_refresh_warn'     => 60,
 
-  # default feed name and refresh rate
+  # default feed name and refresh rate (in minutes)
   'default_feed_title'    => _('Untitled Feed'),
   'default_feed_refresh'  => 120,
   'default_feed_priority' => 0,

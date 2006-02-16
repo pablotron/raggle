@@ -2648,3 +2648,6 @@ _Cvs
     can define their own version of each if they want)
   * doc/default_config.rb: regenerated
 
+* Thu Feb 16 08:52:00 2006, redshift <redshift@halffull.org>
+  * raggle: patch from Michael Ablassmeier to clean up crashes from
+    ambiguous options

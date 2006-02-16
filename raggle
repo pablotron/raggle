@@ -2079,6 +2079,8 @@ ENDUSAGE
         end
       rescue GetoptLong::InvalidOption 
         exit(-1)
+      rescue GetoptLong::AmbigousOption
+        exit(-1)
       end
     
            

@@ -647,11 +647,19 @@ module Raggle
           server = reg.read('ProxyServer')[1]
           np = reg.read('ProxyOverride')[1]
 
-          server =~ /^([^:]+):(.+)$/
-          ret = {
-            'host'      => $1,
-            'port'      => $2,
-          }
+          if server =~ /^([^:]+):([^@]+)@([^:]+):(\d+)$/
+            ret = {
+              'user' => $1,
+              'pass' => $2,
+              'host' => $3,
+              'port' => $4,
+            }
+          elsif server =~ /^([^:]+):(\d+)$/
+            ret = {
+              'host' => $1,
+              'port' => $2,
+            }
+          end
 
           ret['no_proxy'] = np.tr(';', ',') if np && np.length > 0
         end
@@ -682,6 +690,10 @@ module Raggle
       # check ENV
       if $config['proxy'] && $config['proxy']['host']
         ret = $config['proxy']
+      elsif ENV['http_proxy'] && ENV['http_proxy'] =~ /http:\/\/([^:]+):([^@]+)@([^:]+):(\d+)/
+        ret = { 'user' => $1, 'pass' => $2, 'host' => $3, 'port' => $4 }
+        no_proxy = ENV['no_proxy']
+        ret['no_proxy'] = (no_proxy ? no_proxy.split(/\s*,\s*/) : [])
       elsif ENV['http_proxy'] && ENV['http_proxy'] =~ /http:\/\/([^:]+):(\d+)/
         ret = { 'host' => $1, 'port' => $2 }
         no_proxy = ENV['no_proxy']
@@ -5116,7 +5128,7 @@ ENDUSAGE
       proxy = Raggle::Proxy::find_proxy(host) || { }
       
       # initialize http connection
-      http = Net::HTTP::new(host, port, proxy['host'], proxy['port'])
+      http = Net::HTTP::new(host, port, proxy['host'], proxy['port'], proxy['user'], proxy['pass'])
 
       # if we have SSL support and this is an https connection, then
       # enable SSL/TLS and disable peer verification (to turn off the
@@ -5782,6 +5794,8 @@ $config = {
   'proxy' => {
     'host'      => nil,
     'port'      => nil,
+    'user'      => nil,
+    'pass'      => nil,
     'no_proxy'  => nil,
   },
   

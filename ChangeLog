@@ -2651,3 +2651,7 @@ _Cvs
 * Thu Feb 16 08:52:00 2006, redshift <redshift@halffull.org>
   * raggle: patch from Michael Ablassmeier to clean up crashes from
     ambiguous options
+
+* Sun May 28 22:45:00 2006, redshift <redshift@halffull.org>
+  * raggle: added authenticated proxy support - thanks, Net::HTTP!  works
+    with Windows registry, config, and environment

@@ -2655,3 +2655,7 @@ _Cvs
 * Sun May 28 22:45:00 2006, redshift <redshift@halffull.org>
   * raggle: added authenticated proxy support - thanks, Net::HTTP!  works
     with Windows registry, config, and environment
+
+* Sun May 28 23:30:00 2006, redshift <redshift@halffull.org>
+  * raggle: hopefully work around a race condition in saving the feed
+    list, thanks Michael

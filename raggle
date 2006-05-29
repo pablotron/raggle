@@ -4810,28 +4810,32 @@ ENDUSAGE
       path = $config['feed_list_path']
       new_path = path + '~'
     
-      # rename old feed list
-      begin 
-        File::rename path, new_path if test ?e, path
-      rescue
-      end
-      
-      # save feed list
-      File::open(path, 'w') do |f|
-        if quit
-          $stdout.puts $config['msg_save_list'] if $config['raggle_mode'] == 'view'
-          $stdout.flush
-        else $new_status = $config['msg_save_list'] if $config['raggle_mode'] == 'view'
+      if $config['feeds'].size > 0
+        # rename old feed list
+        begin 
+          File::rename path, new_path if test ?e, path
+        rescue
         end
+        
+        # save feed list
+        File::open(path, 'w') do |f|
+          if quit
+            $stdout.puts $config['msg_save_list'] if $config['raggle_mode'] == 'view'
+            $stdout.flush
+          else $new_status = $config['msg_save_list'] if $config['raggle_mode'] == 'view'
+          end
 
-        # save feed items before clearing them (for web interface)
-        tmp = []
-        $config['feeds'].each { |feed| tmp << feed['items']; feed['items'] = [] }
-    
-        f.puts $config['feeds'].feeds.to_yaml
-    
-        # restore feed items (again, for web interface)
-        tmp.each_with_index { |t, i| $config['feeds'].get(i)['items'] = t }
+          # save feed items before clearing them (for web interface)
+          tmp = []
+          $config['feeds'].each { |feed| tmp << feed['items']; feed['items'] = [] }
+      
+          f.puts $config['feeds'].feeds.to_yaml
+      
+          # restore feed items (again, for web interface)
+          tmp.each_with_index { |t, i| $config['feeds'].get(i)['items'] = t }
+        end
+      else
+        $log.error('Engine.save_feed_list') { "Empty feed list, got hit by race condition?" }
       end
     end
 
